@@ -68,6 +68,7 @@ model Appointment {
   status      String   @default("pendiente")
   price       Float
   notes       String?
+  location    String   @default("Consultorio")
   createdAt   DateTime @default(now())
 }
 

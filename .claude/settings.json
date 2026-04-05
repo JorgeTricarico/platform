@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sv \"https://platform-backend.onrender.com/health\")",
+      "Bash(npm run:*)",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(node -e ':*)"
+    ]
+  }
+}
