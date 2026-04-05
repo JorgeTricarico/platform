@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-05 (sesion 9)
+> Ultima actualizacion: 2026-04-05 (sesion 11)
 
 ## Completado
 
@@ -30,13 +30,13 @@ Mejoras que aplican a ambos clientes o al backend general.
 | L3 | Multi-tenant config-driven | [L3](docs/roadmap/L3-multi-tenant.md) | pendiente | baja |
 | L4 | Analytics dashboard (metricas de negocio) | [L4](docs/roadmap/L4-analytics-dashboard.md) | pendiente | media |
 | L5 | Backup automatico DB a S3/GCS | [L5](docs/roadmap/L5-backup-automatico.md) | pendiente | media |
-| L6 | PWA instalable en celular | [L6](docs/roadmap/L6-pwa.md) | pendiente | media |
+| L6 | PWA instalable en celular | [L6](docs/roadmap/L6-pwa.md) | **completado** (vite-plugin-pwa + manifest + SW + offline cache + mutation queue) | media |
 | M7 | Tests E2E chatbot con API real (prompts + comportamiento) | [M7](docs/roadmap/M7-chatbot-e2e-tests.md) | **completado** | alta |
 | C6 | Configurar MCP Supabase para migraciones directas | [C6](docs/roadmap/C6-mcp-supabase.md) | pendiente | media |
 | C7 | Migration automatica via Supabase SQL | [C7](docs/roadmap/C7-migration-automatica.md) | **completado** | alta |
 | M6 | Responsive completo — ambos clientes 100% usables en celular | [M6](docs/roadmap/M6-responsive-mobile.md) | **completado** (media queries + sidebar + modales min(X,90vw) + CSS consolidado) | alta |
-| M8 | Fix: updateClient endpoint + Clients.tsx edit bug (crea duplicado) | — | pendiente | **critica** |
-| M9 | Toast system — reemplazar alert() con notificaciones styled | — | pendiente | alta |
+| M8 | Fix: updateClient endpoint + Clients.tsx edit bug (crea duplicado) | — | **completado** (PUT /clients/:id + fix handleEdit) | **critica** |
+| M9 | Toast system — reemplazar alert() con notificaciones styled | — | **completado** (ToastProvider + useToast, 16 alert→toast, success feedback) | alta |
 | M10 | React Router — URLs reales, back/forward, deep linking | — | pendiente | media |
 | M11 | Auth basica (JWT) — proteger todos los endpoints | — | pendiente | **critica** |
 | M12 | CI frontend — agregar lint + tests de ambos clientes al CI | — | pendiente | alta |
@@ -65,7 +65,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z13 | Ranking de tipos de arreglo (chart en Dashboard) | — | pendiente | baja |
 | Z14 | Filtro por status en tabla Garments | — | pendiente | media |
 | Z15 | Highlight visual filas vencidas en Garments (deliveryDate < hoy) | — | pendiente | media |
-| Z16 | Editar/eliminar registros financieros | — | pendiente | media |
+| Z16 | Editar/eliminar registros financieros | — | **completado** (PUT+DELETE /finances/:id + UI edit/delete) | media |
 
 ---
 
@@ -90,9 +90,10 @@ Mejoras que aplican a ambos clientes o al backend general.
 | D15 | Escala de dolor 0-10 pre/post sesion en PatientRecord | — | pendiente | baja |
 | D16 | Revenue breakdown por servicio (chart) | — | pendiente | baja |
 | D17 | Razon de cancelacion al cambiar status de cita | — | pendiente | baja |
-| D18 | Editar citas completas (fecha, hora, servicio, precio) | — | pendiente | alta |
-| D19 | Editar/eliminar registros financieros | — | pendiente | media |
-| D20 | Deteccion de conflictos de horario en citas | — | pendiente | alta |
+| D18 | Editar citas completas (fecha, hora, servicio, precio) | — | **completado** (PUT /appointments/:id + edit modal) | alta |
+| D19 | Editar/eliminar registros financieros | — | **completado** (PUT+DELETE /finances/:id + UI edit/delete) | media |
+| D20 | Deteccion de conflictos de horario en citas | — | **completado** (409 en POST+PUT, inline error en modal) | alta |
+| D21 | Musica persiste al cambiar de pestaña | — | **completado** (display:none en vez de unmount) | alta |
 
 ---
 
