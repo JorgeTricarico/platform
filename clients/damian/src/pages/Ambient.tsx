@@ -45,15 +45,31 @@ async function deleteFromDB(id: string) {
   tx.objectStore(STORE_NAME).delete(id);
 }
 
-// --- YouTube Search (commented out for now) ---
-// To enable: install a library like youtube-sr or use invidious API
-// async function searchYouTube(query: string): Promise<{title: string, videoId: string}[]> {
-//   const res = await fetch(`https://inv.nadeko.net/api/v1/search?q=${encodeURIComponent(query + ' ambient music')}&type=video`);
-//   const data = await res.json();
-//   return data.slice(0, 3).map((v: any) => ({ title: v.title, videoId: v.videoId }));
-// }
-// To download audio from YouTube without ads, you'd use a server-side solution (yt-dlp)
-// For now, local files are the ad-free solution
+// --- Demo tracks (Mixkit free license - royalty free) ---
+const DEMO_TRACKS = [
+  { id: 'demo-valley-sunset', title: 'Valley Sunset — Relajante', url: 'https://assets.mixkit.co/music/127/127.mp3' },
+  { id: 'demo-spirit-woods', title: 'Spirit in the Woods — Ambiente', url: 'https://assets.mixkit.co/music/139/139.mp3' },
+  { id: 'demo-forest-treasure', title: 'Forest Treasure — Naturaleza', url: 'https://assets.mixkit.co/music/138/138.mp3' },
+];
+
+async function loadDemoTracksIfNeeded(): Promise<{ id: string; title: string; blob: Blob }[]> {
+  const existing = await loadAllFromDB();
+  if (existing.length > 0) return [];
+
+  const loaded: { id: string; title: string; blob: Blob }[] = [];
+  for (const demo of DEMO_TRACKS) {
+    try {
+      const res = await fetch(demo.url);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      await saveToDB(demo.id, demo.title, blob);
+      loaded.push({ id: demo.id, title: demo.title, blob });
+    } catch {
+      // Skip track if fetch fails
+    }
+  }
+  return loaded;
+}
 
 export default function Ambient() {
   const { lastCommand } = useMusicCommand();
@@ -70,9 +86,18 @@ export default function Ambient() {
   // Keep tracksRef in sync
   useEffect(() => { tracksRef.current = tracks; }, [tracks]);
 
-  // Load cached tracks on mount
+  const [loadingDemos, setLoadingDemos] = useState(false);
+
+  // Load cached tracks on mount, download demos if first time
   useEffect(() => {
-    loadAllFromDB().then(cached => {
+    (async () => {
+      let cached = await loadAllFromDB();
+      if (cached.length === 0) {
+        setLoadingDemos(true);
+        const demos = await loadDemoTracksIfNeeded();
+        cached = demos;
+        setLoadingDemos(false);
+      }
       const loaded = cached.map(t => ({
         id: t.id,
         title: t.title,
@@ -80,7 +105,7 @@ export default function Ambient() {
         url: URL.createObjectURL(t.blob),
       }));
       setTracks(loaded);
-    });
+    })();
     return () => { tracks.forEach(t => URL.revokeObjectURL(t.url)); };
   }, []);
 
@@ -234,9 +259,18 @@ export default function Ambient() {
       {tracks.length === 0 ? (
         <div className="card" style={{ padding: '48px', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>&#9835;</div>
-          <h3 style={{ margin: '0 0 8px' }}>Sin audio cargado</h3>
-          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Hace click en "Agregar Audio" para subir archivos MP3, WAV, OGG, etc.</p>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '8px' }}>Los archivos se guardan en cache del navegador para uso rapido.</p>
+          {loadingDemos ? (
+            <>
+              <h3 style={{ margin: '0 0 8px' }}>Descargando musica relajante...</h3>
+              <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Preparando 3 tracks de ambiente para tu consultorio. Solo la primera vez.</p>
+            </>
+          ) : (
+            <>
+              <h3 style={{ margin: '0 0 8px' }}>Sin audio cargado</h3>
+              <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Hace click en "Agregar Audio" para subir archivos MP3, WAV, OGG, etc.</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '8px' }}>Los archivos se guardan en cache del navegador para uso rapido.</p>
+            </>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2" style={{ gap: '20px' }}>
