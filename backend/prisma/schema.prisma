@@ -42,6 +42,17 @@ model Order {
   createdAt    DateTime @default(now())
 }
 
+model GarmentPhoto {
+  id         String   @id @default(uuid())
+  garmentId  String
+  filename   String
+  url        String
+  createdAt  DateTime @default(now())
+
+  @@index([garmentId])
+  @@map("garment_photos")
+}
+
 model ZencoFinance {
   id          String @id
   date        String
@@ -101,4 +112,20 @@ model PatientRecord {
 
   @@index([clientId])
   @@map("patient_records")
+}
+
+// =============================================
+// NOTIFICACIONES — Avisos a clientes (Zenco)
+// =============================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  clientId  String
+  message   String
+  type      String   @default("prenda_lista")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@map("notifications")
 }

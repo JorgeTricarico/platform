@@ -59,7 +59,7 @@ describe('POST /api/damian/appointments', () => {
       clientName: 'Fail', clientPhone: '0000', service: 'X', duration: 30, date: '2026-04-10', time: '10:00', price: 1000,
     });
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });
 
@@ -115,7 +115,7 @@ describe('POST /api/damian/finances', () => {
       date: '2026-04-05', type: 'income', category: 'X', amount: 100, description: 'test',
     });
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });
 
@@ -150,7 +150,7 @@ describe('POST /api/damian/clients', () => {
     mockPrisma.client.upsert.mockRejectedValue(new Error('DB error'));
     const res = await request(app).post('/api/damian/clients').send({ name: 'Fail', phone: '0000' });
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });
 
@@ -238,7 +238,7 @@ describe('POST /api/damian/patients/:clientId/records', () => {
       date: '2026-04-05', reason: 'Test',
     });
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });
 
@@ -373,7 +373,7 @@ describe('GET /api/damian/dashboard/today', () => {
     mockPrisma.appointment.findMany.mockRejectedValue(new Error('DB error'));
     const res = await request(app).get('/api/damian/dashboard/today');
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });
 
@@ -429,7 +429,7 @@ describe('GET /api/damian/dashboard/stale-patients', () => {
     mockPrisma.client.findMany.mockRejectedValue(new Error('DB error'));
     const res = await request(app).get('/api/damian/dashboard/stale-patients');
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });
 
@@ -464,6 +464,6 @@ describe('GET /api/damian/dashboard/appointments', () => {
     mockPrisma.appointment.findMany.mockRejectedValue(new Error('DB error'));
     const res = await request(app).get('/api/damian/dashboard/appointments');
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });

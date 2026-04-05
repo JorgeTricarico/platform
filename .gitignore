@@ -17,6 +17,7 @@ build/
 # Ignorar autenticaciones y sesiones del bot
 auth_info_baileys/
 server-bot/auth_info_baileys/
+backend/whatsapp-auth/
 
 # Scripts con tokens (no commitear)
 push-*.sh

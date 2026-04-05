@@ -70,6 +70,14 @@ export const updatePatientRecordSchema = z.object({
   nextSession: z.string().nullish(),
 });
 
+// --- NOTIFICATIONS ---
+
+export const createNotificationSchema = z.object({
+  clientId: z.string().min(1),
+  message: z.string().min(1),
+  type: z.string().optional(),
+});
+
 // --- VALIDATION HELPER ---
 
 import type { Request, Response, NextFunction } from 'express';

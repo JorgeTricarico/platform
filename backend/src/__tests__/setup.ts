@@ -8,8 +8,15 @@ vi.mock('../db.js', () => {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue(null),
       groupBy: vi.fn().mockResolvedValue([]),
       count: vi.fn().mockResolvedValue(0),
+    },
+    garmentPhoto: {
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue(null),
+      delete: vi.fn(),
     },
     zencoFinance: {
       findMany: vi.fn().mockResolvedValue([]),
@@ -35,6 +42,12 @@ vi.mock('../db.js', () => {
       create: vi.fn(),
       update: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
+    },
+    notification: {
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+      update: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue(null),
     },
   };
   return { prisma: mockPrisma };

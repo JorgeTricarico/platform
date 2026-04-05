@@ -1,212 +1,383 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
 import { validate, createGarmentSchema, updateGarmentSchema, updateStatusSchema, createFinanceSchema, createClientSchema } from '../schemas.js';
+import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler.js';
 
 const router = Router();
 
 // --- DASHBOARD ---
 
-router.get('/dashboard', async (req, res) => {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const in3Days = new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0];
+router.get('/dashboard', asyncHandler(async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  const in3Days = new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0];
 
-    const [statusGroups, todayDeliveries, upcomingDeliveries] = await Promise.all([
-      prisma.order.groupBy({
-        by: ['status'],
-        _count: { _all: true },
-      }),
-      prisma.order.findMany({
-        where: { deliveryDate: today },
-        orderBy: { clientName: 'asc' },
-      }),
-      prisma.order.findMany({
-        where: { deliveryDate: { gt: today, lte: in3Days } },
-        orderBy: { deliveryDate: 'asc' },
-      }),
-    ]);
+  const [statusGroups, todayDeliveries, upcomingDeliveries] = await Promise.all([
+    prisma.order.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+    }),
+    prisma.order.findMany({
+      where: { deliveryDate: today },
+      orderBy: { clientName: 'asc' },
+    }),
+    prisma.order.findMany({
+      where: { deliveryDate: { gt: today, lte: in3Days } },
+      orderBy: { deliveryDate: 'asc' },
+    }),
+  ]);
 
-    const byStatus: Record<string, number> = {};
-    for (const group of statusGroups) {
-      byStatus[group.status] = group._count._all;
-    }
-
-    res.json({ byStatus, todayDeliveries, upcomingDeliveries });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener dashboard' });
+  const byStatus: Record<string, number> = {};
+  for (const group of statusGroups) {
+    byStatus[group.status] = group._count._all;
   }
-});
+
+  res.json({ byStatus, todayDeliveries, upcomingDeliveries });
+}));
 
 // --- PRENDAS (ORDERS) ---
 
-router.get('/garments', async (req, res) => {
-  try {
-    const garments = await prisma.order.findMany({
-      orderBy: { deliveryDate: 'asc' }
-    });
-    res.json(garments);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener prendas' });
-  }
-});
+router.get('/garments', asyncHandler(async (req, res) => {
+  const garments = await prisma.order.findMany({
+    orderBy: { deliveryDate: 'asc' }
+  });
+  res.json(garments);
+}));
 
-router.post('/garments', validate(createGarmentSchema), async (req, res) => {
-  try {
-    const data = req.body;
-    const newGarment = await prisma.order.create({
+router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req, res) => {
+  const data = req.body;
+  const newGarment = await prisma.order.create({
+    data: {
+      id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      clientName: data.clientName,
+      clientPhone: data.clientPhone,
+      garmentName: data.garmentName,
+      repairType: data.repairType,
+      description: data.description,
+      status: data.status || 'recibido',
+      intakeDate: data.intakeDate || new Date().toISOString().split('T')[0],
+      deliveryDate: data.deliveryDate,
+      price: Number(data.price)
+    }
+  });
+  res.json(newGarment);
+}));
+
+router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const updated = await prisma.order.update({
+    where: { id },
+    data: { status }
+  });
+
+  // When a garment is marked as ready, create a client notification
+  if (status === 'listo') {
+    await prisma.notification.create({
       data: {
-        id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        clientName: data.clientName,
-        clientPhone: data.clientPhone,
-        garmentName: data.garmentName,
-        repairType: data.repairType,
-        description: data.description,
-        status: data.status || 'recibido',
-        intakeDate: data.intakeDate || new Date().toISOString().split('T')[0],
-        deliveryDate: data.deliveryDate,
-        price: Number(data.price)
-      }
+        clientId: updated.clientPhone,
+        message: `Tu prenda "${updated.garmentName}" está lista para retirar.`,
+        type: 'prenda_lista',
+        read: false,
+      },
     });
-    res.json(newGarment);
-  } catch (error) {
-    console.error('Error al crear orden:', error);
-    res.status(500).json({ error: 'Error al crear orden', details: String(error) });
   }
-});
 
-router.put('/garments/:id/status', validate(updateStatusSchema), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-    const updated = await prisma.order.update({
-      where: { id },
-      data: { status }
-    });
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar' });
-  }
-});
+  res.json(updated);
+}));
 
-router.put('/garments/:id', validate(updateGarmentSchema), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = req.body;
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        clientName: data.clientName,
-        clientPhone: data.clientPhone,
-        garmentName: data.garmentName,
-        repairType: data.repairType,
-        description: data.description,
-        status: data.status,
-        intakeDate: data.intakeDate,
-        deliveryDate: data.deliveryDate,
-        price: Number(data.price)
-      }
-    });
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar orden' });
-  }
-});
+router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  const updated = await prisma.order.update({
+    where: { id },
+    data: {
+      clientName: data.clientName,
+      clientPhone: data.clientPhone,
+      garmentName: data.garmentName,
+      repairType: data.repairType,
+      description: data.description,
+      status: data.status,
+      intakeDate: data.intakeDate,
+      deliveryDate: data.deliveryDate,
+      price: Number(data.price)
+    }
+  });
+  res.json(updated);
+}));
 
-router.delete('/garments/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await prisma.order.delete({ where: { id } });
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar orden' });
-  }
-});
+router.delete('/garments/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  await prisma.order.delete({ where: { id } });
+  res.json({ success: true });
+}));
 
 // --- FINANZAS ZENCO ---
 
-router.get('/finances', async (req, res) => {
-  try {
-    const finances = await prisma.zencoFinance.findMany({
-      orderBy: { date: 'desc' }
-    });
-    res.json(finances);
-  } catch (error) {
-    res.status(500).json({ error: 'Error de finanzas' });
-  }
-});
+router.get('/finances', asyncHandler(async (req, res) => {
+  const finances = await prisma.zencoFinance.findMany({
+    orderBy: { date: 'desc' }
+  });
+  res.json(finances);
+}));
 
-router.post('/finances', validate(createFinanceSchema), async (req, res) => {
-  try {
-    const data = req.body;
-    const entry = await prisma.zencoFinance.create({
-      data: {
-        id: `FIN-Z-${Date.now()}`,
-        date: data.date,
-        type: data.type,
-        category: data.category,
-        amount: data.amount,
-        description: data.description
-      }
-    });
-    res.json(entry);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al crear registro financiero' });
-  }
-});
+router.post('/finances', validate(createFinanceSchema), asyncHandler(async (req, res) => {
+  const data = req.body;
+  const entry = await prisma.zencoFinance.create({
+    data: {
+      id: `FIN-Z-${Date.now()}`,
+      date: data.date,
+      type: data.type,
+      category: data.category,
+      amount: data.amount,
+      description: data.description
+    }
+  });
+  res.json(entry);
+}));
 
 // --- CLIENTES ZENCO ---
 
-router.get('/clients', async (req, res) => {
-  try {
-    const clients = await prisma.client.findMany({
-      where: { business: 'zenco' },
-      orderBy: { createdAt: 'desc' }
-    });
-    res.json(clients);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener clientes' });
-  }
-});
+router.get('/clients', asyncHandler(async (req, res) => {
+  const clients = await prisma.client.findMany({
+    where: { business: 'zenco' },
+    orderBy: { createdAt: 'desc' }
+  });
+  res.json(clients);
+}));
 
-router.post('/clients', validate(createClientSchema), async (req, res) => {
-  try {
-    const data = req.body;
-    // Upsert: si ya existe por telefono, actualizar
-    const client = await prisma.client.upsert({
-      where: { phone_business: { phone: data.phone, business: 'zenco' } },
-      update: { name: data.name, altPhone: data.altPhone, email: data.email, notes: data.notes },
-      create: {
-        name: data.name,
-        phone: data.phone,
-        altPhone: data.altPhone,
-        email: data.email,
-        business: 'zenco',
-        notes: data.notes,
-      }
-    });
-    res.json(client);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al registrar cliente' });
-  }
-});
+router.post('/clients', validate(createClientSchema), asyncHandler(async (req, res) => {
+  const data = req.body;
+  // Upsert: si ya existe por telefono, actualizar
+  const client = await prisma.client.upsert({
+    where: { phone_business: { phone: data.phone, business: 'zenco' } },
+    update: { name: data.name, altPhone: data.altPhone, email: data.email, notes: data.notes },
+    create: {
+      name: data.name,
+      phone: data.phone,
+      altPhone: data.altPhone,
+      email: data.email,
+      business: 'zenco',
+      notes: data.notes,
+    }
+  });
+  res.json(client);
+}));
 
-router.get('/clients/search', async (req, res) => {
-  try {
-    const q = (req.query.q as string || '').toLowerCase();
-    const clients = await prisma.client.findMany({
-      where: {
-        business: 'zenco',
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { phone: { contains: q } },
-          { altPhone: { contains: q } },
-        ]
-      }
-    });
-    res.json(clients);
-  } catch (error) {
-    res.status(500).json({ error: 'Error buscando cliente' });
+router.get('/clients/search', asyncHandler(async (req, res) => {
+  const q = (req.query.q as string || '').toLowerCase();
+  const clients = await prisma.client.findMany({
+    where: {
+      business: 'zenco',
+      OR: [
+        { name: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q } },
+        { altPhone: { contains: q } },
+      ]
+    }
+  });
+  res.json(clients);
+}));
+
+// --- HISTORIAL DE ORDENES POR CLIENTE ---
+
+router.get('/clients/:id/orders', asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const { status, from, to } = req.query as Record<string, string | undefined>;
+
+  const client = await prisma.client.findUnique({ where: { id } });
+  if (!client) {
+    return next(new NotFoundError('Cliente no encontrado'));
   }
-});
+
+  const where: Record<string, unknown> = { clientPhone: client.phone };
+
+  if (status) {
+    where.status = status;
+  }
+
+  if (from || to) {
+    const dateFilter: Record<string, string> = {};
+    if (from) dateFilter.gte = from;
+    if (to) dateFilter.lte = to;
+    where.intakeDate = dateFilter;
+  }
+
+  const orders = await prisma.order.findMany({
+    where,
+    orderBy: { intakeDate: 'desc' },
+  });
+
+  const garmentsByStatus: Record<string, number> = {};
+  for (const order of orders) {
+    garmentsByStatus[order.status] = (garmentsByStatus[order.status] || 0) + 1;
+  }
+
+  res.json({
+    client,
+    orders,
+    summary: {
+      totalOrders: orders.length,
+      totalGarments: orders.length,
+      garmentsByStatus,
+    },
+  });
+}));
+
+// --- REPORTS ---
+
+// Helper: get week range (Mon–Sun) for a given date
+function getWeekRange(date: Date): { start: string; end: string } {
+  const day = date.getDay(); // 0=Sun, 1=Mon, ...
+  const diffToMon = (day === 0 ? -6 : 1 - day);
+  const mon = new Date(date);
+  mon.setDate(date.getDate() + diffToMon);
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  return {
+    start: mon.toISOString().split('T')[0],
+    end: sun.toISOString().split('T')[0],
+  };
+}
+
+// Helper: get month range for a YYYY-MM string
+function getMonthRange(yearMonth: string): { start: string; end: string } {
+  const [year, month] = yearMonth.split('-').map(Number);
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0); // last day of month
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0],
+  };
+}
+
+type OrderRow = { id: string; status: string; repairType: string; price: number; intakeDate: string; deliveryDate: string; createdAt: Date };
+
+// Helper: compute stats from an array of orders + newClients count
+function computeOrderStats(orders: OrderRow[], newClients: number) {
+  const totalOrders = orders.length;
+  const totalGarments = orders.length;
+  const garmentsDone = orders.filter(o => o.status === 'entregado' || o.status === 'listo').length;
+  const revenue = orders.reduce((sum, o) => sum + (o.price || 0), 0);
+
+  const garmentsByType: Record<string, number> = {};
+  for (const o of orders) {
+    if (o.repairType) {
+      garmentsByType[o.repairType] = (garmentsByType[o.repairType] || 0) + 1;
+    }
+  }
+
+  // Average turnaround: days between intakeDate and deliveryDate
+  const turnarounds = orders
+    .filter(o => o.intakeDate && o.deliveryDate)
+    .map(o => {
+      const intake = new Date(o.intakeDate).getTime();
+      const delivery = new Date(o.deliveryDate).getTime();
+      return (delivery - intake) / 86400000;
+    })
+    .filter(d => d >= 0);
+
+  const avgTurnaroundDays = turnarounds.length > 0
+    ? Math.round(turnarounds.reduce((s, d) => s + d, 0) / turnarounds.length)
+    : 0;
+
+  return { totalOrders, totalGarments, garmentsDone, revenue, newClients, garmentsByType, avgTurnaroundDays };
+}
+
+router.get('/reports/weekly', asyncHandler(async (req, res, next) => {
+  let range: { start: string; end: string };
+
+  if (req.query.date) {
+    const d = new Date(req.query.date as string);
+    if (isNaN(d.getTime())) {
+        return next(new ValidationError('Fecha invalida. Usar formato YYYY-MM-DD'));
+    }
+    range = getWeekRange(d);
+  } else {
+    range = getWeekRange(new Date());
+  }
+
+  const startDt = new Date(range.start + 'T00:00:00.000Z');
+  const endDt = new Date(range.end + 'T23:59:59.999Z');
+
+  const [orders, newClients] = await Promise.all([
+    prisma.order.findMany({
+      where: { createdAt: { gte: startDt, lte: endDt } },
+    }),
+    prisma.client.count({
+      where: { business: 'zenco', createdAt: { gte: startDt, lte: endDt } },
+    }),
+  ]);
+
+  const stats = computeOrderStats(orders as OrderRow[], newClients);
+  res.json({ period: range, ...stats });
+}));
+
+router.get('/reports/monthly', asyncHandler(async (req, res, next) => {
+  let range: { start: string; end: string };
+
+  if (req.query.month) {
+    const m = req.query.month as string;
+    if (!/^\d{4}-\d{2}$/.test(m)) {
+      return next(new ValidationError('Mes invalido. Usar formato YYYY-MM'));
+    }
+    range = getMonthRange(m);
+  } else {
+    const now = new Date();
+    const ym = now.toISOString().slice(0, 7);
+    range = getMonthRange(ym);
+  }
+
+  const startDt = new Date(range.start + 'T00:00:00.000Z');
+  const endDt = new Date(range.end + 'T23:59:59.999Z');
+
+  const [orders, newClients] = await Promise.all([
+    prisma.order.findMany({
+      where: { createdAt: { gte: startDt, lte: endDt } },
+    }),
+    prisma.client.count({
+      where: { business: 'zenco', createdAt: { gte: startDt, lte: endDt } },
+    }),
+  ]);
+
+  const stats = computeOrderStats(orders as OrderRow[], newClients);
+  res.json({ period: range, ...stats });
+}));
+
+router.get('/reports/summary', asyncHandler(async (req, res) => {
+  const now = new Date();
+  const ym = now.toISOString().slice(0, 7);
+  const monthRange = getMonthRange(ym);
+  const startDt = new Date(monthRange.start + 'T00:00:00.000Z');
+  const endDt = new Date(monthRange.end + 'T23:59:59.999Z');
+
+  const [allOrders, periodOrders, allTimeClients, periodClients] = await Promise.all([
+    prisma.order.findMany({}),
+    prisma.order.findMany({
+      where: { createdAt: { gte: startDt, lte: endDt } },
+    }),
+    prisma.client.count({ where: { business: 'zenco' } }),
+    prisma.client.count({
+      where: { business: 'zenco', createdAt: { gte: startDt, lte: endDt } },
+    }),
+  ]);
+
+  const allTimeStats = computeOrderStats(allOrders as OrderRow[], allTimeClients);
+  const currentMonthStats = computeOrderStats(periodOrders as OrderRow[], periodClients);
+
+  res.json({
+    allTime: {
+      totalOrders: allTimeStats.totalOrders,
+      totalRevenue: allTimeStats.revenue,
+      totalClients: allTimeClients,
+      garmentsDone: allTimeStats.garmentsDone,
+      garmentsByType: allTimeStats.garmentsByType,
+      avgTurnaroundDays: allTimeStats.avgTurnaroundDays,
+    },
+    currentMonth: {
+      period: monthRange,
+      ...currentMonthStats,
+    },
+  });
+}));
 
 export { router as zencoRoutes };

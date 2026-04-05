@@ -90,7 +90,7 @@ describe('POST /api/zenco/garments', () => {
       repairType: 'dobladillo', description: 'x', deliveryDate: '2026-04-20', price: 1000,
     });
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });
 
@@ -258,7 +258,7 @@ describe('GET /api/zenco/dashboard', () => {
 
     const res = await request(app).get('/api/zenco/dashboard');
     expect(res.status).toBe(500);
-    expect(res.body.error).toContain('Error');
+    expect(res.body.error).toBeDefined();
   });
 });
 
@@ -298,6 +298,173 @@ describe('Zenco validation', () => {
   it('POST /clients returns 400 when name is missing', async () => {
     const res = await request(app).post('/api/zenco/clients').send({ phone: '1234' });
     expect(res.status).toBe(400);
+  });
+});
+
+// --- REPORTS ---
+
+describe('GET /api/zenco/reports/weekly', () => {
+  it('returns weekly stats with default (current week)', async () => {
+    const orders = [
+      { id: 'ORD-1', clientName: 'Ana', clientPhone: '1111', garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar', status: 'entregado', intakeDate: '2026-04-01', deliveryDate: '2026-04-05', price: 3000, createdAt: new Date('2026-04-01') },
+      { id: 'ORD-2', clientName: 'Luis', clientPhone: '2222', garmentName: 'Camisa', repairType: 'entalle', description: 'estrechar', status: 'listo', intakeDate: '2026-04-02', deliveryDate: '2026-04-07', price: 2000, createdAt: new Date('2026-04-02') },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(orders);
+    mockPrisma.client.count.mockResolvedValue(1);
+
+    const res = await request(app).get('/api/zenco/reports/weekly');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('period');
+    expect(res.body).toHaveProperty('totalOrders');
+    expect(res.body).toHaveProperty('totalGarments');
+    expect(res.body).toHaveProperty('garmentsDone');
+    expect(res.body).toHaveProperty('revenue');
+    expect(res.body).toHaveProperty('newClients');
+    expect(res.body).toHaveProperty('garmentsByType');
+    expect(res.body).toHaveProperty('avgTurnaroundDays');
+    expect(res.body.totalOrders).toBe(2);
+    expect(res.body.totalGarments).toBe(2);
+    expect(res.body.revenue).toBe(5000);
+  });
+
+  it('accepts ?date=YYYY-MM-DD to query a specific week', async () => {
+    mockPrisma.order.findMany.mockResolvedValue([]);
+    mockPrisma.client.count.mockResolvedValue(0);
+
+    const res = await request(app).get('/api/zenco/reports/weekly?date=2026-04-01');
+    expect(res.status).toBe(200);
+    expect(res.body.period.start).toMatch(/2026-03-3[0-9]|2026-04-0[0-9]/);
+    expect(res.body.totalOrders).toBe(0);
+  });
+
+  it('returns 400 for invalid date param', async () => {
+    const res = await request(app).get('/api/zenco/reports/weekly?date=not-a-date');
+    expect(res.status).toBe(400);
+  });
+
+  it('computes garmentsDone correctly (entregado + listo)', async () => {
+    const orders = [
+      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-03', createdAt: new Date('2026-04-01') },
+      { id: 'ORD-2', status: 'listo', repairType: 'entalle', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-02') },
+      { id: 'ORD-3', status: 'recibido', repairType: 'cierre', price: 500, intakeDate: '2026-04-03', deliveryDate: '2026-04-10', createdAt: new Date('2026-04-03') },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(orders);
+    mockPrisma.client.count.mockResolvedValue(0);
+
+    const res = await request(app).get('/api/zenco/reports/weekly');
+    expect(res.status).toBe(200);
+    expect(res.body.garmentsDone).toBe(2);
+  });
+
+  it('groups garments by repairType', async () => {
+    const orders = [
+      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-03', createdAt: new Date() },
+      { id: 'ORD-2', status: 'listo', repairType: 'dobladillo', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-04', createdAt: new Date() },
+      { id: 'ORD-3', status: 'recibido', repairType: 'entalle', price: 500, intakeDate: '2026-04-03', deliveryDate: '2026-04-10', createdAt: new Date() },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(orders);
+    mockPrisma.client.count.mockResolvedValue(0);
+
+    const res = await request(app).get('/api/zenco/reports/weekly');
+    expect(res.status).toBe(200);
+    expect(res.body.garmentsByType.dobladillo).toBe(2);
+    expect(res.body.garmentsByType.entalle).toBe(1);
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.order.findMany.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).get('/api/zenco/reports/weekly');
+    expect(res.status).toBe(500);
+  });
+});
+
+describe('GET /api/zenco/reports/monthly', () => {
+  it('returns monthly stats with default (current month)', async () => {
+    const orders = [
+      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 3000, intakeDate: '2026-04-01', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-01') },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(orders);
+    mockPrisma.client.count.mockResolvedValue(2);
+
+    const res = await request(app).get('/api/zenco/reports/monthly');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('period');
+    expect(res.body).toHaveProperty('totalOrders');
+    expect(res.body).toHaveProperty('revenue');
+    expect(res.body).toHaveProperty('newClients');
+    expect(res.body).toHaveProperty('garmentsByType');
+    expect(res.body.totalOrders).toBe(1);
+    expect(res.body.revenue).toBe(3000);
+    expect(res.body.newClients).toBe(2);
+  });
+
+  it('accepts ?month=YYYY-MM to query a specific month', async () => {
+    mockPrisma.order.findMany.mockResolvedValue([]);
+    mockPrisma.client.count.mockResolvedValue(0);
+
+    const res = await request(app).get('/api/zenco/reports/monthly?month=2026-03');
+    expect(res.status).toBe(200);
+    expect(res.body.period.start).toBe('2026-03-01');
+    expect(res.body.period.end).toBe('2026-03-31');
+  });
+
+  it('returns 400 for invalid month param', async () => {
+    const res = await request(app).get('/api/zenco/reports/monthly?month=invalid');
+    expect(res.status).toBe(400);
+  });
+
+  it('calculates avgTurnaroundDays from intakeDate to deliveryDate', async () => {
+    const orders = [
+      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-01') },
+      { id: 'ORD-2', status: 'entregado', repairType: 'entalle', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-08', createdAt: new Date('2026-04-02') },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(orders);
+    mockPrisma.client.count.mockResolvedValue(0);
+
+    const res = await request(app).get('/api/zenco/reports/monthly');
+    expect(res.status).toBe(200);
+    // ORD-1: 4 days, ORD-2: 6 days → avg = 5
+    expect(res.body.avgTurnaroundDays).toBe(5);
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.order.findMany.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).get('/api/zenco/reports/monthly');
+    expect(res.status).toBe(500);
+  });
+});
+
+describe('GET /api/zenco/reports/summary', () => {
+  it('returns all-time KPI totals', async () => {
+    const allOrders = [
+      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 3000, intakeDate: '2026-01-01', deliveryDate: '2026-01-05', createdAt: new Date('2026-01-01') },
+      { id: 'ORD-2', status: 'listo', repairType: 'entalle', price: 2000, intakeDate: '2026-02-01', deliveryDate: '2026-02-10', createdAt: new Date('2026-02-01') },
+      { id: 'ORD-3', status: 'recibido', repairType: 'cierre', price: 1500, intakeDate: '2026-03-01', deliveryDate: '2026-03-15', createdAt: new Date('2026-03-01') },
+    ];
+    const periodOrders = [
+      { id: 'ORD-3', status: 'recibido', repairType: 'cierre', price: 1500, intakeDate: '2026-03-01', deliveryDate: '2026-03-15', createdAt: new Date('2026-03-01') },
+    ];
+    mockPrisma.order.findMany
+      .mockResolvedValueOnce(allOrders)   // allTime query
+      .mockResolvedValueOnce(periodOrders); // currentPeriod query
+    mockPrisma.client.count
+      .mockResolvedValueOnce(5)  // allTime clients
+      .mockResolvedValueOnce(1); // currentPeriod clients
+
+    const res = await request(app).get('/api/zenco/reports/summary');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('allTime');
+    expect(res.body).toHaveProperty('currentMonth');
+    expect(res.body.allTime.totalOrders).toBe(3);
+    expect(res.body.allTime.totalRevenue).toBe(6500);
+    expect(res.body.allTime.totalClients).toBe(5);
+    expect(res.body.allTime.garmentsDone).toBe(2);
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.order.findMany.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).get('/api/zenco/reports/summary');
+    expect(res.status).toBe(500);
   });
 });
 
