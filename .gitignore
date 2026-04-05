@@ -27,3 +27,5 @@ coverage/
 playwright-report/
 test-results/
 .vite
+# Agent Orchestration Kit (symlinks)
+.agents/project-context.md

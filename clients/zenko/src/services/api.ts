@@ -42,3 +42,28 @@ export const createGarment = async (data: Partial<DBGarment>): Promise<DBGarment
   if (!res.ok) throw new Error("Error al guardar la orden");
   return res.json();
 };
+
+export const updateGarment = async (id: string, data: Partial<DBGarment>): Promise<DBGarment> => {
+  const res = await fetch(`${API_URL}/garments/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Error al actualizar la orden");
+  return res.json();
+};
+
+export const deleteGarment = async (id: string): Promise<void> => {
+  const res = await fetch(`${API_URL}/garments/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error("Error al eliminar la orden");
+};
+
+export const createFinance = async (data: Partial<DBFinance>): Promise<DBFinance> => {
+  const res = await fetch(`${API_URL}/finances`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Error al guardar el registro");
+  return res.json();
+};

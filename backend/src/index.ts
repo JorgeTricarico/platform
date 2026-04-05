@@ -1,12 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { zencoRoutes } from './routes/zenco.js';
 import { damianRoutes } from './routes/damian.js';
 import { chatZencoRoutes } from './routes/chat-zenco.js';
 import { chatDamianRoutes } from './routes/chat-damian.js';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

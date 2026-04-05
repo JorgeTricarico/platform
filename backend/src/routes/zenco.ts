@@ -52,6 +52,39 @@ router.put('/garments/:id/status', async (req, res) => {
   }
 });
 
+router.put('/garments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const updated = await prisma.order.update({
+      where: { id },
+      data: {
+        clientName: data.clientName,
+        clientPhone: data.clientPhone,
+        garmentName: data.garmentName,
+        repairType: data.repairType,
+        description: data.description,
+        status: data.status,
+        deliveryDate: data.deliveryDate,
+        price: data.price
+      }
+    });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar orden' });
+  }
+});
+
+router.delete('/garments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.order.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar orden' });
+  }
+});
+
 // --- FINANZAS ZENCO ---
 
 router.get('/finances', async (req, res) => {
