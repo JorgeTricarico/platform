@@ -9,7 +9,7 @@ import ChatDemo from './pages/ChatDemo';
 import Ambient from './pages/Ambient';
 import { MusicProvider, useMusicCommand } from './components/MusicContext';
 import { BUSINESS } from './config';
-import logoUrl from './assets/logo.png';
+import logoUrl from './assets/logo.svg';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
