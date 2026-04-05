@@ -6,10 +6,17 @@ interface Message {
   text: string;
 }
 
+// Gemini history format
+interface GeminiMessage {
+  role: 'user' | 'model';
+  parts: { text: string }[];
+}
+
 export default function ChatDemo() {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'bot', text: 'Hola! Soy Ana de Zenco. Puedo ayudarte con consultas sobre arreglos de ropa, estado de tus pedidos, o presupuestos. Escribime!' }
   ]);
+  const [history, setHistory] = useState<GeminiMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -29,10 +36,17 @@ export default function ChatDemo() {
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg })
+        body: JSON.stringify({ message: userMsg, history })
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: 'bot', text: data.reply || 'No pude procesar tu mensaje.' }]);
+      const botReply = data.reply || 'No pude procesar tu mensaje.';
+      setMessages(prev => [...prev, { role: 'bot', text: botReply }]);
+      // Update history for next turn
+      setHistory(prev => [
+        ...prev,
+        { role: 'user', parts: [{ text: userMsg }] },
+        { role: 'model', parts: [{ text: botReply }] },
+      ]);
     } catch {
       setMessages(prev => [...prev, { role: 'bot', text: 'Ups, tuve un problema. Intenta de nuevo en un momento.' }]);
     }

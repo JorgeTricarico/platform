@@ -126,3 +126,35 @@ export const markNotificationRead = async (id: string): Promise<DBNotification> 
   if (!res.ok) throw new Error("Error al marcar notificacion como leida");
   return res.json();
 };
+
+// --- FOTOS DE PRENDAS ---
+
+export interface DBGarmentPhoto {
+  id: string;
+  garmentId: string;
+  filename: string;
+  url: string;
+  createdAt: string;
+}
+
+export const fetchGarmentPhotos = async (garmentId: string): Promise<DBGarmentPhoto[]> => {
+  const res = await fetch(`${API_URL}/garments/${garmentId}/photos`);
+  if (!res.ok) throw new Error("Error al obtener fotos");
+  return res.json();
+};
+
+export const uploadGarmentPhoto = async (garmentId: string, file: File): Promise<DBGarmentPhoto> => {
+  const formData = new FormData();
+  formData.append('photo', file);
+  const res = await fetch(`${API_URL}/garments/${garmentId}/photos`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) throw new Error("Error al subir foto");
+  return res.json();
+};
+
+export const deleteGarmentPhoto = async (garmentId: string, photoId: string): Promise<void> => {
+  const res = await fetch(`${API_URL}/garments/${garmentId}/photos/${photoId}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error("Error al eliminar foto");
+};

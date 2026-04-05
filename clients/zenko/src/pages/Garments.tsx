@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchGarments, createGarment, updateGarment, deleteGarment } from '../services/api';
 import type { DBGarment } from '../services/api';
+import PhotoGallery from '../components/PhotoGallery';
 
 const EMPTY_FORM = {
   clientName: '', clientPhone: '', garmentName: '', repairType: '',
@@ -190,6 +191,7 @@ export default function Garments() {
           onSubmit={handleEdit}
           onClose={() => setEditTarget(null)}
           showStatus={true}
+          garmentId={editTarget.id}
         />
       )}
     </div>
@@ -198,13 +200,14 @@ export default function Garments() {
 
 type FormState = typeof EMPTY_FORM;
 
-function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus }: {
+function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, garmentId }: {
   title: string;
   form: FormState;
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
   onSubmit: (e: React.FormEvent) => Promise<void>;
   onClose: () => void;
   showStatus: boolean;
+  garmentId?: string;
 }) {
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -253,6 +256,7 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus }: {
             <button type="submit" className="btn btn-primary">Guardar</button>
           </div>
         </form>
+        {garmentId && <PhotoGallery garmentId={garmentId} />}
       </div>
     </div>
   );

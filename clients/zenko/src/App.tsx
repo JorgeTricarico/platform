@@ -4,6 +4,7 @@ import Garments from './pages/Garments';
 import Finances from './pages/Finances';
 import Clients from './pages/Clients';
 import ChatDemo from './pages/ChatDemo';
+import NotificationBell from './components/NotificationBell';
 import logoUrl from './assets/logo.png';
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
       {/* Main Area */}
       <main className="main-content">
         <header className="topbar">
+          <NotificationBell clientId="all" />
           <div className="user-profile">
             Ana & Ariel
             <div className="user-avatar">Z</div>

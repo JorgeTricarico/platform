@@ -3,12 +3,13 @@ import { prisma } from '../db.js';
 
 const router = Router();
 
-// GET /api/zenco/notifications/:clientId — fetch all notifications for a client
+// GET /api/zenco/notifications/:clientId — fetch notifications (use "all" for all clients)
 router.get('/:clientId', async (req, res) => {
   try {
     const { clientId } = req.params;
+    const where = clientId === 'all' ? {} : { clientId };
     const notifications = await prisma.notification.findMany({
-      where: { clientId },
+      where,
       orderBy: { createdAt: 'desc' },
     });
     res.json(notifications);

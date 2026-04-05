@@ -69,6 +69,21 @@ export const mockGarments: Garment[] = [
   }
 ];
 
+export interface Notification {
+  id: string;
+  clientId: string;
+  message: string;
+  type: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export const mockNotifications: Notification[] = [
+  { id: 'n1', clientId: '5491112345678', message: 'Tu prenda "Pantalon" está lista para retirar.', type: 'prenda_lista', read: false, createdAt: new Date().toISOString() },
+  { id: 'n2', clientId: '5491198765432', message: 'Tu prenda "Vestido" está lista para retirar.', type: 'prenda_lista', read: false, createdAt: new Date(Date.now() - 3600000).toISOString() },
+  { id: 'n3', clientId: '5491155555555', message: 'Tu prenda "Campera" está lista para retirar.', type: 'prenda_lista', read: true, createdAt: new Date(Date.now() - 86400000).toISOString() },
+];
+
 export const mockFinances: FinancialEntry[] = [
   { id: 'FIN-1', date: '2026-04-01', type: 'income', category: 'Arreglos', amount: 4500, description: 'Camisa Carlos M.' },
   { id: 'FIN-2', date: '2026-04-02', type: 'expense', category: 'Insumos', amount: 15000, description: 'Compra de Hilos y Cierres YKK' },

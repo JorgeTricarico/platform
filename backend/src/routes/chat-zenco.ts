@@ -20,7 +20,7 @@ REGLAS ESTRICTAS:
 
 router.post('/', async (req, res) => {
   try {
-    const { message, senderPhone } = req.body;
+    const { message, history, senderPhone } = req.body;
     if (!message) return res.status(400).json({ error: 'Mensaje requerido' });
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -64,8 +64,12 @@ router.post('/', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite-preview' });
-    const result = await model.generateContent(`${SYSTEM_PROMPT}${clientContext}${dbContext}\n\nMensaje del cliente: ${message}`);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3.1-flash-lite-preview',
+      systemInstruction: `${SYSTEM_PROMPT}${clientContext}${dbContext}`,
+    });
+    const chat = model.startChat({ history: history || [] });
+    const result = await chat.sendMessage(message);
     const reply = result.response.text();
 
     // Auto-register client if phone provided and not found
