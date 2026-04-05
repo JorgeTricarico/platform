@@ -41,8 +41,18 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M11 | Auth basica (JWT) — proteger todos los endpoints | — | pendiente | **critica** |
 | M12 | CI frontend — agregar lint + tests de ambos clientes al CI | — | pendiente | alta |
 | M13 | Object storage para fotos (S3/R2) — filesystem efimero en Render | — | pendiente | media |
-| M14 | Cerrar modales con Escape + focus trap | — | pendiente | media |
+| M14 | Cerrar modales con Escape + focus trap + aria-modal | — | pendiente | media |
 | M15 | Paginacion en endpoints y tablas (garments, clients, appointments) | — | pendiente | media |
+| M16 | Shared packages workspace — extraer db.ts, sync.ts, ToastContext, OfflineIndicator | — | pendiente | alta |
+| M17 | Loading state en botones submit (evitar doble-click) | — | pendiente | alta |
+| M18 | Eliminar console.error leftovers en 7 archivos frontend | — | pendiente | baja |
+| M19 | Confirm modal custom — reemplazar window.confirm con modal styled | — | pendiente | media |
+| M20 | Fix N+1 queries: stale-patients y patients (batch query) | — | pendiente | **critica** |
+| M21 | Status enum validation — zod enum para garment y appointment status | — | pendiente | media |
+| M22 | UUID en todos los modelos — reemplazar Date.now() IDs en Order/Appointment/Finance | — | pendiente | alta |
+| M23 | Cache TTL en cachedFetch — no servir datos stale indefinidamente | — | pendiente | media |
+| M24 | Extraer helpers compartidos backend (getMonthRange, timeToMinutes) a utils/ | — | pendiente | baja |
+| M25 | Gemini API key — renovar free tier o habilitar billing | — | pendiente | alta |
 
 ---
 
@@ -66,6 +76,10 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z14 | Filtro por status en tabla Garments | — | pendiente | media |
 | Z15 | Highlight visual filas vencidas en Garments (deliveryDate < hoy) | — | pendiente | media |
 | Z16 | Editar/eliminar registros financieros | — | **completado** (PUT+DELETE /finances/:id + UI edit/delete) | media |
+| Z17 | config.ts para Zenko — centralizar repairTypes, businessName, currency | — | pendiente | alta |
+| Z18 | Mostrar deliveryDate e intakeDate en tabla Garments | — | pendiente | media |
+| Z19 | Revenue widget en Dashboard (income/expense cards del reports/summary) | — | pendiente | media |
+| Z20 | DELETE /clients/:id endpoint + botón eliminar cliente | — | pendiente | media |
 
 ---
 
@@ -94,6 +108,12 @@ Mejoras que aplican a ambos clientes o al backend general.
 | D19 | Editar/eliminar registros financieros | — | **completado** (PUT+DELETE /finances/:id + UI edit/delete) | media |
 | D20 | Deteccion de conflictos de horario en citas | — | **completado** (409 en POST+PUT, inline error en modal) | alta |
 | D21 | Musica persiste al cambiar de pestaña | — | **completado** (display:none en vez de unmount) | alta |
+| D22 | DELETE /appointments/:id + botón eliminar cita | — | pendiente | alta |
+| D23 | Editar fichas clínicas desde Patients.tsx (PUT ya existe en backend) | — | pendiente | media |
+| D24 | Filtro "Próximas" vs "Historial" en Appointments.tsx | — | pendiente | media |
+| D25 | Revenue widget en Dashboard (resumen financiero mensual) | — | pendiente | media |
+| D26 | DELETE /clients/:id endpoint + botón eliminar cliente | — | pendiente | media |
+| D27 | Tests faltantes: Dashboard, Patients, Agent, Ambient, widgets | — | pendiente | alta |
 
 ---
 
