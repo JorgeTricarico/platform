@@ -544,3 +544,20 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
     max-width: 100%;
   }
 }
+
+/* OFFLINE INDICATOR */
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4000;
+  background-color: #FDF3EA;
+  border-bottom: 2px solid var(--primary-color);
+  color: #5C3010;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+}

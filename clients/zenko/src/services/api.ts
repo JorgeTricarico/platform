@@ -1,5 +1,39 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/zenco';
 
+import { getCachedData, setCachedData, queueMutation } from './db';
+
+async function cachedFetch<T>(url: string): Promise<T> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    setCachedData(url, data);
+    return data;
+  } catch (err) {
+    const cached = await getCachedData<T>(url);
+    if (cached) return cached;
+    throw err;
+  }
+}
+
+async function mutationFetch(url: string, method: string, body?: unknown): Promise<Response> {
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return res;
+  } catch (err) {
+    if (!navigator.onLine) {
+      await queueMutation({ url, method, body: body ? JSON.stringify(body) : undefined });
+      // Return a fake "accepted" response for offline
+      return new Response(JSON.stringify({ offline: true, queued: true }), { status: 202 });
+    }
+    throw err;
+  }
+}
+
 export interface DBGarment {
   id: string;
   clientName: string;
@@ -24,66 +58,46 @@ export interface DBFinance {
 }
 
 export const fetchGarments = async (): Promise<DBGarment[]> => {
-  const res = await fetch(`${API_URL}/garments`);
-  if (!res.ok) throw new Error("Error al obtener prendas");
-  return res.json();
+  return cachedFetch<DBGarment[]>(`${API_URL}/garments`);
 };
 
 export const fetchFinances = async (month?: string): Promise<DBFinance[]> => {
   const params = month ? `?month=${month}` : '';
-  const res = await fetch(`${API_URL}/finances${params}`);
-  if (!res.ok) throw new Error("Error al obtener finanzas");
-  return res.json();
+  return cachedFetch<DBFinance[]>(`${API_URL}/finances${params}`);
 };
 
 export const createGarment = async (data: Partial<DBGarment>): Promise<DBGarment> => {
-  const res = await fetch(`${API_URL}/garments`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error("Error al guardar la orden");
+  const res = await mutationFetch(`${API_URL}/garments`, 'POST', data);
+  if (!res.ok && res.status !== 202) throw new Error("Error al guardar la orden");
   return res.json();
 };
 
 export const updateGarment = async (id: string, data: Partial<DBGarment>): Promise<DBGarment> => {
-  const res = await fetch(`${API_URL}/garments/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error("Error al actualizar la orden");
+  const res = await mutationFetch(`${API_URL}/garments/${id}`, 'PUT', data);
+  if (!res.ok && res.status !== 202) throw new Error("Error al actualizar la orden");
   return res.json();
 };
 
 export const deleteGarment = async (id: string): Promise<void> => {
-  const res = await fetch(`${API_URL}/garments/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error("Error al eliminar la orden");
+  const res = await mutationFetch(`${API_URL}/garments/${id}`, 'DELETE');
+  if (!res.ok && res.status !== 202) throw new Error("Error al eliminar la orden");
 };
 
 export const createFinance = async (data: Partial<DBFinance>): Promise<DBFinance> => {
-  const res = await fetch(`${API_URL}/finances`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error("Error al guardar el registro");
+  const res = await mutationFetch(`${API_URL}/finances`, 'POST', data);
+  if (!res.ok && res.status !== 202) throw new Error("Error al guardar el registro");
   return res.json();
 };
 
 export const updateFinance = async (id: string, data: Record<string, unknown>): Promise<DBFinance> => {
-  const res = await fetch(`${API_URL}/finances/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error("Error al actualizar el registro");
+  const res = await mutationFetch(`${API_URL}/finances/${id}`, 'PUT', data);
+  if (!res.ok && res.status !== 202) throw new Error("Error al actualizar el registro");
   return res.json();
 };
 
 export const deleteFinance = async (id: string): Promise<void> => {
-  const res = await fetch(`${API_URL}/finances/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error("Error al eliminar el registro");
+  const res = await mutationFetch(`${API_URL}/finances/${id}`, 'DELETE');
+  if (!res.ok && res.status !== 202) throw new Error("Error al eliminar el registro");
 };
 
 // --- CLIENTES ---
@@ -100,34 +114,22 @@ export interface DBClient {
 }
 
 export const fetchClients = async (): Promise<DBClient[]> => {
-  const res = await fetch(`${API_URL}/clients`);
-  if (!res.ok) throw new Error("Error al obtener clientes");
-  return res.json();
+  return cachedFetch<DBClient[]>(`${API_URL}/clients`);
 };
 
 export const searchClients = async (q: string): Promise<DBClient[]> => {
-  const res = await fetch(`${API_URL}/clients/search?q=${encodeURIComponent(q)}`);
-  if (!res.ok) throw new Error("Error buscando clientes");
-  return res.json();
+  return cachedFetch<DBClient[]>(`${API_URL}/clients/search?q=${encodeURIComponent(q)}`);
 };
 
 export const createClient = async (data: Partial<DBClient>): Promise<DBClient> => {
-  const res = await fetch(`${API_URL}/clients`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error("Error al registrar cliente");
+  const res = await mutationFetch(`${API_URL}/clients`, 'POST', data);
+  if (!res.ok && res.status !== 202) throw new Error("Error al registrar cliente");
   return res.json();
 };
 
 export const updateClient = async (id: string, data: Partial<DBClient>): Promise<DBClient> => {
-  const res = await fetch(`${API_URL}/clients/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error("Error al actualizar cliente");
+  const res = await mutationFetch(`${API_URL}/clients/${id}`, 'PUT', data);
+  if (!res.ok && res.status !== 202) throw new Error("Error al actualizar cliente");
   return res.json();
 };
 
@@ -143,14 +145,12 @@ export interface DBNotification {
 }
 
 export const fetchNotifications = async (clientId: string): Promise<DBNotification[]> => {
-  const res = await fetch(`${API_URL}/notifications/${encodeURIComponent(clientId)}`);
-  if (!res.ok) throw new Error("Error al obtener notificaciones");
-  return res.json();
+  return cachedFetch<DBNotification[]>(`${API_URL}/notifications/${encodeURIComponent(clientId)}`);
 };
 
 export const markNotificationRead = async (id: string): Promise<DBNotification> => {
-  const res = await fetch(`${API_URL}/notifications/${id}/read`, { method: 'PATCH' });
-  if (!res.ok) throw new Error("Error al marcar notificacion como leida");
+  const res = await mutationFetch(`${API_URL}/notifications/${id}/read`, 'PATCH');
+  if (!res.ok && res.status !== 202) throw new Error("Error al marcar notificacion como leida");
   return res.json();
 };
 
@@ -165,9 +165,7 @@ export interface DBGarmentPhoto {
 }
 
 export const fetchGarmentPhotos = async (garmentId: string): Promise<DBGarmentPhoto[]> => {
-  const res = await fetch(`${API_URL}/garments/${garmentId}/photos`);
-  if (!res.ok) throw new Error("Error al obtener fotos");
-  return res.json();
+  return cachedFetch<DBGarmentPhoto[]>(`${API_URL}/garments/${garmentId}/photos`);
 };
 
 export const uploadGarmentPhoto = async (garmentId: string, file: File): Promise<DBGarmentPhoto> => {
@@ -182,6 +180,6 @@ export const uploadGarmentPhoto = async (garmentId: string, file: File): Promise
 };
 
 export const deleteGarmentPhoto = async (garmentId: string, photoId: string): Promise<void> => {
-  const res = await fetch(`${API_URL}/garments/${garmentId}/photos/${photoId}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error("Error al eliminar foto");
+  const res = await mutationFetch(`${API_URL}/garments/${garmentId}/photos/${photoId}`, 'DELETE');
+  if (!res.ok && res.status !== 202) throw new Error("Error al eliminar foto");
 };

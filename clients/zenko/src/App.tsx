@@ -1,16 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import Garments from './pages/Garments';
 import Finances from './pages/Finances';
 import Clients from './pages/Clients';
 import ChatDemo from './pages/ChatDemo';
 import NotificationBell from './components/NotificationBell';
-import { ToastProvider } from './components/ToastContext';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { ToastProvider, useToast } from './components/ToastContext';
+import { setupOnlineSync } from './services/sync';
 import logoUrl from './assets/logo.png';
 
-function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'clients' | 'chat'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const toast = useToast();
+
+  useEffect(() => {
+    const cleanup = setupOnlineSync((count) => {
+      toast.success(`${count} cambio${count > 1 ? 's' : ''} sincronizado${count > 1 ? 's' : ''}`);
+    });
+    return cleanup;
+  }, []);
 
   const navigate = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -18,8 +28,8 @@ function App() {
   };
 
   return (
-    <ToastProvider>
     <div className="app-container">
+      <OfflineIndicator />
       {/* Sidebar overlay for mobile */}
       <div className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
       {/* Sidebar */}
@@ -90,6 +100,13 @@ function App() {
         </div>
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
     </ToastProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import Appointments from './pages/Appointments';
 import Finances from './pages/Finances';
@@ -8,7 +8,9 @@ import Agent from './pages/Agent';
 import ChatDemo from './pages/ChatDemo';
 import Ambient from './pages/Ambient';
 import { MusicProvider, useMusicCommand } from './components/MusicContext';
-import { ToastProvider } from './components/ToastContext';
+import { ToastProvider, useToast } from './components/ToastContext';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { setupOnlineSync } from './services/sync';
 import { BUSINESS } from './config';
 import logoUrl from './assets/logo.svg';
 
@@ -16,6 +18,14 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isPlaying, currentTrackTitle } = useMusicCommand();
+  const toast = useToast();
+
+  useEffect(() => {
+    const cleanup = setupOnlineSync((count) => {
+      toast.success(`${count} cambio${count > 1 ? 's' : ''} sincronizado${count > 1 ? 's' : ''}`);
+    });
+    return cleanup;
+  }, []);
 
   const navigate = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -24,6 +34,7 @@ function AppContent() {
 
   return (
     <div className="app-container">
+      <OfflineIndicator />
       <div className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
