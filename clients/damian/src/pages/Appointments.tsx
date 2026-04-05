@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchAppointments, updateAppointmentStatus, createAppointment } from '../services/api';
+import { fetchAppointments, updateAppointmentStatus, createAppointment, updateAppointment } from '../services/api';
 import type { DBAppointment } from '../services/api';
 import { BUSINESS } from '../config';
 
@@ -8,6 +8,8 @@ export default function Appointments() {
   const [appointments, setAppointments] = useState<DBAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<DBAppointment | null>(null);
+  const [conflictError, setConflictError] = useState('');
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
   });
@@ -16,15 +18,53 @@ export default function Appointments() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const openEdit = (appointment: DBAppointment) => {
+    setEditTarget(appointment);
+    setConflictError('');
+    setFormData({
+      clientName: appointment.clientName,
+      clientPhone: appointment.clientPhone,
+      service: appointment.service,
+      duration: appointment.duration,
+      date: appointment.date,
+      time: appointment.time,
+      price: appointment.price,
+      notes: appointment.notes || ''
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTarget) return;
+    try {
+      await updateAppointment(editTarget.id, { ...formData, duration: Number(formData.duration), price: Number(formData.price) });
+      setEditTarget(null);
+      setConflictError('');
+      setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
+      loadData();
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 409) {
+        setConflictError((error as Error).message || 'Conflicto de horario');
+      } else {
+        alert("Error al actualizar la cita");
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await createAppointment({ ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setIsModalOpen(false);
+      setConflictError('');
       setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
       loadData();
-    } catch (error) {
-      alert("Error al guardar la cita");
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 409) {
+        setConflictError((error as Error).message || 'Conflicto de horario');
+      } else {
+        alert("Error al guardar la cita");
+      }
     }
   };
 
@@ -76,7 +116,7 @@ export default function Appointments() {
           <h1>Gestion de Citas</h1>
           <p className="subtitle">Administra los turnos de tus clientes.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nueva Cita</button>
+        <button className="btn btn-primary" onClick={() => { setIsModalOpen(true); setConflictError(''); }}>+ Nueva Cita</button>
       </div>
 
       <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
@@ -120,17 +160,25 @@ export default function Appointments() {
                   <td style={{ fontWeight: 600 }}>{BUSINESS.currency}{a.price.toLocaleString()}</td>
                   <td>{getStatusBadge(a.status)}</td>
                   <td>
-                    <select
-                      value={a.status}
-                      onChange={(e) => handleStatusChange(a.id, e.target.value)}
-                      className="btn-small"
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <option value="pendiente">Pendiente</option>
-                      <option value="confirmado">Confirmado</option>
-                      <option value="completado">Completado</option>
-                      <option value="cancelado">Cancelado</option>
-                    </select>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <select
+                        value={a.status}
+                        onChange={(e) => handleStatusChange(a.id, e.target.value)}
+                        className="btn-small"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <option value="pendiente">Pendiente</option>
+                        <option value="confirmado">Confirmado</option>
+                        <option value="completado">Completado</option>
+                        <option value="cancelado">Cancelado</option>
+                      </select>
+                      <button
+                        type="button"
+                        className="btn-small"
+                        onClick={() => openEdit(a)}
+                        style={{ cursor: 'pointer' }}
+                      >Editar</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -167,9 +215,55 @@ export default function Appointments() {
 
               <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
 
+              {conflictError && (
+                <p style={{ color: 'var(--danger, #e53e3e)', margin: '4px 0', fontSize: '14px' }}>{conflictError}</p>
+              )}
+
               <div className="form-actions">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancelar</button>
+                <button type="button" onClick={() => { setIsModalOpen(false); setConflictError(''); }} className="btn-secondary">Cancelar</button>
                 <button type="submit" className="btn btn-primary">Agendar Cita</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editTarget !== null && (
+        <div className="modal-overlay">
+          <div className="card modal-card modal-md">
+            <h2 style={{ marginTop: 0 }}>Editar Cita</h2>
+            <form onSubmit={handleEditSubmit} className="form-group">
+              <div className="form-row">
+                <input required name="clientName" placeholder="Nombre Cliente" value={formData.clientName} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="clientPhone" placeholder="Telefono" value={formData.clientPhone} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+              </div>
+
+              <select required name="service" value={formData.service} onChange={handleInputChange} className="input">
+                <option value="">Tipo de Masaje...</option>
+                {BUSINESS.services.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+
+              <div className="form-row">
+                <input required name="duration" type="number" placeholder="Duracion (min)" value={formData.duration} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+              </div>
+
+              <div className="form-row">
+                <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+              </div>
+
+              <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
+
+              {conflictError && (
+                <p style={{ color: 'var(--danger, #e53e3e)', margin: '4px 0', fontSize: '14px' }}>{conflictError}</p>
+              )}
+
+              <div className="form-actions">
+                <button type="button" onClick={() => { setEditTarget(null); setConflictError(''); }} className="btn-secondary">Cancelar</button>
+                <button type="submit" className="btn btn-primary">Guardar Cambios</button>
               </div>
             </form>
           </div>

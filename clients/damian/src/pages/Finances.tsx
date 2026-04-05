@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchFinances, createFinance } from '../services/api';
+import { fetchFinances, createFinance, updateFinance, deleteFinance } from '../services/api';
 import type { DBFinance } from '../services/api';
 import { BUSINESS } from '../config';
 
@@ -17,6 +17,10 @@ export default function Finances() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [filterMonth, setFilterMonth] = useState('');
+
+  // Edit state
+  const [editTarget, setEditTarget] = useState<DBFinance | null>(null);
+  const [editForm, setEditForm] = useState({ ...EMPTY_FORM });
 
   const load = (month?: string) => {
     setLoading(true);
@@ -37,6 +41,9 @@ export default function Finances() {
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setEditForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -46,6 +53,39 @@ export default function Finances() {
       load(filterMonth);
     } catch {
       alert('Error al guardar el registro');
+    }
+  };
+
+  const openEdit = (f: DBFinance) => {
+    setEditTarget(f);
+    setEditForm({
+      date: f.date,
+      type: f.type,
+      category: f.category,
+      amount: f.amount,
+      description: f.description
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTarget) return;
+    try {
+      await updateFinance(editTarget.id, { ...editForm, amount: Number(editForm.amount) });
+      setEditTarget(null);
+      load(filterMonth);
+    } catch {
+      alert('Error al actualizar el registro');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) return;
+    try {
+      await deleteFinance(id);
+      load(filterMonth);
+    } catch {
+      alert('Error al eliminar el registro');
     }
   };
 
@@ -103,6 +143,7 @@ export default function Finances() {
                 <th>Tipo</th>
                 <th>Concepto / Descripcion</th>
                 <th>Monto</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -121,11 +162,27 @@ export default function Finances() {
                   <td style={{ fontWeight: 800, color: f.type === 'income' ? 'var(--success-color)' : 'var(--urgent-color)' }}>
                     {f.type === 'income' ? '+' : '-'}{BUSINESS.currency}{f.amount.toLocaleString()}
                   </td>
+                  <td style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      className="btn btn-small"
+                      style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                      onClick={() => openEdit(f)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="btn btn-small"
+                      style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                      onClick={() => handleDelete(f.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
                 </tr>
               ))}
               {finances.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', padding: '32px' }}>No hay registros financieros.</td>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px' }}>No hay registros financieros.</td>
                 </tr>
               )}
             </tbody>
@@ -150,6 +207,31 @@ export default function Finances() {
               <input name="description" placeholder="Descripcion adicional (opcional)" value={form.description} onChange={handle} className="input" />
               <div className="form-actions">
                 <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="btn-secondary">Cancelar</button>
+                <button type="submit" className="btn btn-primary">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Editar Registro */}
+      {editTarget && (
+        <div className="modal-overlay">
+          <div className="card modal-card modal-sm">
+            <h2 style={{ marginTop: 0 }}>Editar Registro</h2>
+            <form onSubmit={handleEditSubmit} className="form-group">
+              <div className="form-row">
+                <select name="type" value={editForm.type} onChange={handleEditChange} className="input" style={{ flex: 1 }}>
+                  <option value="income">Ingreso</option>
+                  <option value="expense">Gasto</option>
+                </select>
+                <input required name="date" type="date" value={editForm.date} onChange={handleEditChange} className="input" style={{ flex: 1 }} />
+              </div>
+              <input required name="category" placeholder={editForm.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={editForm.category} onChange={handleEditChange} className="input" />
+              <input required name="amount" type="number" placeholder="Monto ($)" value={editForm.amount || ''} onChange={handleEditChange} className="input" />
+              <input name="description" placeholder="Descripcion adicional (opcional)" value={editForm.description} onChange={handleEditChange} className="input" />
+              <div className="form-actions">
+                <button type="button" onClick={() => setEditTarget(null)} className="btn-secondary">Cancelar</button>
                 <button type="submit" className="btn btn-primary">Guardar</button>
               </div>
             </form>

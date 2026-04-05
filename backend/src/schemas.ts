@@ -29,6 +29,8 @@ export const createFinanceSchema = z.object({
   description: z.string().min(1),
 });
 
+export const updateFinanceSchema = createFinanceSchema.partial();
+
 export const createClientSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(1),
@@ -36,6 +38,8 @@ export const createClientSchema = z.object({
   email: z.string().nullish(),
   notes: z.string().nullish(),
 });
+
+export const updateClientSchema = createClientSchema.partial();
 
 // --- DAMIAN ---
 
@@ -51,6 +55,8 @@ export const createAppointmentSchema = z.object({
   notes: z.string().nullish(),
   location: z.string().optional(),
 });
+
+export const updateAppointmentSchema = createAppointmentSchema.partial();
 
 export const createPatientRecordSchema = z.object({
   date: z.string().min(1),

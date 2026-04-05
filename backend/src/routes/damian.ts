@@ -1,9 +1,33 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
-import { validate, createAppointmentSchema, updateStatusSchema, createFinanceSchema, createClientSchema, createPatientRecordSchema, updatePatientRecordSchema } from '../schemas.js';
+import { validate, createAppointmentSchema, updateAppointmentSchema, updateStatusSchema, createFinanceSchema, updateFinanceSchema, createClientSchema, updateClientSchema, createPatientRecordSchema, updatePatientRecordSchema } from '../schemas.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = Router();
+
+// --- CONFLICT DETECTION HELPERS ---
+
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+async function findConflict(date: string, time: string, duration: number, excludeId?: string) {
+  const newStart = timeToMinutes(time);
+  const newEnd = newStart + duration;
+  const existing = await prisma.appointment.findMany({
+    where: {
+      date,
+      status: { not: 'cancelado' },
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
+  });
+  return existing.find(a => {
+    const s = timeToMinutes(a.time);
+    const e = s + a.duration;
+    return newStart < e && newEnd > s;
+  }) ?? null;
+}
 
 // --- CITAS (APPOINTMENTS) ---
 
@@ -16,6 +40,11 @@ router.get('/appointments', asyncHandler(async (req, res) => {
 
 router.post('/appointments', validate(createAppointmentSchema), asyncHandler(async (req, res) => {
   const data = req.body;
+  const conflict = await findConflict(data.date, data.time, data.duration);
+  if (conflict) {
+    res.status(409).json({ error: 'Conflicto de horario', conflictWith: conflict.id });
+    return;
+  }
   const newAppointment = await prisma.appointment.create({
     data: {
       id: `APT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -40,6 +69,23 @@ router.put('/appointments/:id/status', validate(updateStatusSchema), asyncHandle
   const updated = await prisma.appointment.update({
     where: { id },
     data: { status }
+  });
+  res.json(updated);
+}));
+
+router.put('/appointments/:id', validate(updateAppointmentSchema), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  if (data.date && data.time && data.duration) {
+    const conflict = await findConflict(data.date, data.time, data.duration, id);
+    if (conflict) {
+      res.status(409).json({ error: 'Conflicto de horario', conflictWith: conflict.id });
+      return;
+    }
+  }
+  const updated = await prisma.appointment.update({
+    where: { id },
+    data,
   });
   res.json(updated);
 }));
@@ -86,6 +132,19 @@ router.post('/finances', validate(createFinanceSchema), asyncHandler(async (req,
   res.json(entry);
 }));
 
+router.put('/finances/:id', validate(updateFinanceSchema), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  const updated = await prisma.damianFinance.update({ where: { id }, data });
+  res.json(updated);
+}));
+
+router.delete('/finances/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  await prisma.damianFinance.delete({ where: { id } });
+  res.json({ success: true });
+}));
+
 // --- CLIENTES DAMIAN ---
 
 router.get('/clients', asyncHandler(async (req, res) => {
@@ -111,6 +170,21 @@ router.post('/clients', validate(createClientSchema), asyncHandler(async (req, r
     }
   });
   res.json(client);
+}));
+
+router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  const updated = await prisma.client.update({
+    where: { id },
+    data: {
+      name: data.name,
+      altPhone: data.altPhone,
+      email: data.email,
+      notes: data.notes,
+    }
+  });
+  res.json(updated);
 }));
 
 router.get('/clients/search', asyncHandler(async (req, res) => {

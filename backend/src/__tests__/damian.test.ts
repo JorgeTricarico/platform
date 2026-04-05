@@ -5,8 +5,8 @@ import { app } from '../index.js';
 
 const mockPrisma = prisma as unknown as {
   appointment: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
-  damianFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
-  client: { findMany: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
+  damianFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
+  client: { findMany: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   patientRecord: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
 };
 
@@ -44,6 +44,7 @@ describe('POST /api/damian/appointments', () => {
       duration: 60, date: '2026-04-10', time: '16:00', price: 9000, notes: 'Dolor lumbar',
     };
     const created = { id: 'APT-123', ...input, status: 'pendiente', createdAt: new Date().toISOString() };
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
     mockPrisma.appointment.create.mockResolvedValue(created);
 
     const res = await request(app).post('/api/damian/appointments').send(input);
@@ -54,6 +55,7 @@ describe('POST /api/damian/appointments', () => {
   });
 
   it('returns 500 when prisma throws', async () => {
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
     mockPrisma.appointment.create.mockRejectedValue(new Error('DB error'));
     const res = await request(app).post('/api/damian/appointments').send({
       clientName: 'Fail', clientPhone: '0000', service: 'X', duration: 30, date: '2026-04-10', time: '10:00', price: 1000,
@@ -465,5 +467,145 @@ describe('GET /api/damian/dashboard/appointments', () => {
     const res = await request(app).get('/api/damian/dashboard/appointments');
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
+  });
+});
+
+describe('PUT /api/damian/clients/:id', () => {
+  it('updates client fields by id', async () => {
+    const updated = { id: 'c1', name: 'Juan Updated', phone: '5678', business: 'damian' };
+    mockPrisma.client.update.mockResolvedValue(updated);
+    const res = await request(app).put('/api/damian/clients/c1').send({ name: 'Juan Updated' });
+    expect(res.status).toBe(200);
+    expect(mockPrisma.client.update).toHaveBeenCalledWith({
+      where: { id: 'c1' },
+      data: expect.objectContaining({ name: 'Juan Updated' })
+    });
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.client.update.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).put('/api/damian/clients/c1').send({ name: 'Test' });
+    expect(res.status).toBe(500);
+  });
+});
+
+// --- D18: FULL APPOINTMENT EDIT ---
+
+describe('PUT /api/damian/appointments/:id', () => {
+  const fullAppointment = {
+    clientName: 'Juan', clientPhone: '1111', service: 'Masaje descontracturante',
+    duration: 60, date: '2026-04-10', time: '10:00', price: 8000,
+  };
+
+  it('updates appointment fully', async () => {
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
+    const updated = { id: 'APT-1', ...fullAppointment, status: 'pendiente' };
+    mockPrisma.appointment.update.mockResolvedValue(updated);
+
+    const res = await request(app).put('/api/damian/appointments/APT-1').send(fullAppointment);
+    expect(res.status).toBe(200);
+    expect(res.body.clientName).toBe('Juan');
+    expect(mockPrisma.appointment.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'APT-1' },
+    }));
+  });
+
+  it('returns 409 when time conflicts with existing appointment', async () => {
+    // Existing: 10:00 duration 60 → ends 11:00. New: 10:30 duration 60 → ends 11:30 → overlaps
+    mockPrisma.appointment.findMany.mockResolvedValue([
+      { id: 'APT-OTHER', clientName: 'Laura', time: '10:00', duration: 60, date: '2026-04-10', status: 'pendiente' },
+    ]);
+
+    const res = await request(app).put('/api/damian/appointments/APT-1').send({
+      ...fullAppointment, time: '10:30', duration: 60,
+    });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe('Conflicto de horario');
+    expect(res.body.conflictWith).toBe('APT-OTHER');
+  });
+
+  it('allows update when only conflict is with self', async () => {
+    // findMany returns the SAME id being updated — should be excluded from conflict check
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
+    mockPrisma.appointment.update.mockResolvedValue({ id: 'APT-1', ...fullAppointment, status: 'pendiente' });
+
+    const res = await request(app).put('/api/damian/appointments/APT-1').send(fullAppointment);
+    expect(res.status).toBe(200);
+  });
+
+  it('returns 500 when prisma throws on update', async () => {
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
+    mockPrisma.appointment.update.mockRejectedValue(new Error('DB error'));
+
+    const res = await request(app).put('/api/damian/appointments/APT-1').send(fullAppointment);
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBeDefined();
+  });
+});
+
+// --- D19: EDIT/DELETE FINANCES ---
+
+describe('PUT /api/damian/finances/:id', () => {
+  it('updates a finance entry', async () => {
+    const updated = { id: 'f1', date: '2026-04-01', type: 'ingreso', category: 'Masajes', amount: 5000, description: 'Sesion Juan' };
+    mockPrisma.damianFinance.update.mockResolvedValue(updated);
+    const res = await request(app).put('/api/damian/finances/f1').send({ amount: 5000, description: 'Sesion Juan' });
+    expect(res.status).toBe(200);
+    expect(mockPrisma.damianFinance.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'f1' }
+    }));
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.damianFinance.update.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).put('/api/damian/finances/f1').send({ amount: 5000 });
+    expect(res.status).toBe(500);
+  });
+});
+
+describe('DELETE /api/damian/finances/:id', () => {
+  it('deletes a finance entry', async () => {
+    mockPrisma.damianFinance.delete.mockResolvedValue({});
+    const res = await request(app).delete('/api/damian/finances/f1');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ success: true });
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.damianFinance.delete.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).delete('/api/damian/finances/f1');
+    expect(res.status).toBe(500);
+  });
+});
+
+// --- D20: CONFLICT DETECTION ON POST ---
+
+describe('POST /api/damian/appointments - conflict detection', () => {
+  const newAppointment = {
+    clientName: 'Carlos', clientPhone: '3333', service: 'Masaje deportivo',
+    duration: 60, date: '2026-04-10', time: '10:30', price: 9000,
+  };
+
+  it('returns 409 when new appointment conflicts with existing', async () => {
+    // Existing: 10:00 duration 60 → ends 11:00. New: 10:30 → starts before 11:00 → conflict
+    mockPrisma.appointment.findMany.mockResolvedValue([
+      { id: 'APT-EXIST', clientName: 'Juan', time: '10:00', duration: 60, date: '2026-04-10', status: 'pendiente' },
+    ]);
+
+    const res = await request(app).post('/api/damian/appointments').send(newAppointment);
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe('Conflicto de horario');
+    expect(res.body.conflictWith).toBe('APT-EXIST');
+  });
+
+  it('creates appointment when no conflict', async () => {
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
+    const created = { id: 'APT-NEW', ...newAppointment, status: 'pendiente' };
+    mockPrisma.appointment.create.mockResolvedValue(created);
+
+    const res = await request(app).post('/api/damian/appointments').send(newAppointment);
+    expect(res.status).toBe(200);
+    expect(res.body.clientName).toBe('Carlos');
+    expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
   });
 });

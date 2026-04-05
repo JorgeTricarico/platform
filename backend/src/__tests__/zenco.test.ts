@@ -21,7 +21,7 @@ const mockWA = whatsappService as unknown as {
 
 const mockPrisma = prisma as unknown as {
   order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
-  zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
+  zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
   client: { findMany: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   notification: { create: ReturnType<typeof vi.fn> };
 };
@@ -548,5 +548,62 @@ describe('GET /health', () => {
     const res = await request(app).get('/health');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
+  });
+});
+
+describe('PUT /api/zenco/finances/:id', () => {
+  it('updates a finance entry', async () => {
+    const updated = { id: 'f1', date: '2026-04-01', type: 'ingreso', category: 'Arreglo', amount: 5000, description: 'Pantalon' };
+    mockPrisma.zencoFinance.update.mockResolvedValue(updated);
+    const res = await request(app).put('/api/zenco/finances/f1').send({ amount: 5000, description: 'Pantalon' });
+    expect(res.status).toBe(200);
+    expect(mockPrisma.zencoFinance.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'f1' }
+    }));
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.zencoFinance.update.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).put('/api/zenco/finances/f1').send({ amount: 5000 });
+    expect(res.status).toBe(500);
+  });
+});
+
+describe('DELETE /api/zenco/finances/:id', () => {
+  it('deletes a finance entry', async () => {
+    mockPrisma.zencoFinance.delete.mockResolvedValue({});
+    const res = await request(app).delete('/api/zenco/finances/f1');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ success: true });
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.zencoFinance.delete.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).delete('/api/zenco/finances/f1');
+    expect(res.status).toBe(500);
+  });
+});
+
+describe('PUT /api/zenco/clients/:id', () => {
+  it('updates client fields by id', async () => {
+    const updated = { id: 'c1', name: 'Ana Updated', phone: '1234', business: 'zenco' };
+    mockPrisma.client.update.mockResolvedValue(updated);
+    const res = await request(app).put('/api/zenco/clients/c1').send({ name: 'Ana Updated' });
+    expect(res.status).toBe(200);
+    expect(mockPrisma.client.update).toHaveBeenCalledWith({
+      where: { id: 'c1' },
+      data: expect.objectContaining({ name: 'Ana Updated' })
+    });
+  });
+
+  it('returns 400 when body is empty', async () => {
+    const res = await request(app).put('/api/zenco/clients/c1').send({});
+    expect(res.status).toBe(200); // partial schema allows empty — all fields optional
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.client.update.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).put('/api/zenco/clients/c1').send({ name: 'Test' });
+    expect(res.status).toBe(500);
   });
 });

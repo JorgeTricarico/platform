@@ -5,14 +5,18 @@ import Finances from './Finances';
 vi.mock('../services/api', () => ({
   fetchFinances: vi.fn(),
   createFinance: vi.fn(),
+  updateFinance: vi.fn(),
+  deleteFinance: vi.fn(),
 }));
 
-import { fetchFinances } from '../services/api';
+import { fetchFinances, updateFinance, deleteFinance } from '../services/api';
 
 const mockFinances = [
   { id: 'FIN-1', date: '2026-04-01', type: 'income', category: 'Arreglos', amount: 4500, description: 'Test income' },
   { id: 'FIN-2', date: '2026-04-02', type: 'expense', category: 'Insumos', amount: 1500, description: 'Test expense' },
 ];
+
+const mockFinanceEdit = { id: 'f1', date: '2026-04-01', type: 'income', category: 'Arreglo', amount: 5000, description: 'Pantalon' };
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -79,5 +83,67 @@ describe('Finances page', () => {
     fireEvent.click(screen.getByText('+ Nuevo Registro'));
     expect(document.querySelector('.modal-sm')).toBeInTheDocument();
     expect(document.querySelector('.modal-card')).toBeInTheDocument();
+  });
+});
+
+describe('Z16 — Edit finance', () => {
+  it('renders Acciones column with Editar and Eliminar buttons', async () => {
+    render(<Finances />);
+    await waitFor(() => {
+      expect(screen.getByText('Acciones')).toBeInTheDocument();
+    });
+    const editBtns = screen.getAllByText('Editar');
+    const deleteBtns = screen.getAllByText('Eliminar');
+    expect(editBtns.length).toBe(mockFinances.length);
+    expect(deleteBtns.length).toBe(mockFinances.length);
+  });
+
+  it('opens edit modal pre-populated with finance data', async () => {
+    (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
+    render(<Finances />);
+    await waitFor(() => {
+      expect(screen.getByText('Arreglo')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Editar'));
+    await waitFor(() => {
+      expect(screen.getByText('Editar Registro')).toBeInTheDocument();
+      const categoryInput = document.querySelector('input[name="category"]') as HTMLInputElement;
+      expect(categoryInput.value).toBe('Arreglo');
+      const amountInput = document.querySelector('input[name="amount"]') as HTMLInputElement;
+      expect(amountInput.value).toBe('5000');
+    });
+  });
+
+  it('calls updateFinance on edit submit', async () => {
+    (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
+    (updateFinance as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockFinanceEdit });
+    render(<Finances />);
+    await waitFor(() => {
+      expect(screen.getByText('Arreglo')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Editar'));
+    await waitFor(() => {
+      expect(screen.getByText('Editar Registro')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Guardar'));
+    await waitFor(() => {
+      expect(updateFinance).toHaveBeenCalledWith('f1', expect.objectContaining({ category: 'Arreglo', amount: 5000 }));
+    });
+  });
+});
+
+describe('Z16 — Delete finance', () => {
+  it('calls deleteFinance when Eliminar is clicked and confirmed', async () => {
+    (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
+    (deleteFinance as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    window.confirm = vi.fn(() => true);
+    render(<Finances />);
+    await waitFor(() => {
+      expect(screen.getByText('Arreglo')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Eliminar'));
+    await waitFor(() => {
+      expect(deleteFinance).toHaveBeenCalledWith('f1');
+    });
   });
 });

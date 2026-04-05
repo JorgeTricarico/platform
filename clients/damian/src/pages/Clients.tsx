@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchClients, searchClients, createClient } from '../services/api';
+import { fetchClients, searchClients, createClient, updateClient } from '../services/api';
 import type { DBClient } from '../services/api';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
@@ -49,7 +49,7 @@ export default function Clients() {
     e.preventDefault();
     if (!editTarget) return;
     try {
-      await createClient({ ...editForm });
+      await updateClient(editTarget.id, editForm);
       setEditTarget(null);
       load();
     } catch { alert('Error al actualizar cliente'); }

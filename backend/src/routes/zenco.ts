@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
-import { validate, createGarmentSchema, updateGarmentSchema, updateStatusSchema, createFinanceSchema, createClientSchema } from '../schemas.js';
+import { validate, createGarmentSchema, updateGarmentSchema, updateStatusSchema, createFinanceSchema, updateFinanceSchema, createClientSchema, updateClientSchema } from '../schemas.js';
 import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler.js';
 import { whatsappService } from '../services/whatsapp.js';
 
@@ -155,6 +155,19 @@ router.post('/finances', validate(createFinanceSchema), asyncHandler(async (req,
   res.json(entry);
 }));
 
+router.put('/finances/:id', validate(updateFinanceSchema), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  const updated = await prisma.zencoFinance.update({ where: { id }, data });
+  res.json(updated);
+}));
+
+router.delete('/finances/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  await prisma.zencoFinance.delete({ where: { id } });
+  res.json({ success: true });
+}));
+
 // --- CLIENTES ZENCO ---
 
 router.get('/clients', asyncHandler(async (req, res) => {
@@ -181,6 +194,21 @@ router.post('/clients', validate(createClientSchema), asyncHandler(async (req, r
     }
   });
   res.json(client);
+}));
+
+router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  const updated = await prisma.client.update({
+    where: { id },
+    data: {
+      name: data.name,
+      altPhone: data.altPhone,
+      email: data.email,
+      notes: data.notes,
+    }
+  });
+  res.json(updated);
 }));
 
 router.get('/clients/search', asyncHandler(async (req, res) => {

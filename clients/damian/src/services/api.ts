@@ -34,7 +34,25 @@ export const createAppointment = async (data: Partial<DBAppointment>): Promise<D
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
+  if (res.status === 409) {
+    const body = await res.json();
+    throw Object.assign(new Error(body.error || 'Conflicto de horario'), { status: 409 });
+  }
   if (!res.ok) throw new Error("Error al crear cita");
+  return res.json();
+};
+
+export const updateAppointment = async (id: string, data: Record<string, unknown>): Promise<DBAppointment> => {
+  const res = await fetch(`${API_URL}/appointments/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (res.status === 409) {
+    const body = await res.json();
+    throw Object.assign(new Error(body.error || 'Conflicto de horario'), { status: 409 });
+  }
+  if (!res.ok) throw new Error("Error al actualizar cita");
   return res.json();
 };
 
@@ -63,6 +81,21 @@ export const createFinance = async (data: Partial<DBFinance>): Promise<DBFinance
   });
   if (!res.ok) throw new Error("Error al guardar el registro");
   return res.json();
+};
+
+export const updateFinance = async (id: string, data: Record<string, unknown>): Promise<DBFinance> => {
+  const res = await fetch(`${API_URL}/finances/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Error al actualizar el registro");
+  return res.json();
+};
+
+export const deleteFinance = async (id: string): Promise<void> => {
+  const res = await fetch(`${API_URL}/finances/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error("Error al eliminar el registro");
 };
 
 // --- CLIENTES ---
@@ -97,6 +130,16 @@ export const createClient = async (data: Partial<DBClient>): Promise<DBClient> =
     body: JSON.stringify(data)
   });
   if (!res.ok) throw new Error("Error al registrar cliente");
+  return res.json();
+};
+
+export const updateClient = async (id: string, data: Partial<DBClient>): Promise<DBClient> => {
+  const res = await fetch(`${API_URL}/clients/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Error al actualizar cliente");
   return res.json();
 };
 

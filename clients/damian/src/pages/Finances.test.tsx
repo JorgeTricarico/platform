@@ -5,14 +5,18 @@ import Finances from './Finances';
 vi.mock('../services/api', () => ({
   fetchFinances: vi.fn(),
   createFinance: vi.fn(),
+  updateFinance: vi.fn(),
+  deleteFinance: vi.fn(),
 }));
+
+import { fetchFinances, updateFinance, deleteFinance } from '../services/api';
 
 const mockFinances = [
   { id: 'FIN-1', date: '2026-04-01', type: 'income', category: 'Sesiones', amount: 8000, description: 'Masaje' },
   { id: 'FIN-2', date: '2026-04-02', type: 'expense', category: 'Insumos', amount: 2000, description: 'Aceites' },
 ];
 
-import { fetchFinances } from '../services/api';
+const mockFinanceEdit = { id: 'f1', date: '2026-04-01', type: 'income', category: 'Sesion', amount: 5000, description: 'Masaje relajante' };
 
 describe('Finances', () => {
   beforeEach(() => {
@@ -81,6 +85,78 @@ describe('Finances', () => {
       const modalCard = document.querySelector('.modal-card');
       expect(modalCard).not.toBeNull();
       expect(modalCard!.className).toContain('modal-sm');
+    });
+  });
+});
+
+describe('D19 — Edit finance', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue(mockFinances);
+  });
+
+  it('renders Acciones column with Editar and Eliminar buttons', async () => {
+    render(<Finances />);
+    await waitFor(() => {
+      expect(screen.getByText('Acciones')).toBeDefined();
+    });
+    const editBtns = screen.getAllByText('Editar');
+    const deleteBtns = screen.getAllByText('Eliminar');
+    expect(editBtns.length).toBe(mockFinances.length);
+    expect(deleteBtns.length).toBe(mockFinances.length);
+  });
+
+  it('opens edit modal pre-populated with finance data', async () => {
+    (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
+    render(<Finances />);
+    await waitFor(() => {
+      expect(screen.getByText('Sesion')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Editar'));
+    await waitFor(() => {
+      expect(screen.getByText('Editar Registro')).toBeDefined();
+      const categoryInput = document.querySelector('input[name="category"]') as HTMLInputElement;
+      expect(categoryInput.value).toBe('Sesion');
+      const amountInput = document.querySelector('input[name="amount"]') as HTMLInputElement;
+      expect(amountInput.value).toBe('5000');
+    });
+  });
+
+  it('calls updateFinance on edit submit', async () => {
+    (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
+    (updateFinance as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockFinanceEdit });
+    render(<Finances />);
+    await waitFor(() => {
+      expect(screen.getByText('Sesion')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Editar'));
+    await waitFor(() => {
+      expect(screen.getByText('Editar Registro')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Guardar'));
+    await waitFor(() => {
+      expect(updateFinance).toHaveBeenCalledWith('f1', expect.objectContaining({ category: 'Sesion', amount: 5000 }));
+    });
+  });
+});
+
+describe('D19 — Delete finance', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue(mockFinances);
+  });
+
+  it('calls deleteFinance when Eliminar is clicked and confirmed', async () => {
+    (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
+    (deleteFinance as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    window.confirm = vi.fn(() => true);
+    render(<Finances />);
+    await waitFor(() => {
+      expect(screen.getByText('Sesion')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Eliminar'));
+    await waitFor(() => {
+      expect(deleteFinance).toHaveBeenCalledWith('f1');
     });
   });
 });

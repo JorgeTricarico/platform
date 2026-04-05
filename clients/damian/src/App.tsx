@@ -112,7 +112,7 @@ function AppContent() {
           {activeTab === 'clients' && <Clients />}
           {activeTab === 'patients' && <Patients />}
           {activeTab === 'agent' && <Agent />}
-          {activeTab === 'ambient' && <Ambient />}
+          <div style={{ display: activeTab === 'ambient' ? 'block' : 'none' }}><Ambient /></div>
           {activeTab === 'chat' && <ChatDemo />}
         </div>
       </main>

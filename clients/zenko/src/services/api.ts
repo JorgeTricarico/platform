@@ -71,6 +71,21 @@ export const createFinance = async (data: Partial<DBFinance>): Promise<DBFinance
   return res.json();
 };
 
+export const updateFinance = async (id: string, data: Record<string, unknown>): Promise<DBFinance> => {
+  const res = await fetch(`${API_URL}/finances/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Error al actualizar el registro");
+  return res.json();
+};
+
+export const deleteFinance = async (id: string): Promise<void> => {
+  const res = await fetch(`${API_URL}/finances/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error("Error al eliminar el registro");
+};
+
 // --- CLIENTES ---
 
 export interface DBClient {
@@ -103,6 +118,16 @@ export const createClient = async (data: Partial<DBClient>): Promise<DBClient> =
     body: JSON.stringify(data)
   });
   if (!res.ok) throw new Error("Error al registrar cliente");
+  return res.json();
+};
+
+export const updateClient = async (id: string, data: Partial<DBClient>): Promise<DBClient> => {
+  const res = await fetch(`${API_URL}/clients/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Error al actualizar cliente");
   return res.json();
 };
 

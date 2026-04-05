@@ -21,10 +21,14 @@ vi.mock('../db.js', () => {
     zencoFinance: {
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
     damianFinance: {
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
     appointment: {
       findMany: vi.fn().mockResolvedValue([]),
@@ -35,6 +39,7 @@ vi.mock('../db.js', () => {
       findMany: vi.fn().mockResolvedValue([]),
       findUnique: vi.fn().mockResolvedValue(null),
       upsert: vi.fn(),
+      update: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
     },
     patientRecord: {
