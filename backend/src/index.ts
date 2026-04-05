@@ -12,6 +12,8 @@ import { garmentPhotosRoutes } from './routes/garment-photos.js';
 import { whatsappRoutes } from './routes/whatsapp.js';
 import { chatHistoryRoutes } from './routes/chat-history.js';
 import { errorHandler, requestLogger } from './middleware/errorHandler.js';
+import { authenticate, requireBusiness } from './middleware/auth.js';
+import { authRoutes } from './routes/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,17 +25,20 @@ app.use(requestLogger);
 // Static files — serve uploaded garment photos
 app.use('/uploads', express.static(path.resolve('uploads')));
 
-// Rutas namespacedas por negocio
-app.use('/api/zenco', zencoRoutes);
-app.use('/api/zenco/chat/history', chatHistoryRoutes);
-app.use('/api/zenco/chat', chatZencoRoutes);
-app.use('/api/zenco/notifications', notificationRoutes);
-app.use('/api/zenco/garments/:id/photos', garmentPhotosRoutes);
-app.use('/api/damian', damianRoutes);
-app.use('/api/damian/chat/history', chatHistoryRoutes);
-app.use('/api/damian/chat', chatDamianRoutes);
-app.use('/api/damian/agent', agentDamianRoutes);
-app.use('/api/whatsapp', whatsappRoutes);
+// Public routes — no auth required
+app.use('/api/auth', authRoutes);
+
+// Protected routes — JWT required + business check
+app.use('/api/zenco', authenticate, requireBusiness('zenco'), zencoRoutes);
+app.use('/api/zenco/chat/history', authenticate, requireBusiness('zenco'), chatHistoryRoutes);
+app.use('/api/zenco/chat', authenticate, requireBusiness('zenco'), chatZencoRoutes);
+app.use('/api/zenco/notifications', authenticate, requireBusiness('zenco'), notificationRoutes);
+app.use('/api/zenco/garments/:id/photos', authenticate, requireBusiness('zenco'), garmentPhotosRoutes);
+app.use('/api/damian', authenticate, requireBusiness('damian'), damianRoutes);
+app.use('/api/damian/chat/history', authenticate, requireBusiness('damian'), chatHistoryRoutes);
+app.use('/api/damian/chat', authenticate, requireBusiness('damian'), chatDamianRoutes);
+app.use('/api/damian/agent', authenticate, requireBusiness('damian'), agentDamianRoutes);
+app.use('/api/whatsapp', authenticate, whatsappRoutes);
 
 // Health check para Render
 app.get('/health', (_req, res) => {

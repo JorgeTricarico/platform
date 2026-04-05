@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   order: { update: ReturnType<typeof vi.fn> };
@@ -43,6 +44,7 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
 
     const res = await request(app)
       .put('/api/zenco/garments/ORD-1/status')
+      .set('Authorization', authHeader('zenco'))
       .send({ status: 'listo' });
 
     expect(res.status).toBe(200);
@@ -67,6 +69,7 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
 
     const res = await request(app)
       .put('/api/zenco/garments/ORD-1/status')
+      .set('Authorization', authHeader('zenco'))
       .send({ status: 'en_proceso' });
 
     expect(res.status).toBe(200);
@@ -78,6 +81,7 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
 
     const res = await request(app)
       .put('/api/zenco/garments/ORD-1/status')
+      .set('Authorization', authHeader('zenco'))
       .send({ status: 'listo' });
 
     expect(res.status).toBe(500);
@@ -111,7 +115,7 @@ describe('GET /api/zenco/notifications/:clientId', () => {
     ];
     mockPrisma.notification.findMany.mockResolvedValue(notifications);
 
-    const res = await request(app).get('/api/zenco/notifications/1111');
+    const res = await request(app).get('/api/zenco/notifications/1111').set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(2);
@@ -127,7 +131,7 @@ describe('GET /api/zenco/notifications/:clientId', () => {
   it('returns empty array when client has no notifications', async () => {
     mockPrisma.notification.findMany.mockResolvedValue([]);
 
-    const res = await request(app).get('/api/zenco/notifications/9999');
+    const res = await request(app).get('/api/zenco/notifications/9999').set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
@@ -136,7 +140,7 @@ describe('GET /api/zenco/notifications/:clientId', () => {
   it('returns 500 when prisma throws', async () => {
     mockPrisma.notification.findMany.mockRejectedValue(new Error('DB error'));
 
-    const res = await request(app).get('/api/zenco/notifications/1111');
+    const res = await request(app).get('/api/zenco/notifications/1111').set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(500);
     expect(res.body.error).toContain('Error');
@@ -159,7 +163,7 @@ describe('PATCH /api/zenco/notifications/:id/read', () => {
     };
     mockPrisma.notification.update.mockResolvedValue(updated);
 
-    const res = await request(app).patch('/api/zenco/notifications/notif-1/read');
+    const res = await request(app).patch('/api/zenco/notifications/notif-1/read').set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     expect(res.body.read).toBe(true);
@@ -172,7 +176,7 @@ describe('PATCH /api/zenco/notifications/:id/read', () => {
   it('returns 500 when notification not found', async () => {
     mockPrisma.notification.update.mockRejectedValue(new Error('Not found'));
 
-    const res = await request(app).patch('/api/zenco/notifications/FAKE/read');
+    const res = await request(app).patch('/api/zenco/notifications/FAKE/read').set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(500);
     expect(res.body.error).toContain('Error');

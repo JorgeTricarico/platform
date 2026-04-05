@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
@@ -34,7 +35,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
 
     // Step 1: Create the garment
     mockPrisma.order.create.mockResolvedValue(createdOrder);
-    const createRes = await request(app).post('/api/zenco/garments').send(input);
+    const createRes = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(createRes.status).toBe(200);
     expect(createRes.body.id).toBe('ORD-1712345678-42');
 
@@ -54,7 +55,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
 
     // Step 2: List garments returns the created one
     mockPrisma.order.findMany.mockResolvedValue([createdOrder]);
-    const listRes = await request(app).get('/api/zenco/garments');
+    const listRes = await request(app).get('/api/zenco/garments').set('Authorization', authHeader('zenco'));
     expect(listRes.status).toBe(200);
     expect(listRes.body).toHaveLength(1);
     expect(listRes.body[0].intakeDate).toBe('2026-04-05');
@@ -68,7 +69,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
     };
     mockPrisma.order.create.mockResolvedValue({ id: 'ORD-x', ...input, intakeDate: '2026-04-05', status: 'recibido' });
 
-    await request(app).post('/api/zenco/garments').send(input);
+    await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
     expect(callData.intakeDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
@@ -82,24 +83,24 @@ describe('Garment registration end-to-end (bug regression)', () => {
 
     // Create
     mockPrisma.order.create.mockResolvedValue(garment);
-    const r1 = await request(app).post('/api/zenco/garments').send(garment);
+    const r1 = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(garment);
     expect(r1.status).toBe(200);
 
     // Update status
     mockPrisma.order.update.mockResolvedValue({ ...garment, status: 'listo' });
-    const r2 = await request(app).put('/api/zenco/garments/ORD-CRUD/status').send({ status: 'listo' });
+    const r2 = await request(app).put('/api/zenco/garments/ORD-CRUD/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
     expect(r2.status).toBe(200);
     expect(r2.body.status).toBe('listo');
 
     // Full update
     mockPrisma.order.update.mockResolvedValue({ ...garment, price: 3500, status: 'entregado' });
-    const r3 = await request(app).put('/api/zenco/garments/ORD-CRUD').send({ ...garment, price: 3500, status: 'entregado' });
+    const r3 = await request(app).put('/api/zenco/garments/ORD-CRUD').set('Authorization', authHeader('zenco')).send({ ...garment, price: 3500, status: 'entregado' });
     expect(r3.status).toBe(200);
     expect(r3.body.price).toBe(3500);
 
     // Delete
     mockPrisma.order.delete.mockResolvedValue({});
-    const r4 = await request(app).delete('/api/zenco/garments/ORD-CRUD');
+    const r4 = await request(app).delete('/api/zenco/garments/ORD-CRUD').set('Authorization', authHeader('zenco'));
     expect(r4.status).toBe(200);
     expect(r4.body.success).toBe(true);
   });

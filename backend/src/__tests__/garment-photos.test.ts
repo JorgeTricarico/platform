@@ -3,6 +3,7 @@ import request from 'supertest';
 import path from 'path';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   garmentPhoto: {
@@ -34,7 +35,7 @@ describe('GET /api/zenco/garments/:id/photos', () => {
   it('returns empty array when no photos exist', async () => {
     mockPrisma.garmentPhoto.findMany.mockResolvedValue([]);
 
-    const res = await request(app).get(`/api/zenco/garments/${GARMENT_ID}/photos`);
+    const res = await request(app).get(`/api/zenco/garments/${GARMENT_ID}/photos`).set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
@@ -46,7 +47,7 @@ describe('GET /api/zenco/garments/:id/photos', () => {
     ];
     mockPrisma.garmentPhoto.findMany.mockResolvedValue(photos);
 
-    const res = await request(app).get(`/api/zenco/garments/${GARMENT_ID}/photos`);
+    const res = await request(app).get(`/api/zenco/garments/${GARMENT_ID}/photos`).set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(2);
     expect(res.body[0].id).toBe('photo-1');
@@ -58,6 +59,7 @@ describe('POST /api/zenco/garments/:id/photos', () => {
   it('rejects request with no file attached', async () => {
     const res = await request(app)
       .post(`/api/zenco/garments/${GARMENT_ID}/photos`)
+      .set('Authorization', authHeader('zenco'))
       .send({});
     expect(res.status).toBe(400);
     expect(res.body.error).toBeDefined();
@@ -75,6 +77,7 @@ describe('POST /api/zenco/garments/:id/photos', () => {
 
     const res = await request(app)
       .post(`/api/zenco/garments/${GARMENT_ID}/photos`)
+      .set('Authorization', authHeader('zenco'))
       .attach('photo', Buffer.from('fake image data'), {
         filename: 'prenda.jpg',
         contentType: 'image/jpeg',
@@ -92,6 +95,7 @@ describe('POST /api/zenco/garments/:id/photos', () => {
 
     const res = await request(app)
       .post(`/api/zenco/garments/${GARMENT_ID}/photos`)
+      .set('Authorization', authHeader('zenco'))
       .attach('photo', bigBuffer, {
         filename: 'big.jpg',
         contentType: 'image/jpeg',
@@ -104,6 +108,7 @@ describe('POST /api/zenco/garments/:id/photos', () => {
   it('rejects non-image file types', async () => {
     const res = await request(app)
       .post(`/api/zenco/garments/${GARMENT_ID}/photos`)
+      .set('Authorization', authHeader('zenco'))
       .attach('photo', Buffer.from('not an image'), {
         filename: 'document.pdf',
         contentType: 'application/pdf',
@@ -119,7 +124,8 @@ describe('DELETE /api/zenco/garments/:id/photos/:photoId', () => {
     mockPrisma.garmentPhoto.findUnique.mockResolvedValue(null);
 
     const res = await request(app)
-      .delete(`/api/zenco/garments/${GARMENT_ID}/photos/nonexistent-id`);
+      .delete(`/api/zenco/garments/${GARMENT_ID}/photos/nonexistent-id`)
+      .set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(404);
     expect(res.body.error).toBeDefined();
@@ -137,7 +143,8 @@ describe('DELETE /api/zenco/garments/:id/photos/:photoId', () => {
     mockPrisma.garmentPhoto.delete.mockResolvedValue(photo);
 
     const res = await request(app)
-      .delete(`/api/zenco/garments/${GARMENT_ID}/photos/photo-del`);
+      .delete(`/api/zenco/garments/${GARMENT_ID}/photos/photo-del`)
+      .set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
@@ -157,7 +164,8 @@ describe('DELETE /api/zenco/garments/:id/photos/:photoId', () => {
     mockPrisma.garmentPhoto.findUnique.mockResolvedValue(photo);
 
     const res = await request(app)
-      .delete(`/api/zenco/garments/${GARMENT_ID}/photos/photo-other`);
+      .delete(`/api/zenco/garments/${GARMENT_ID}/photos/photo-other`)
+      .set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(404);
     expect(res.body.error).toBeDefined();

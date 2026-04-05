@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   client: { findUnique: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
@@ -57,14 +58,14 @@ beforeEach(() => {
 
 describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
   it('returns 400 when message is empty', async () => {
-    const res = await request(app).post('/api/damian/chat').send({});
+    const res = await request(app).post('/api/damian/chat').set('Authorization', authHeader('damian')).send({});
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Mensaje requerido');
   });
 
   it('returns fallback when no API key', async () => {
     delete process.env.GEMINI_API_KEY;
-    const res = await request(app).post('/api/damian/chat').send({ message: 'Hola' });
+    const res = await request(app).post('/api/damian/chat').set('Authorization', authHeader('damian')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('no esta configurado');
   });
@@ -72,7 +73,7 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
   it('Saludo: cliente saluda, Damian responde casual', async () => {
     mockSendMessage.mockResolvedValue(textResponse('hola! como andas? en que te puedo ayudar?'));
 
-    const res = await request(app).post('/api/damian/chat').send({ message: 'Buenas!' });
+    const res = await request(app).post('/api/damian/chat').set('Authorization', authHeader('damian')).send({ message: 'Buenas!' });
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('hola');
     expect(mockSendMessage).toHaveBeenCalledWith('Buenas!');
@@ -83,9 +84,12 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
       'hago descontracturante, relajante, deportivo y drenaje linfatico. cual te interesa?'
     ));
 
-    const res = await request(app).post('/api/damian/chat').send({
-      message: '¿Qué tipos de masaje hacés?',
-    });
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({
+        message: '¿Qué tipos de masaje hacés?',
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toBeTruthy();
@@ -110,9 +114,12 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
       date: '2026-04-07', time: '15:00', price: 8000, status: 'pendiente',
     });
 
-    const res = await request(app).post('/api/damian/chat').send({
-      message: 'Quiero un turno para descontracturante el lunes 7 a las 3 de la tarde, soy Laura',
-    });
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({
+        message: 'Quiero un turno para descontracturante el lunes 7 a las 3 de la tarde, soy Laura',
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('laura');
@@ -139,9 +146,12 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
       { time: '14:00', status: 'pendiente' },
     ]);
 
-    const res = await request(app).post('/api/damian/chat').send({
-      message: '¿Qué turnos tenés libres el lunes 7?',
-    });
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({
+        message: '¿Qué turnos tenés libres el lunes 7?',
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toBeTruthy();
@@ -172,9 +182,12 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
       { service: 'Masaje Relajante', date: '2026-03-27', time: '10:00', status: 'completado' },
     ]);
 
-    const res = await request(app).post('/api/damian/chat').send({
-      message: 'Buscame el historial del 1111',
-    });
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({
+        message: 'Buscame el historial del 1111',
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('carlos');
@@ -186,10 +199,13 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
     });
     mockSendMessage.mockResolvedValue(textResponse('pedro! como andas? necesitas otro turno?'));
 
-    const res = await request(app).post('/api/damian/chat').send({
-      message: 'Hola Damian!',
-      senderPhone: '5555',
-    });
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({
+        message: 'Hola Damian!',
+        senderPhone: '5555',
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('pedro');
@@ -206,10 +222,13 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
     ];
     mockSendMessage.mockResolvedValue(textResponse('dale, que dia te queda bien?'));
 
-    const res = await request(app).post('/api/damian/chat').send({
-      message: 'Quiero un turno',
-      history,
-    });
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({
+        message: 'Quiero un turno',
+        history,
+      });
 
     expect(res.status).toBe(200);
     expect(mockStartChat).toHaveBeenCalledWith(expect.objectContaining({
@@ -221,10 +240,13 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
     mockPrisma.client.findUnique.mockResolvedValue(null);
     mockPrisma.client.upsert.mockResolvedValue({});
 
-    await request(app).post('/api/damian/chat').send({
-      message: 'Hola',
-      senderPhone: '8888',
-    });
+    await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({
+        message: 'Hola',
+        senderPhone: '8888',
+      });
 
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -236,7 +258,7 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
 
   it('Graceful fallback on Gemini error', async () => {
     mockSendMessage.mockRejectedValue(new Error('Gemini down'));
-    const res = await request(app).post('/api/damian/chat').send({ message: 'Hola' });
+    const res = await request(app).post('/api/damian/chat').set('Authorization', authHeader('damian')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('sesion');
   });

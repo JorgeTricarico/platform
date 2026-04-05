@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 vi.mock('../services/whatsapp.js', () => ({
   whatsappService: {
@@ -35,7 +36,7 @@ describe('Location field on Order', () => {
     };
     mockPrisma.order.create.mockResolvedValue({ id: 'ORD-LOC-1', ...input, status: 'recibido', intakeDate: '2026-04-05' });
 
-    const res = await request(app).post('/api/zenco/garments').send(input);
+    const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
     expect(callData.location).toBe('Estante 3');
@@ -49,7 +50,7 @@ describe('Location field on Order', () => {
     };
     mockPrisma.order.create.mockResolvedValue({ id: 'ORD-LOC-2', ...input, status: 'recibido', intakeDate: '2026-04-05', location: null });
 
-    const res = await request(app).post('/api/zenco/garments').send(input);
+    const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
     expect(callData.location).toBeNull();
@@ -64,7 +65,7 @@ describe('Location field on Order', () => {
     };
     mockPrisma.order.update.mockResolvedValue({ id: 'ORD-LOC-1', ...input });
 
-    const res = await request(app).put('/api/zenco/garments/ORD-LOC-1').send(input);
+    const res = await request(app).put('/api/zenco/garments/ORD-LOC-1').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
     const callData = mockPrisma.order.update.mock.calls[0][0].data;
     expect(callData.location).toBe('Perchero B');
@@ -84,7 +85,7 @@ describe('Finance month filter', () => {
 
   it('GET /finances without month returns all', async () => {
     mockPrisma.zencoFinance.findMany.mockResolvedValue(sampleFinances);
-    const res = await request(app).get('/api/zenco/finances');
+    const res = await request(app).get('/api/zenco/finances').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(3);
     // Should call with empty where
@@ -96,7 +97,7 @@ describe('Finance month filter', () => {
 
   it('GET /finances?month=2026-04 filters by month', async () => {
     mockPrisma.zencoFinance.findMany.mockResolvedValue(sampleFinances.slice(0, 2));
-    const res = await request(app).get('/api/zenco/finances?month=2026-04');
+    const res = await request(app).get('/api/zenco/finances?month=2026-04').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(200);
     const callArgs = mockPrisma.zencoFinance.findMany.mock.calls[0][0];
     expect(callArgs.where).toEqual({
@@ -106,7 +107,7 @@ describe('Finance month filter', () => {
 
   it('GET /finances?month=invalid ignores bad month format', async () => {
     mockPrisma.zencoFinance.findMany.mockResolvedValue(sampleFinances);
-    const res = await request(app).get('/api/zenco/finances?month=bad-month');
+    const res = await request(app).get('/api/zenco/finances?month=bad-month').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(200);
     const callArgs = mockPrisma.zencoFinance.findMany.mock.calls[0][0];
     expect(callArgs.where).toEqual({});
@@ -114,7 +115,7 @@ describe('Finance month filter', () => {
 
   it('GET /finances?month=2026-02 handles February correctly', async () => {
     mockPrisma.zencoFinance.findMany.mockResolvedValue([]);
-    await request(app).get('/api/zenco/finances?month=2026-02');
+    await request(app).get('/api/zenco/finances?month=2026-02').set('Authorization', authHeader('zenco'));
     const callArgs = mockPrisma.zencoFinance.findMany.mock.calls[0][0];
     expect(callArgs.where).toEqual({
       date: { gte: '2026-02-01', lte: '2026-02-28' },
@@ -124,7 +125,7 @@ describe('Finance month filter', () => {
   // Damian finances
   it('GET /api/damian/finances?month=2026-04 filters by month', async () => {
     mockPrisma.damianFinance.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/finances?month=2026-04');
+    const res = await request(app).get('/api/damian/finances?month=2026-04').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     const callArgs = mockPrisma.damianFinance.findMany.mock.calls[0][0];
     expect(callArgs.where).toEqual({
@@ -134,7 +135,7 @@ describe('Finance month filter', () => {
 
   it('GET /api/damian/finances without month returns all', async () => {
     mockPrisma.damianFinance.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/finances');
+    const res = await request(app).get('/api/damian/finances').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(mockPrisma.damianFinance.findMany).toHaveBeenCalledWith({
       where: {},
@@ -155,7 +156,7 @@ describe('Location field schema validation', () => {
       deliveryDate: '2026-05-10', price: 2000, location: null,
     };
     mockPrisma.order.create.mockResolvedValue({ id: 'ORD-V-1', ...input, status: 'recibido', intakeDate: '2026-04-05' });
-    const res = await request(app).post('/api/zenco/garments').send(input);
+    const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
   });
 });

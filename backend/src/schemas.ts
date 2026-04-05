@@ -77,6 +77,20 @@ export const updatePatientRecordSchema = z.object({
   nextSession: z.string().nullish(),
 });
 
+// --- AUTH ---
+
+export const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  name: z.string().min(1),
+  business: z.enum(['zenco', 'damian', 'all']),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
 // --- NOTIFICATIONS ---
 
 export const createNotificationSchema = z.object({

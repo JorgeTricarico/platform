@@ -7,6 +7,22 @@ datasource db {
 }
 
 // =============================================
+// USUARIOS — Autenticación JWT
+// =============================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("admin")  // "admin" | "viewer"
+  business     String                       // "zenco" | "damian" | "all"
+  createdAt    DateTime @default(now())
+
+  @@map("users")
+}
+
+// =============================================
 // CLIENTES — Registro compartido por negocio
 // =============================================
 

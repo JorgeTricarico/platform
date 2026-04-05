@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   client: {
@@ -82,7 +83,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
   it('returns 404 when client does not exist', async () => {
     mockPrisma.client.findUnique.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/zenco/clients/nonexistent/orders');
+    const res = await request(app).get('/api/zenco/clients/nonexistent/orders').set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(404);
     expect(res.body.error).toBeTruthy();
@@ -92,7 +93,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue(mockOrders);
 
-    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`);
+    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`).set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     expect(res.body.client).toMatchObject({ id: clientId, name: 'Ana Garcia' });
@@ -106,7 +107,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue(mockOrders);
 
-    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`);
+    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`).set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     // Verify prisma was called with desc order
@@ -118,7 +119,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue(mockOrders);
 
-    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`);
+    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`).set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     expect(res.body.summary.garmentsByStatus).toEqual({
@@ -132,7 +133,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue([]);
 
-    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`);
+    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`).set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     expect(res.body.orders).toEqual([]);
@@ -145,7 +146,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue([mockOrders[1]]); // only en_proceso
 
-    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders?status=en_proceso`);
+    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders?status=en_proceso`).set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     // Verify status filter was passed to prisma
@@ -157,7 +158,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue(mockOrders.slice(0, 2));
 
-    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders?from=2026-03-01`);
+    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders?from=2026-03-01`).set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     const call = mockPrisma.order.findMany.mock.calls[0][0];
@@ -168,7 +169,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue(mockOrders.slice(2));
 
-    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders?to=2026-02-01`);
+    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders?to=2026-02-01`).set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     const call = mockPrisma.order.findMany.mock.calls[0][0];
@@ -179,9 +180,9 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue(mockOrders.slice(1, 2));
 
-    const res = await request(app).get(
-      `/api/zenco/clients/${clientId}/orders?from=2026-03-01&to=2026-03-31`
-    );
+    const res = await request(app)
+      .get(`/api/zenco/clients/${clientId}/orders?from=2026-03-01&to=2026-03-31`)
+      .set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(200);
     const call = mockPrisma.order.findMany.mock.calls[0][0];
@@ -193,7 +194,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockRejectedValue(new Error('DB error'));
 
-    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`);
+    const res = await request(app).get(`/api/zenco/clients/${clientId}/orders`).set('Authorization', authHeader('zenco'));
 
     expect(res.status).toBe(500);
     expect(res.body.error).toBeTruthy();
@@ -203,7 +204,7 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     mockPrisma.client.findUnique.mockResolvedValue(mockClient);
     mockPrisma.order.findMany.mockResolvedValue(mockOrders);
 
-    await request(app).get(`/api/zenco/clients/${clientId}/orders`);
+    await request(app).get(`/api/zenco/clients/${clientId}/orders`).set('Authorization', authHeader('zenco'));
 
     const call = mockPrisma.order.findMany.mock.calls[0][0];
     expect(call.where.clientPhone).toBe(clientPhone);

@@ -1,4 +1,21 @@
 import { vi } from 'vitest';
+import jwt from 'jsonwebtoken';
+
+// Shared test JWT secret — must match vi.stubEnv in test files
+export const TEST_JWT_SECRET = 'test-secret-key';
+
+// Generate a valid auth token for tests
+export function authHeader(business: string = 'zenco'): string {
+  const token = jwt.sign(
+    { userId: 'test-user', email: `test@${business}.com`, role: 'admin', business },
+    TEST_JWT_SECRET,
+    { expiresIn: '1h' },
+  );
+  return `Bearer ${token}`;
+}
+
+// Auto-set JWT_SECRET for all tests
+vi.stubEnv('JWT_SECRET', TEST_JWT_SECRET);
 
 // Mock the db module so Prisma doesn't try to connect to a real DB
 vi.mock('../db.js', () => {
@@ -58,6 +75,11 @@ vi.mock('../db.js', () => {
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),
       createMany: vi.fn().mockResolvedValue({ count: 0 }),
+    },
+    user: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
     },
   };
   return { prisma: mockPrisma };

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import request from 'supertest';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 // Mock the whatsapp service module
 vi.mock('../services/whatsapp.js', () => {
@@ -31,14 +32,14 @@ beforeEach(() => {
 describe('GET /api/whatsapp/status', () => {
   it('returns disconnected status when not connected', async () => {
     mockWA.getStatus.mockReturnValue({ connected: false, qrReady: false });
-    const res = await request(app).get('/api/whatsapp/status');
+    const res = await request(app).get('/api/whatsapp/status').set('Authorization', authHeader('all'));
     expect(res.status).toBe(200);
     expect(res.body.connected).toBe(false);
   });
 
   it('returns connected status when authenticated', async () => {
     mockWA.getStatus.mockReturnValue({ connected: true, qrReady: false, phone: '5491112345678' });
-    const res = await request(app).get('/api/whatsapp/status');
+    const res = await request(app).get('/api/whatsapp/status').set('Authorization', authHeader('all'));
     expect(res.status).toBe(200);
     expect(res.body.connected).toBe(true);
     expect(res.body.phone).toBe('5491112345678');
@@ -50,14 +51,14 @@ describe('GET /api/whatsapp/status', () => {
 describe('GET /api/whatsapp/qr', () => {
   it('returns 503 when no QR available', async () => {
     mockWA.getQR.mockReturnValue(null);
-    const res = await request(app).get('/api/whatsapp/qr');
+    const res = await request(app).get('/api/whatsapp/qr').set('Authorization', authHeader('all'));
     expect(res.status).toBe(503);
     expect(res.body.error).toContain('QR');
   });
 
   it('returns QR code string when available', async () => {
     mockWA.getQR.mockReturnValue('mock-qr-string-data');
-    const res = await request(app).get('/api/whatsapp/qr');
+    const res = await request(app).get('/api/whatsapp/qr').set('Authorization', authHeader('all'));
     expect(res.status).toBe(200);
     expect(res.body.qr).toBe('mock-qr-string-data');
   });
@@ -67,23 +68,26 @@ describe('GET /api/whatsapp/qr', () => {
 
 describe('POST /api/whatsapp/send', () => {
   it('returns 400 when to is missing', async () => {
-    const res = await request(app).post('/api/whatsapp/send').send({ message: 'hello' });
+    const res = await request(app).post('/api/whatsapp/send').set('Authorization', authHeader('all')).send({ message: 'hello' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBeTruthy();
   });
 
   it('returns 400 when message is missing', async () => {
-    const res = await request(app).post('/api/whatsapp/send').send({ to: '5491112345678' });
+    const res = await request(app).post('/api/whatsapp/send').set('Authorization', authHeader('all')).send({ to: '5491112345678' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBeTruthy();
   });
 
   it('returns 503 when WhatsApp is not connected', async () => {
     mockWA.getStatus.mockReturnValue({ connected: false });
-    const res = await request(app).post('/api/whatsapp/send').send({
-      to: '5491112345678',
-      message: 'Hola, tu prenda está lista!',
-    });
+    const res = await request(app)
+      .post('/api/whatsapp/send')
+      .set('Authorization', authHeader('all'))
+      .send({
+        to: '5491112345678',
+        message: 'Hola, tu prenda está lista!',
+      });
     expect(res.status).toBe(503);
     expect(res.body.error).toContain('conectado');
   });
@@ -92,10 +96,13 @@ describe('POST /api/whatsapp/send', () => {
     mockWA.getStatus.mockReturnValue({ connected: true });
     mockWA.sendMessage.mockResolvedValue({ id: 'msg-123' });
 
-    const res = await request(app).post('/api/whatsapp/send').send({
-      to: '5491112345678',
-      message: 'Hola, tu prenda está lista!',
-    });
+    const res = await request(app)
+      .post('/api/whatsapp/send')
+      .set('Authorization', authHeader('all'))
+      .send({
+        to: '5491112345678',
+        message: 'Hola, tu prenda está lista!',
+      });
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(mockWA.sendMessage).toHaveBeenCalledWith('5491112345678', 'Hola, tu prenda está lista!');
@@ -105,10 +112,13 @@ describe('POST /api/whatsapp/send', () => {
     mockWA.getStatus.mockReturnValue({ connected: true });
     mockWA.sendMessage.mockRejectedValue(new Error('Send failed'));
 
-    const res = await request(app).post('/api/whatsapp/send').send({
-      to: '5491112345678',
-      message: 'test',
-    });
+    const res = await request(app)
+      .post('/api/whatsapp/send')
+      .set('Authorization', authHeader('all'))
+      .send({
+        to: '5491112345678',
+        message: 'test',
+      });
     expect(res.status).toBe(500);
     expect(res.body.error).toBeTruthy();
   });

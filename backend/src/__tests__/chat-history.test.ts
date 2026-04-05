@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   chatMessage: {
@@ -43,14 +44,14 @@ beforeEach(() => {
 
 describe('GET /api/:business/chat/history', () => {
   it('returns 400 when sessionId is missing', async () => {
-    const res = await request(app).get('/api/zenco/chat/history');
+    const res = await request(app).get('/api/zenco/chat/history').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(400);
     expect(res.body.error).toContain('sessionId');
   });
 
   it('returns empty array when no messages exist', async () => {
     mockPrisma.chatMessage.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/zenco/chat/history?sessionId=2026-04-05');
+    const res = await request(app).get('/api/zenco/chat/history?sessionId=2026-04-05').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(200);
     expect(res.body.messages).toEqual([]);
   });
@@ -62,7 +63,7 @@ describe('GET /api/:business/chat/history', () => {
     ];
     mockPrisma.chatMessage.findMany.mockResolvedValue(mockMessages);
 
-    const res = await request(app).get('/api/zenco/chat/history?sessionId=2026-04-05');
+    const res = await request(app).get('/api/zenco/chat/history?sessionId=2026-04-05').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(200);
     expect(res.body.messages).toHaveLength(2);
     expect(res.body.messages[0].role).toBe('user');
@@ -71,7 +72,7 @@ describe('GET /api/:business/chat/history', () => {
 
   it('queries with correct business filter', async () => {
     mockPrisma.chatMessage.findMany.mockResolvedValue([]);
-    await request(app).get('/api/damian/chat/history?sessionId=sess-1');
+    await request(app).get('/api/damian/chat/history?sessionId=sess-1').set('Authorization', authHeader('damian'));
 
     expect(mockPrisma.chatMessage.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -86,7 +87,7 @@ describe('GET /api/:business/chat/history', () => {
       { id: '1', business: 'damian', role: 'user', content: 'Quiero un turno', sessionId: 's1', createdAt: new Date() },
     ]);
 
-    const res = await request(app).get('/api/damian/chat/history?sessionId=s1');
+    const res = await request(app).get('/api/damian/chat/history?sessionId=s1').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body.messages).toHaveLength(1);
   });
@@ -98,10 +99,13 @@ describe('POST /api/:business/chat — persists messages to DB', () => {
   it('saves user and assistant messages when sessionId provided', async () => {
     mockPrisma.chatMessage.createMany.mockResolvedValue({ count: 2 });
 
-    const res = await request(app).post('/api/zenco/chat').send({
-      message: 'Hola Ana',
-      sessionId: '2026-04-05',
-    });
+    const res = await request(app)
+      .post('/api/zenco/chat')
+      .set('Authorization', authHeader('zenco'))
+      .send({
+        message: 'Hola Ana',
+        sessionId: '2026-04-05',
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toBeTruthy();
@@ -114,7 +118,7 @@ describe('POST /api/:business/chat — persists messages to DB', () => {
   });
 
   it('does NOT persist messages when sessionId is absent', async () => {
-    const res = await request(app).post('/api/zenco/chat').send({ message: 'Hola' });
+    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
     expect(mockPrisma.chatMessage.createMany).not.toHaveBeenCalled();
   });
@@ -122,10 +126,13 @@ describe('POST /api/:business/chat — persists messages to DB', () => {
   it('persists messages for damian business too', async () => {
     mockPrisma.chatMessage.createMany.mockResolvedValue({ count: 2 });
 
-    const res = await request(app).post('/api/damian/chat').send({
-      message: 'Quiero un turno',
-      sessionId: 'sess-abc',
-    });
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({
+        message: 'Quiero un turno',
+        sessionId: 'sess-abc',
+      });
 
     expect(res.status).toBe(200);
     expect(mockPrisma.chatMessage.createMany).toHaveBeenCalledWith({
@@ -139,10 +146,13 @@ describe('POST /api/:business/chat — persists messages to DB', () => {
   it('chat still works if message persistence fails', async () => {
     mockPrisma.chatMessage.createMany.mockRejectedValue(new Error('DB down'));
 
-    const res = await request(app).post('/api/zenco/chat').send({
-      message: 'Hola',
-      sessionId: '2026-04-05',
-    });
+    const res = await request(app)
+      .post('/api/zenco/chat')
+      .set('Authorization', authHeader('zenco'))
+      .send({
+        message: 'Hola',
+        sessionId: '2026-04-05',
+      });
 
     // Chat should still return the reply even if persistence fails
     expect(res.status).toBe(200);

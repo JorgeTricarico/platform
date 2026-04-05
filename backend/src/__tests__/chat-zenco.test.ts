@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   client: { findUnique: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
@@ -41,14 +42,14 @@ beforeEach(() => {
 
 describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
   it('returns 400 when message is empty', async () => {
-    const res = await request(app).post('/api/zenco/chat').send({});
+    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({});
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Mensaje requerido');
   });
 
   it('returns fallback when no API key', async () => {
     delete process.env.GEMINI_API_KEY;
-    const res = await request(app).post('/api/zenco/chat').send({ message: 'Hola' });
+    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('no esta configurado');
   });
@@ -58,7 +59,7 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
       response: { text: () => 'Hola! Bienvenida a Zenco, ¿en qué te puedo ayudar?', functionCalls: () => null },
     });
 
-    const res = await request(app).post('/api/zenco/chat').send({ message: 'Hola buenas tardes' });
+    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola buenas tardes' });
     expect(res.status).toBe(200);
     expect(res.body.reply).toBeTruthy();
     expect(typeof res.body.reply).toBe('string');
@@ -78,10 +79,13 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
       response: { text: () => 'Hola María! Tu pantalón con dobladillo está en proceso, lo tenemos listo para el 10 de abril.', functionCalls: () => null },
     });
 
-    const res = await request(app).post('/api/zenco/chat').send({
-      message: 'Hola, quiero saber cómo va mi pedido',
-      senderPhone: '1111',
-    });
+    const res = await request(app)
+      .post('/api/zenco/chat')
+      .set('Authorization', authHeader('zenco'))
+      .send({
+        message: 'Hola, quiero saber cómo va mi pedido',
+        senderPhone: '1111',
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('María');
@@ -95,9 +99,12 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
       response: { text: () => 'Un dobladillo de pantalón sale aproximadamente $3000-5000 dependiendo de la tela. ¿Querés traerlo para que lo vea?', functionCalls: () => null },
     });
 
-    const res = await request(app).post('/api/zenco/chat').send({
-      message: '¿Cuánto sale hacer un dobladillo?',
-    });
+    const res = await request(app)
+      .post('/api/zenco/chat')
+      .set('Authorization', authHeader('zenco'))
+      .send({
+        message: '¿Cuánto sale hacer un dobladillo?',
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toBeTruthy();
@@ -113,7 +120,7 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
       response: { text: () => '¡Hola! ¿Cómo te puedo ayudar? Si querés consultar un pedido, pasame tu nombre o teléfono.', functionCalls: () => null },
     });
 
-    const res = await request(app).post('/api/zenco/chat').send({ message: 'Hola' });
+    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
     // Should have fetched general orders as context
     expect(mockPrisma.order.findMany).toHaveBeenCalled();
@@ -129,10 +136,13 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
       { role: 'model', parts: [{ text: 'Hola! Bienvenida a Zenco' }] },
     ];
 
-    const res = await request(app).post('/api/zenco/chat').send({
-      message: 'Y mi pedido?',
-      history,
-    });
+    const res = await request(app)
+      .post('/api/zenco/chat')
+      .set('Authorization', authHeader('zenco'))
+      .send({
+        message: 'Y mi pedido?',
+        history,
+      });
 
     expect(res.status).toBe(200);
     expect(mockStartChat).toHaveBeenCalledWith(expect.objectContaining({ history }));
@@ -143,10 +153,13 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
     mockPrisma.order.findMany.mockResolvedValue([]);
     mockPrisma.client.upsert.mockResolvedValue({});
 
-    await request(app).post('/api/zenco/chat').send({
-      message: 'Hola',
-      senderPhone: '9999',
-    });
+    await request(app)
+      .post('/api/zenco/chat')
+      .set('Authorization', authHeader('zenco'))
+      .send({
+        message: 'Hola',
+        senderPhone: '9999',
+      });
 
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -158,7 +171,7 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
 
   it('Graceful fallback on Gemini error', async () => {
     mockSendMessage.mockRejectedValue(new Error('Gemini down'));
-    const res = await request(app).post('/api/zenco/chat').send({ message: 'Hola' });
+    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('ocupada');
   });

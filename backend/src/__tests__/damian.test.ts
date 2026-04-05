@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
+import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   appointment: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
@@ -19,7 +20,7 @@ beforeEach(() => {
 describe('GET /api/damian/appointments', () => {
   it('returns empty array when no appointments', async () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/appointments');
+    const res = await request(app).get('/api/damian/appointments').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
@@ -30,7 +31,7 @@ describe('GET /api/damian/appointments', () => {
       { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Reflexologia', duration: 45, date: '2026-04-06', time: '14:00', status: 'confirmado', price: 6000, notes: 'Primera vez' },
     ];
     mockPrisma.appointment.findMany.mockResolvedValue(appointments);
-    const res = await request(app).get('/api/damian/appointments');
+    const res = await request(app).get('/api/damian/appointments').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(2);
     expect(res.body[0].clientName).toBe('Juan');
@@ -47,7 +48,7 @@ describe('POST /api/damian/appointments', () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
     mockPrisma.appointment.create.mockResolvedValue(created);
 
-    const res = await request(app).post('/api/damian/appointments').send(input);
+    const res = await request(app).post('/api/damian/appointments').set('Authorization', authHeader('damian')).send(input);
     expect(res.status).toBe(200);
     expect(res.body.clientName).toBe('Carlos');
     expect(res.body.status).toBe('pendiente');
@@ -57,7 +58,7 @@ describe('POST /api/damian/appointments', () => {
   it('returns 500 when prisma throws', async () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
     mockPrisma.appointment.create.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).post('/api/damian/appointments').send({
+    const res = await request(app).post('/api/damian/appointments').set('Authorization', authHeader('damian')).send({
       clientName: 'Fail', clientPhone: '0000', service: 'X', duration: 30, date: '2026-04-10', time: '10:00', price: 1000,
     });
     expect(res.status).toBe(500);
@@ -68,14 +69,14 @@ describe('POST /api/damian/appointments', () => {
 describe('PUT /api/damian/appointments/:id/status', () => {
   it('updates appointment status', async () => {
     mockPrisma.appointment.update.mockResolvedValue({ id: 'APT-1', status: 'completado' });
-    const res = await request(app).put('/api/damian/appointments/APT-1/status').send({ status: 'completado' });
+    const res = await request(app).put('/api/damian/appointments/APT-1/status').set('Authorization', authHeader('damian')).send({ status: 'completado' });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('completado');
   });
 
   it('returns 500 on invalid id', async () => {
     mockPrisma.appointment.update.mockRejectedValue(new Error('Not found'));
-    const res = await request(app).put('/api/damian/appointments/FAKE/status').send({ status: 'completado' });
+    const res = await request(app).put('/api/damian/appointments/FAKE/status').set('Authorization', authHeader('damian')).send({ status: 'completado' });
     expect(res.status).toBe(500);
   });
 });
@@ -87,7 +88,7 @@ describe('GET /api/damian/finances', () => {
     mockPrisma.damianFinance.findMany.mockResolvedValue([
       { id: 'FIN-D-1', date: '2026-04-01', type: 'income', category: 'Masajes', amount: 8000, description: 'Sesion Juan' },
     ]);
-    const res = await request(app).get('/api/damian/finances');
+    const res = await request(app).get('/api/damian/finances').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].category).toBe('Masajes');
@@ -95,7 +96,7 @@ describe('GET /api/damian/finances', () => {
 
   it('returns empty array when no finances', async () => {
     mockPrisma.damianFinance.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/finances');
+    const res = await request(app).get('/api/damian/finances').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
@@ -105,7 +106,7 @@ describe('POST /api/damian/finances', () => {
   it('creates a finance entry', async () => {
     const input = { date: '2026-04-05', type: 'expense', category: 'Aceites', amount: 3500, description: 'Aceite de almendras' };
     mockPrisma.damianFinance.create.mockResolvedValue({ id: 'FIN-D-123', ...input });
-    const res = await request(app).post('/api/damian/finances').send(input);
+    const res = await request(app).post('/api/damian/finances').set('Authorization', authHeader('damian')).send(input);
     expect(res.status).toBe(200);
     expect(res.body.category).toBe('Aceites');
     expect(res.body.amount).toBe(3500);
@@ -113,7 +114,7 @@ describe('POST /api/damian/finances', () => {
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.damianFinance.create.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).post('/api/damian/finances').send({
+    const res = await request(app).post('/api/damian/finances').set('Authorization', authHeader('damian')).send({
       date: '2026-04-05', type: 'income', category: 'X', amount: 100, description: 'test',
     });
     expect(res.status).toBe(500);
@@ -128,7 +129,7 @@ describe('GET /api/damian/clients', () => {
     mockPrisma.client.findMany.mockResolvedValue([
       { id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian', createdAt: new Date().toISOString() },
     ]);
-    const res = await request(app).get('/api/damian/clients');
+    const res = await request(app).get('/api/damian/clients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body[0].business).toBe('damian');
     expect(mockPrisma.client.findMany).toHaveBeenCalledWith(expect.objectContaining({
@@ -141,7 +142,7 @@ describe('POST /api/damian/clients', () => {
   it('upserts a client by phone+business', async () => {
     const input = { name: 'Laura Garcia', phone: '4444', email: 'laura@test.com', notes: 'Contractura cronica' };
     mockPrisma.client.upsert.mockResolvedValue({ id: 'uuid-1', ...input, business: 'damian' });
-    const res = await request(app).post('/api/damian/clients').send(input);
+    const res = await request(app).post('/api/damian/clients').set('Authorization', authHeader('damian')).send(input);
     expect(res.status).toBe(200);
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { phone_business: { phone: '4444', business: 'damian' } },
@@ -150,7 +151,7 @@ describe('POST /api/damian/clients', () => {
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.client.upsert.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).post('/api/damian/clients').send({ name: 'Fail', phone: '0000' });
+    const res = await request(app).post('/api/damian/clients').set('Authorization', authHeader('damian')).send({ name: 'Fail', phone: '0000' });
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
   });
@@ -161,7 +162,7 @@ describe('GET /api/damian/clients/search', () => {
     mockPrisma.client.findMany.mockResolvedValue([
       { id: 'c1', name: 'Laura Garcia', phone: '4444', business: 'damian' },
     ]);
-    const res = await request(app).get('/api/damian/clients/search?q=laura');
+    const res = await request(app).get('/api/damian/clients/search?q=laura').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].name).toBe('Laura Garcia');
@@ -171,14 +172,14 @@ describe('GET /api/damian/clients/search', () => {
     mockPrisma.client.findMany.mockResolvedValue([
       { id: 'c2', name: 'Pedro', phone: '5555', business: 'damian' },
     ]);
-    const res = await request(app).get('/api/damian/clients/search?q=5555');
+    const res = await request(app).get('/api/damian/clients/search?q=5555').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
   });
 
   it('returns empty for no matches', async () => {
     mockPrisma.client.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/clients/search?q=nonexistent');
+    const res = await request(app).get('/api/damian/clients/search?q=nonexistent').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
@@ -192,7 +193,7 @@ describe('GET /api/damian/patients/:clientId/records', () => {
       { id: 'rec-1', clientId: 'c1', date: '2026-04-01', reason: 'Dolor cervical', symptoms: 'Tension', areas: 'Cervical, trapecio', treatment: 'Masaje descontracturante', observations: 'Mejoria', nextSession: 'En 1 semana' },
     ];
     mockPrisma.patientRecord.findMany.mockResolvedValue(records);
-    const res = await request(app).get('/api/damian/patients/c1/records');
+    const res = await request(app).get('/api/damian/patients/c1/records').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].reason).toBe('Dolor cervical');
@@ -200,7 +201,7 @@ describe('GET /api/damian/patients/:clientId/records', () => {
 
   it('returns empty for patient with no records', async () => {
     mockPrisma.patientRecord.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/patients/c1/records');
+    const res = await request(app).get('/api/damian/patients/c1/records').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
@@ -216,7 +217,7 @@ describe('POST /api/damian/patients/:clientId/records', () => {
     const created = { id: 'rec-new', clientId: 'c1', ...input, createdAt: new Date().toISOString() };
     mockPrisma.patientRecord.create.mockResolvedValue(created);
 
-    const res = await request(app).post('/api/damian/patients/c1/records').send(input);
+    const res = await request(app).post('/api/damian/patients/c1/records').set('Authorization', authHeader('damian')).send(input);
     expect(res.status).toBe(200);
     expect(res.body.reason).toBe('Lumbalgia');
     expect(res.body.clientId).toBe('c1');
@@ -229,14 +230,14 @@ describe('POST /api/damian/patients/:clientId/records', () => {
     const input = { date: '2026-04-05', reason: 'Control' };
     mockPrisma.patientRecord.create.mockResolvedValue({ id: 'rec-min', clientId: 'c1', ...input });
 
-    const res = await request(app).post('/api/damian/patients/c1/records').send(input);
+    const res = await request(app).post('/api/damian/patients/c1/records').set('Authorization', authHeader('damian')).send(input);
     expect(res.status).toBe(200);
     expect(res.body.reason).toBe('Control');
   });
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.patientRecord.create.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).post('/api/damian/patients/c1/records').send({
+    const res = await request(app).post('/api/damian/patients/c1/records').set('Authorization', authHeader('damian')).send({
       date: '2026-04-05', reason: 'Test',
     });
     expect(res.status).toBe(500);
@@ -252,14 +253,14 @@ describe('PUT /api/damian/patients/records/:id', () => {
       nextSession: 'En 2 semanas',
     };
     mockPrisma.patientRecord.update.mockResolvedValue({ id: 'rec-1', clientId: 'c1', date: '2026-04-01', ...update });
-    const res = await request(app).put('/api/damian/patients/records/rec-1').send(update);
+    const res = await request(app).put('/api/damian/patients/records/rec-1').set('Authorization', authHeader('damian')).send(update);
     expect(res.status).toBe(200);
     expect(res.body.reason).toBe('Lumbalgia (seguimiento)');
   });
 
   it('returns 500 on invalid id', async () => {
     mockPrisma.patientRecord.update.mockRejectedValue(new Error('Not found'));
-    const res = await request(app).put('/api/damian/patients/records/FAKE').send({ reason: 'X' });
+    const res = await request(app).put('/api/damian/patients/records/FAKE').set('Authorization', authHeader('damian')).send({ reason: 'X' });
     expect(res.status).toBe(500);
   });
 });
@@ -276,7 +277,7 @@ describe('GET /api/damian/patients', () => {
     ]);
     mockPrisma.patientRecord.count.mockResolvedValue(3);
 
-    const res = await request(app).get('/api/damian/patients');
+    const res = await request(app).get('/api/damian/patients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].totalRecords).toBe(3);
@@ -291,7 +292,7 @@ describe('GET /api/damian/patients', () => {
     mockPrisma.patientRecord.findMany.mockResolvedValue([]);
     mockPrisma.patientRecord.count.mockResolvedValue(0);
 
-    const res = await request(app).get('/api/damian/patients');
+    const res = await request(app).get('/api/damian/patients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body[0].totalRecords).toBe(0);
     expect(res.body[0].lastVisit).toBeNull();
@@ -303,7 +304,7 @@ describe('GET /api/damian/patients', () => {
 
 describe('Damian validation', () => {
   it('POST /appointments returns 400 when clientName is missing', async () => {
-    const res = await request(app).post('/api/damian/appointments').send({
+    const res = await request(app).post('/api/damian/appointments').set('Authorization', authHeader('damian')).send({
       clientPhone: '1234', service: 'Masaje', duration: 60,
       date: '2026-04-10', time: '10:00', price: 8000,
     });
@@ -312,7 +313,7 @@ describe('Damian validation', () => {
   });
 
   it('POST /appointments returns 400 when duration is not a number', async () => {
-    const res = await request(app).post('/api/damian/appointments').send({
+    const res = await request(app).post('/api/damian/appointments').set('Authorization', authHeader('damian')).send({
       clientName: 'Juan', clientPhone: '1234', service: 'Masaje',
       duration: 'una hora', date: '2026-04-10', time: '10:00', price: 8000,
     });
@@ -320,12 +321,12 @@ describe('Damian validation', () => {
   });
 
   it('PUT /appointments/:id/status returns 400 when status is empty', async () => {
-    const res = await request(app).put('/api/damian/appointments/APT-1/status').send({});
+    const res = await request(app).put('/api/damian/appointments/APT-1/status').set('Authorization', authHeader('damian')).send({});
     expect(res.status).toBe(400);
   });
 
   it('POST /finances returns 400 when amount is not a number', async () => {
-    const res = await request(app).post('/api/damian/finances').send({
+    const res = await request(app).post('/api/damian/finances').set('Authorization', authHeader('damian')).send({
       date: '2026-04-05', type: 'income', category: 'Masajes',
       amount: 'mucho', description: 'Test',
     });
@@ -333,12 +334,12 @@ describe('Damian validation', () => {
   });
 
   it('POST /clients returns 400 when phone is missing', async () => {
-    const res = await request(app).post('/api/damian/clients').send({ name: 'Juan' });
+    const res = await request(app).post('/api/damian/clients').set('Authorization', authHeader('damian')).send({ name: 'Juan' });
     expect(res.status).toBe(400);
   });
 
   it('POST /patients/:clientId/records returns 400 when reason is missing', async () => {
-    const res = await request(app).post('/api/damian/patients/c1/records').send({ date: '2026-04-05' });
+    const res = await request(app).post('/api/damian/patients/c1/records').set('Authorization', authHeader('damian')).send({ date: '2026-04-05' });
     expect(res.status).toBe(400);
   });
 });
@@ -353,7 +354,7 @@ describe('GET /api/damian/dashboard/today', () => {
       { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Relajante', duration: 60, date: today, time: '14:00', status: 'confirmado', price: 7000, notes: null },
     ];
     mockPrisma.appointment.findMany.mockResolvedValue(appointments);
-    const res = await request(app).get('/api/damian/dashboard/today');
+    const res = await request(app).get('/api/damian/dashboard/today').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(2);
     expect(res.body[0].time).toBe('10:00');
@@ -366,14 +367,14 @@ describe('GET /api/damian/dashboard/today', () => {
 
   it('returns empty array when no appointments today', async () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/dashboard/today');
+    const res = await request(app).get('/api/damian/dashboard/today').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.appointment.findMany.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).get('/api/damian/dashboard/today');
+    const res = await request(app).get('/api/damian/dashboard/today').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
   });
@@ -387,7 +388,7 @@ describe('GET /api/damian/dashboard/stale-patients', () => {
     mockPrisma.patientRecord.findMany
       .mockResolvedValueOnce([]); // no records for c1
 
-    const res = await request(app).get('/api/damian/dashboard/stale-patients');
+    const res = await request(app).get('/api/damian/dashboard/stale-patients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].name).toBe('Nuevo Paciente');
@@ -405,7 +406,7 @@ describe('GET /api/damian/dashboard/stale-patients', () => {
     mockPrisma.patientRecord.findMany
       .mockResolvedValueOnce([{ id: 'rec-1', clientId: 'c1', date: oldDateStr, reason: 'Cervical' }]);
 
-    const res = await request(app).get('/api/damian/dashboard/stale-patients');
+    const res = await request(app).get('/api/damian/dashboard/stale-patients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].name).toBe('Paciente Viejo');
@@ -422,14 +423,14 @@ describe('GET /api/damian/dashboard/stale-patients', () => {
     mockPrisma.patientRecord.findMany
       .mockResolvedValueOnce([{ id: 'rec-1', clientId: 'c1', date: recentDate, reason: 'Control' }]);
 
-    const res = await request(app).get('/api/damian/dashboard/stale-patients');
+    const res = await request(app).get('/api/damian/dashboard/stale-patients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.client.findMany.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).get('/api/damian/dashboard/stale-patients');
+    const res = await request(app).get('/api/damian/dashboard/stale-patients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
   });
@@ -443,7 +444,7 @@ describe('GET /api/damian/dashboard/appointments', () => {
       { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Relajante', duration: 60, date: '2026-04-10', time: '14:00', status: 'confirmado', price: 7000, notes: null },
     ];
     mockPrisma.appointment.findMany.mockResolvedValue(appointments);
-    const res = await request(app).get('/api/damian/dashboard/appointments');
+    const res = await request(app).get('/api/damian/dashboard/appointments').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(2);
     expect(mockPrisma.appointment.findMany).toHaveBeenCalledWith(expect.objectContaining({
@@ -457,14 +458,14 @@ describe('GET /api/damian/dashboard/appointments', () => {
 
   it('returns empty array when no upcoming appointments', async () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/dashboard/appointments');
+    const res = await request(app).get('/api/damian/dashboard/appointments').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.appointment.findMany.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).get('/api/damian/dashboard/appointments');
+    const res = await request(app).get('/api/damian/dashboard/appointments').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
   });
@@ -474,7 +475,7 @@ describe('PUT /api/damian/clients/:id', () => {
   it('updates client fields by id', async () => {
     const updated = { id: 'c1', name: 'Juan Updated', phone: '5678', business: 'damian' };
     mockPrisma.client.update.mockResolvedValue(updated);
-    const res = await request(app).put('/api/damian/clients/c1').send({ name: 'Juan Updated' });
+    const res = await request(app).put('/api/damian/clients/c1').set('Authorization', authHeader('damian')).send({ name: 'Juan Updated' });
     expect(res.status).toBe(200);
     expect(mockPrisma.client.update).toHaveBeenCalledWith({
       where: { id: 'c1' },
@@ -484,7 +485,7 @@ describe('PUT /api/damian/clients/:id', () => {
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.client.update.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).put('/api/damian/clients/c1').send({ name: 'Test' });
+    const res = await request(app).put('/api/damian/clients/c1').set('Authorization', authHeader('damian')).send({ name: 'Test' });
     expect(res.status).toBe(500);
   });
 });
@@ -502,7 +503,7 @@ describe('PUT /api/damian/appointments/:id', () => {
     const updated = { id: 'APT-1', ...fullAppointment, status: 'pendiente' };
     mockPrisma.appointment.update.mockResolvedValue(updated);
 
-    const res = await request(app).put('/api/damian/appointments/APT-1').send(fullAppointment);
+    const res = await request(app).put('/api/damian/appointments/APT-1').set('Authorization', authHeader('damian')).send(fullAppointment);
     expect(res.status).toBe(200);
     expect(res.body.clientName).toBe('Juan');
     expect(mockPrisma.appointment.update).toHaveBeenCalledWith(expect.objectContaining({
@@ -516,7 +517,7 @@ describe('PUT /api/damian/appointments/:id', () => {
       { id: 'APT-OTHER', clientName: 'Laura', time: '10:00', duration: 60, date: '2026-04-10', status: 'pendiente' },
     ]);
 
-    const res = await request(app).put('/api/damian/appointments/APT-1').send({
+    const res = await request(app).put('/api/damian/appointments/APT-1').set('Authorization', authHeader('damian')).send({
       ...fullAppointment, time: '10:30', duration: 60,
     });
     expect(res.status).toBe(409);
@@ -529,7 +530,7 @@ describe('PUT /api/damian/appointments/:id', () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
     mockPrisma.appointment.update.mockResolvedValue({ id: 'APT-1', ...fullAppointment, status: 'pendiente' });
 
-    const res = await request(app).put('/api/damian/appointments/APT-1').send(fullAppointment);
+    const res = await request(app).put('/api/damian/appointments/APT-1').set('Authorization', authHeader('damian')).send(fullAppointment);
     expect(res.status).toBe(200);
   });
 
@@ -537,7 +538,7 @@ describe('PUT /api/damian/appointments/:id', () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
     mockPrisma.appointment.update.mockRejectedValue(new Error('DB error'));
 
-    const res = await request(app).put('/api/damian/appointments/APT-1').send(fullAppointment);
+    const res = await request(app).put('/api/damian/appointments/APT-1').set('Authorization', authHeader('damian')).send(fullAppointment);
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
   });
@@ -549,7 +550,7 @@ describe('PUT /api/damian/finances/:id', () => {
   it('updates a finance entry', async () => {
     const updated = { id: 'f1', date: '2026-04-01', type: 'ingreso', category: 'Masajes', amount: 5000, description: 'Sesion Juan' };
     mockPrisma.damianFinance.update.mockResolvedValue(updated);
-    const res = await request(app).put('/api/damian/finances/f1').send({ amount: 5000, description: 'Sesion Juan' });
+    const res = await request(app).put('/api/damian/finances/f1').set('Authorization', authHeader('damian')).send({ amount: 5000, description: 'Sesion Juan' });
     expect(res.status).toBe(200);
     expect(mockPrisma.damianFinance.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'f1' }
@@ -558,7 +559,7 @@ describe('PUT /api/damian/finances/:id', () => {
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.damianFinance.update.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).put('/api/damian/finances/f1').send({ amount: 5000 });
+    const res = await request(app).put('/api/damian/finances/f1').set('Authorization', authHeader('damian')).send({ amount: 5000 });
     expect(res.status).toBe(500);
   });
 });
@@ -566,14 +567,14 @@ describe('PUT /api/damian/finances/:id', () => {
 describe('DELETE /api/damian/finances/:id', () => {
   it('deletes a finance entry', async () => {
     mockPrisma.damianFinance.delete.mockResolvedValue({});
-    const res = await request(app).delete('/api/damian/finances/f1');
+    const res = await request(app).delete('/api/damian/finances/f1').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ success: true });
   });
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.damianFinance.delete.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).delete('/api/damian/finances/f1');
+    const res = await request(app).delete('/api/damian/finances/f1').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(500);
   });
 });
@@ -592,7 +593,7 @@ describe('POST /api/damian/appointments - conflict detection', () => {
       { id: 'APT-EXIST', clientName: 'Juan', time: '10:00', duration: 60, date: '2026-04-10', status: 'pendiente' },
     ]);
 
-    const res = await request(app).post('/api/damian/appointments').send(newAppointment);
+    const res = await request(app).post('/api/damian/appointments').set('Authorization', authHeader('damian')).send(newAppointment);
     expect(res.status).toBe(409);
     expect(res.body.error).toBe('Conflicto de horario');
     expect(res.body.conflictWith).toBe('APT-EXIST');
@@ -603,7 +604,7 @@ describe('POST /api/damian/appointments - conflict detection', () => {
     const created = { id: 'APT-NEW', ...newAppointment, status: 'pendiente' };
     mockPrisma.appointment.create.mockResolvedValue(created);
 
-    const res = await request(app).post('/api/damian/appointments').send(newAppointment);
+    const res = await request(app).post('/api/damian/appointments').set('Authorization', authHeader('damian')).send(newAppointment);
     expect(res.status).toBe(200);
     expect(res.body.clientName).toBe('Carlos');
     expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
