@@ -142,6 +142,31 @@ export const createPatientRecord = async (clientId: string, data: Partial<DBPati
   return res.json();
 };
 
+// --- DASHBOARD ---
+
+export interface DashboardStalePatient extends DBClient {
+  lastVisit: string | null;
+  lastReason: string | null;
+}
+
+export const fetchDashboardToday = async (): Promise<DBAppointment[]> => {
+  const res = await fetch(`${API_URL}/dashboard/today`);
+  if (!res.ok) throw new Error("Error al obtener turnos de hoy");
+  return res.json();
+};
+
+export const fetchDashboardAppointments = async (): Promise<DBAppointment[]> => {
+  const res = await fetch(`${API_URL}/dashboard/appointments`);
+  if (!res.ok) throw new Error("Error al obtener citas agendadas");
+  return res.json();
+};
+
+export const fetchDashboardStalePatients = async (): Promise<DashboardStalePatient[]> => {
+  const res = await fetch(`${API_URL}/dashboard/stale-patients`);
+  if (!res.ok) throw new Error("Error al obtener pacientes sin ficha reciente");
+  return res.json();
+};
+
 // --- AGENTE IA ---
 
 export const sendAgentMessage = async (message: string, history: unknown[] = []): Promise<string> => {

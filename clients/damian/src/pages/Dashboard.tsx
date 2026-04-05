@@ -1,33 +1,15 @@
-import { useEffect, useState } from 'react';
-import { fetchAppointments, fetchFinances, createAppointment } from '../services/api';
-import type { DBAppointment, DBFinance } from '../services/api';
+import { useState } from 'react';
+import { createAppointment } from '../services/api';
 import { BUSINESS } from '../config';
+import TodayAppointmentsWidget from '../components/TodayAppointmentsWidget';
+import StalePatientWidget from '../components/StalePatientWidget';
+import UpcomingAppointmentsWidget from '../components/UpcomingAppointmentsWidget';
 
 export default function Dashboard() {
-  const [appointments, setAppointments] = useState<DBAppointment[]>([]);
-  const [finances, setFinances] = useState<DBFinance[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
   });
-
-  const loadData = () => {
-    setLoading(true);
-    Promise.all([fetchAppointments(), fetchFinances()])
-      .then(([aData, fData]) => {
-        setAppointments(aData);
-        setFinances(fData);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error al cargar data:", err);
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => { loadData(); }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,37 +21,10 @@ export default function Dashboard() {
       await createAppointment({ ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setIsModalOpen(false);
       setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
-      loadData();
+      window.location.reload();
     } catch (error) {
       alert("Error al guardar la cita");
     }
-  };
-
-  if (loading && appointments.length === 0) return <div>Cargando dashboard...</div>;
-
-  const pendingAppointments = appointments.filter(a => a.status === 'pendiente' || a.status === 'confirmado');
-  const today = new Date().toISOString().split('T')[0];
-  const upcomingAppointments = pendingAppointments
-    .filter(a => a.date >= today)
-    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-
-  const totalIncome = finances.filter(f => f.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpenses = finances.filter(f => f.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
-  const balance = totalIncome - totalExpenses;
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pendiente': return <span className="badge pending">Pendiente</span>;
-      case 'confirmado': return <span className="badge completed">Confirmado</span>;
-      case 'cancelado': return <span className="badge urgent">Cancelado</span>;
-      case 'completado': return <span className="badge">Completado</span>;
-      default: return <span className="badge">{status}</span>;
-    }
-  };
-
-  const formatDate = (dateStr: string) => {
-    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short' };
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-AR', options);
   };
 
   return (
@@ -82,58 +37,12 @@ export default function Dashboard() {
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nueva Cita</button>
       </div>
 
-      <div className="grid grid-cols-3" style={{ marginBottom: '40px' }}>
-        <div className="card">
-          <div className="stat-title">Citas Pendientes</div>
-          <div className="stat-value">{pendingAppointments.length}</div>
-        </div>
-        <div className="card">
-          <div className="stat-title">Balance Mensual</div>
-          <div className="stat-value">{BUSINESS.currency}{balance.toLocaleString()}</div>
-        </div>
-        <div className="card">
-          <div className="stat-title">Proximas Citas</div>
-          <div className="stat-value" style={{ color: 'var(--urgent-color)' }}>{upcomingAppointments.length}</div>
-        </div>
+      <div className="grid grid-cols-2" style={{ marginBottom: '24px' }}>
+        <TodayAppointmentsWidget />
+        <StalePatientWidget />
       </div>
 
-      <h2>Agenda: Proximas Citas</h2>
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Servicio</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {upcomingAppointments.slice(0, 10).map(a => (
-                <tr key={a.id}>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{a.clientName}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{a.clientPhone}</div>
-                  </td>
-                  <td>{a.service}</td>
-                  <td style={{ fontWeight: 600 }}>{formatDate(a.date)}</td>
-                  <td style={{ fontWeight: 600 }}>{a.time}</td>
-                  <td>{getStatusBadge(a.status)}</td>
-                </tr>
-              ))}
-              {upcomingAppointments.length === 0 && (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
-                    No hay citas proximas programadas.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <UpcomingAppointmentsWidget />
 
       {isModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
