@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { fetchGarments, fetchFinances, createGarment } from '../services/api';
 import type { DBGarment, DBFinance } from '../services/api';
+import { useToast } from '../components/ToastContext';
 
 export default function Dashboard() {
+  const toast = useToast();
   const [garments, setGarments] = useState<DBGarment[]>([]);
   const [finances, setFinances] = useState<DBFinance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,11 +39,12 @@ export default function Dashboard() {
     e.preventDefault();
     try {
       await createGarment({ ...formData, price: Number(formData.price) });
+      toast.success('Orden guardada correctamente');
       setIsModalOpen(false);
       setFormData({ clientName: '', clientPhone: '', garmentName: '', repairType: '', description: '', deliveryDate: '', price: 0 });
       loadData(); // Refrescar la tabla
     } catch (error) {
-      alert("Error al guardar la orden");
+      toast.error('Error al guardar la orden');
     }
   };
 

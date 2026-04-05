@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Clients from './Clients';
+import { ToastProvider } from '../components/ToastContext';
 
 const mockClients = [
   {
@@ -33,14 +34,14 @@ beforeEach(() => {
 
 describe('Clients page (zenko)', () => {
   it('renders client list', async () => {
-    render(<Clients />);
+    render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
     });
   });
 
   it('opens edit modal when Editar is clicked', async () => {
-    render(<Clients />);
+    render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
     });
@@ -51,7 +52,7 @@ describe('Clients page (zenko)', () => {
   });
 
   it('edit modal pre-populates with client data', async () => {
-    render(<Clients />);
+    render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
     });
@@ -63,7 +64,7 @@ describe('Clients page (zenko)', () => {
   });
 
   it('calls updateClient (NOT createClient) on edit submit', async () => {
-    render(<Clients />);
+    render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
     });
@@ -83,7 +84,7 @@ describe('Clients page (zenko)', () => {
   });
 
   it('renders create form when + Nuevo Cliente is clicked', async () => {
-    render(<Clients />);
+    render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
     });

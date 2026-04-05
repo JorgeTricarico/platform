@@ -3,6 +3,7 @@ import { fetchGarments, createGarment, updateGarment, deleteGarment } from '../s
 import type { DBGarment } from '../services/api';
 import PhotoGallery from '../components/PhotoGallery';
 import { generateTicket } from '../services/generateTicket';
+import { useToast } from '../components/ToastContext';
 
 const EMPTY_FORM = {
   clientName: '', clientPhone: '', garmentName: '', repairType: '',
@@ -10,6 +11,7 @@ const EMPTY_FORM = {
 };
 
 export default function Garments() {
+  const toast = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [garments, setGarments] = useState<DBGarment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,11 +43,12 @@ export default function Garments() {
     e.preventDefault();
     try {
       await createGarment({ ...createForm, price: Number(createForm.price) });
+      toast.success('Orden guardada correctamente');
       setIsCreateOpen(false);
       setCreateForm({ ...EMPTY_FORM });
       load();
     } catch {
-      alert('Error al guardar la orden');
+      toast.error('Error al guardar la orden');
     }
   };
 
@@ -64,10 +67,11 @@ export default function Garments() {
     if (!editTarget) return;
     try {
       await updateGarment(editTarget.id, { ...editForm, price: Number(editForm.price) });
+      toast.success('Orden actualizada correctamente');
       setEditTarget(null);
       load();
     } catch {
-      alert('Error al actualizar la orden');
+      toast.error('Error al actualizar la orden');
     }
   };
 
@@ -75,9 +79,10 @@ export default function Garments() {
     if (!confirm('¿Eliminar esta orden? Esta acción no se puede deshacer.')) return;
     try {
       await deleteGarment(id);
+      toast.success('Orden eliminada correctamente');
       load();
     } catch {
-      alert('Error al eliminar la orden');
+      toast.error('Error al eliminar la orden');
     }
   };
 

@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { fetchAppointments, updateAppointmentStatus, createAppointment, updateAppointment } from '../services/api';
 import type { DBAppointment } from '../services/api';
 import { BUSINESS } from '../config';
+import { useToast } from '../components/ToastContext';
 
 export default function Appointments() {
+  const toast = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [appointments, setAppointments] = useState<DBAppointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,12 +43,13 @@ export default function Appointments() {
       setEditTarget(null);
       setConflictError('');
       setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
+      toast.success('Cita actualizada correctamente');
       loadData();
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 409) {
         setConflictError((error as Error).message || 'Conflicto de horario');
       } else {
-        alert("Error al actualizar la cita");
+        toast.error('Error al actualizar la cita');
       }
     }
   };
@@ -58,12 +61,13 @@ export default function Appointments() {
       setIsModalOpen(false);
       setConflictError('');
       setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
+      toast.success('Cita agendada correctamente');
       loadData();
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 409) {
         setConflictError((error as Error).message || 'Conflicto de horario');
       } else {
-        alert("Error al guardar la cita");
+        toast.error('Error al guardar la cita');
       }
     }
   };
@@ -85,9 +89,10 @@ export default function Appointments() {
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
       await updateAppointmentStatus(id, newStatus);
+      toast.success('Estado actualizado correctamente');
       loadData();
     } catch (error) {
-      alert("Error al actualizar estado");
+      toast.error('Error al actualizar estado');
     }
   };
 

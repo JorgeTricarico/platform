@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Finances from './Finances';
+import { ToastProvider } from '../components/ToastContext';
 
 vi.mock('../services/api', () => ({
   fetchFinances: vi.fn(),
@@ -25,7 +26,7 @@ describe('Finances', () => {
   });
 
   it('renders finance stats correctly', async () => {
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ingresos Totales')).toBeDefined();
       expect(screen.getByText('Gastos del Consultorio')).toBeDefined();
@@ -34,7 +35,7 @@ describe('Finances', () => {
   });
 
   it('calculates totals from data', async () => {
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('$8,000')).toBeDefined();
       expect(screen.getByText('$2,000')).toBeDefined();
@@ -42,7 +43,7 @@ describe('Finances', () => {
   });
 
   it('renders month filter input', async () => {
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ingresos Totales')).toBeDefined();
     });
@@ -52,7 +53,7 @@ describe('Finances', () => {
   });
 
   it('renders Todos filter button', async () => {
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ingresos Totales')).toBeDefined();
     });
@@ -65,7 +66,7 @@ describe('Finances', () => {
   });
 
   it('opens create modal on button click', async () => {
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ingresos Totales')).toBeDefined();
     });
@@ -76,7 +77,7 @@ describe('Finances', () => {
   });
 
   it('modal uses responsive CSS classes', async () => {
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ingresos Totales')).toBeDefined();
     });
@@ -96,7 +97,7 @@ describe('D19 — Edit finance', () => {
   });
 
   it('renders Acciones column with Editar and Eliminar buttons', async () => {
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Acciones')).toBeDefined();
     });
@@ -108,7 +109,7 @@ describe('D19 — Edit finance', () => {
 
   it('opens edit modal pre-populated with finance data', async () => {
     (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Sesion')).toBeDefined();
     });
@@ -125,7 +126,7 @@ describe('D19 — Edit finance', () => {
   it('calls updateFinance on edit submit', async () => {
     (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
     (updateFinance as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockFinanceEdit });
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Sesion')).toBeDefined();
     });
@@ -150,7 +151,7 @@ describe('D19 — Delete finance', () => {
     (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue([mockFinanceEdit]);
     (deleteFinance as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
     window.confirm = vi.fn(() => true);
-    render(<Finances />);
+    render(<ToastProvider><Finances /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Sesion')).toBeDefined();
     });

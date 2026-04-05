@@ -8,6 +8,7 @@ import Agent from './pages/Agent';
 import ChatDemo from './pages/ChatDemo';
 import Ambient from './pages/Ambient';
 import { MusicProvider, useMusicCommand } from './components/MusicContext';
+import { ToastProvider } from './components/ToastContext';
 import { BUSINESS } from './config';
 import logoUrl from './assets/logo.svg';
 
@@ -122,9 +123,11 @@ function AppContent() {
 
 function App() {
   return (
-    <MusicProvider>
-      <AppContent />
-    </MusicProvider>
+    <ToastProvider>
+      <MusicProvider>
+        <AppContent />
+      </MusicProvider>
+    </ToastProvider>
   );
 }
 

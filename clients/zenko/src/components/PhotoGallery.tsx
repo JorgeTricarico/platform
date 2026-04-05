@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchGarmentPhotos, uploadGarmentPhoto, deleteGarmentPhoto, type DBGarmentPhoto } from '../services/api';
+import { useToast } from './ToastContext';
 
 const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api/zenco', '') || 'http://localhost:3000';
 
@@ -8,6 +9,7 @@ interface PhotoGalleryProps {
 }
 
 export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
+  const toast = useToast();
   const [photos, setPhotos] = useState<DBGarmentPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -30,8 +32,9 @@ export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
     try {
       const photo = await uploadGarmentPhoto(garmentId, file);
       setPhotos(prev => [...prev, photo]);
+      toast.success('Foto subida correctamente');
     } catch {
-      alert('Error al subir la foto');
+      toast.error('Error al subir la foto');
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -43,8 +46,9 @@ export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
     try {
       await deleteGarmentPhoto(garmentId, photoId);
       setPhotos(prev => prev.filter(p => p.id !== photoId));
+      toast.success('Foto eliminada correctamente');
     } catch {
-      alert('Error al eliminar la foto');
+      toast.error('Error al eliminar la foto');
     }
   };
 

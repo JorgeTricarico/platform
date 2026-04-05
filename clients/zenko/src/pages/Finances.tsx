@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchFinances, createFinance, updateFinance, deleteFinance } from '../services/api';
 import type { DBFinance } from '../services/api';
+import { useToast } from '../components/ToastContext';
 
 const EMPTY_FORM = {
   date: new Date().toISOString().split('T')[0],
@@ -11,6 +12,7 @@ const EMPTY_FORM = {
 };
 
 export default function Finances() {
+  const toast = useToast();
   const [finances, setFinances] = useState<DBFinance[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,11 +49,12 @@ export default function Finances() {
     e.preventDefault();
     try {
       await createFinance({ ...form, amount: Number(form.amount) });
+      toast.success('Registro guardado correctamente');
       setIsModalOpen(false);
       setForm({ ...EMPTY_FORM });
       load(filterMonth);
     } catch {
-      alert('Error al guardar el registro');
+      toast.error('Error al guardar el registro');
     }
   };
 
@@ -71,10 +74,11 @@ export default function Finances() {
     if (!editTarget) return;
     try {
       await updateFinance(editTarget.id, { ...editForm, amount: Number(editForm.amount) });
+      toast.success('Registro actualizado correctamente');
       setEditTarget(null);
       load(filterMonth);
     } catch {
-      alert('Error al actualizar el registro');
+      toast.error('Error al actualizar el registro');
     }
   };
 
@@ -82,9 +86,10 @@ export default function Finances() {
     if (!window.confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) return;
     try {
       await deleteFinance(id);
+      toast.success('Registro eliminado correctamente');
       load(filterMonth);
     } catch {
-      alert('Error al eliminar el registro');
+      toast.error('Error al eliminar el registro');
     }
   };
 

@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import PhotoGallery from './PhotoGallery';
+import { ToastProvider } from './ToastContext';
 
 const mockPhotos = [
   { id: 'p1', garmentId: 'ORD-1', filename: 'foto1.jpg', url: '/uploads/foto1.jpg', createdAt: '2026-04-05T10:00:00Z' },
@@ -29,7 +30,7 @@ beforeEach(() => {
 
 describe('PhotoGallery', () => {
   it('renders photo gallery after loading', async () => {
-    render(<PhotoGallery garmentId="ORD-1" />);
+    render(<ToastProvider><PhotoGallery garmentId="ORD-1" /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByTestId('photo-gallery')).toBeInTheDocument();
     });
@@ -37,7 +38,7 @@ describe('PhotoGallery', () => {
   });
 
   it('shows photo grid with correct number of photos', async () => {
-    render(<PhotoGallery garmentId="ORD-1" />);
+    render(<ToastProvider><PhotoGallery garmentId="ORD-1" /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByTestId('photo-grid')).toBeInTheDocument();
     });
@@ -47,21 +48,21 @@ describe('PhotoGallery', () => {
 
   it('shows empty state when no photos', async () => {
     mockFetchPhotos.mockResolvedValue([]);
-    render(<PhotoGallery garmentId="ORD-1" />);
+    render(<ToastProvider><PhotoGallery garmentId="ORD-1" /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText(/Sin fotos/)).toBeInTheDocument();
     });
   });
 
   it('calls fetchGarmentPhotos with the garmentId', async () => {
-    render(<PhotoGallery garmentId="ORD-1" />);
+    render(<ToastProvider><PhotoGallery garmentId="ORD-1" /></ToastProvider>);
     await waitFor(() => {
       expect(mockFetchPhotos).toHaveBeenCalledWith('ORD-1');
     });
   });
 
   it('uploads a photo when file is selected', async () => {
-    render(<PhotoGallery garmentId="ORD-1" />);
+    render(<ToastProvider><PhotoGallery garmentId="ORD-1" /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByTestId('photo-grid')).toBeInTheDocument();
     });
@@ -81,7 +82,7 @@ describe('PhotoGallery', () => {
   });
 
   it('deletes a photo after confirmation', async () => {
-    render(<PhotoGallery garmentId="ORD-1" />);
+    render(<ToastProvider><PhotoGallery garmentId="ORD-1" /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByTestId('photo-grid')).toBeInTheDocument();
     });
@@ -99,7 +100,7 @@ describe('PhotoGallery', () => {
   });
 
   it('opens lightbox on photo click', async () => {
-    render(<PhotoGallery garmentId="ORD-1" />);
+    render(<ToastProvider><PhotoGallery garmentId="ORD-1" /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByTestId('photo-grid')).toBeInTheDocument();
     });
@@ -111,7 +112,7 @@ describe('PhotoGallery', () => {
   });
 
   it('closes lightbox on backdrop click', async () => {
-    render(<PhotoGallery garmentId="ORD-1" />);
+    render(<ToastProvider><PhotoGallery garmentId="ORD-1" /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByTestId('photo-grid')).toBeInTheDocument();
     });

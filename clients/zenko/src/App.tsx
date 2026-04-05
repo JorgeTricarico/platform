@@ -5,6 +5,7 @@ import Finances from './pages/Finances';
 import Clients from './pages/Clients';
 import ChatDemo from './pages/ChatDemo';
 import NotificationBell from './components/NotificationBell';
+import { ToastProvider } from './components/ToastContext';
 import logoUrl from './assets/logo.png';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
   };
 
   return (
+    <ToastProvider>
     <div className="app-container">
       {/* Sidebar overlay for mobile */}
       <div className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
@@ -88,6 +90,7 @@ function App() {
         </div>
       </main>
     </div>
+    </ToastProvider>
   );
 }
 

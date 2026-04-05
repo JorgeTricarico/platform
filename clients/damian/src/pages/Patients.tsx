@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { fetchPatients, fetchPatientRecords, createPatientRecord } from '../services/api';
 import type { DBPatient, DBPatientRecord } from '../services/api';
 import { downloadPatientPdf } from '../utils/exportPdf';
+import { useToast } from '../components/ToastContext';
 
 const EMPTY_RECORD = { date: new Date().toISOString().split('T')[0], reason: '', symptoms: '', areas: '', treatment: '', observations: '', nextSession: '' };
 
 export default function Patients() {
+  const toast = useToast();
   const [patients, setPatients] = useState<DBPatient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,8 +50,9 @@ export default function Patients() {
       setRecordForm({ ...EMPTY_RECORD });
       const recs = await fetchPatientRecords(selectedPatient.id);
       setRecords(recs);
+      toast.success('Ficha guardada correctamente');
       load(); // refresh patient list too
-    } catch { alert('Error al guardar ficha'); }
+    } catch { toast.error('Error al guardar ficha'); }
   };
 
   if (loading && patients.length === 0) return <div>Cargando pacientes...</div>;

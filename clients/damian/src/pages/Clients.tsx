@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { fetchClients, searchClients, createClient, updateClient } from '../services/api';
 import type { DBClient } from '../services/api';
+import { useToast } from '../components/ToastContext';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
 
 export default function Clients() {
+  const toast = useToast();
   const [clients, setClients] = useState<DBClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,8 +38,9 @@ export default function Clients() {
       await createClient(createForm);
       setIsCreateOpen(false);
       setCreateForm({ ...EMPTY_FORM });
+      toast.success('Cliente registrado correctamente');
       load();
-    } catch { alert('Error al registrar cliente'); }
+    } catch { toast.error('Error al registrar cliente'); }
   };
 
   const openEdit = (c: DBClient) => {
@@ -51,8 +54,9 @@ export default function Clients() {
     try {
       await updateClient(editTarget.id, editForm);
       setEditTarget(null);
+      toast.success('Cliente actualizado correctamente');
       load();
-    } catch { alert('Error al actualizar cliente'); }
+    } catch { toast.error('Error al actualizar cliente'); }
   };
 
   if (loading && clients.length === 0) return <div>Cargando clientes...</div>;

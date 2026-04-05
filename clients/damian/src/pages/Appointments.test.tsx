@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Appointments from './Appointments';
+import { ToastProvider } from '../components/ToastContext';
 
 vi.mock('../services/api', () => ({
   fetchAppointments: vi.fn(),
@@ -31,7 +32,7 @@ describe('Appointments', () => {
   });
 
   it('renders appointments table with data', async () => {
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
       expect(screen.getByText('Pedro R.')).toBeDefined();
@@ -41,7 +42,7 @@ describe('Appointments', () => {
   });
 
   it('renders search input with correct CSS class', async () => {
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -50,7 +51,7 @@ describe('Appointments', () => {
   });
 
   it('opens create modal on button click', async () => {
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -61,7 +62,7 @@ describe('Appointments', () => {
   });
 
   it('modal uses responsive CSS classes', async () => {
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -74,7 +75,7 @@ describe('Appointments', () => {
   });
 
   it('form uses CSS utility classes', async () => {
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -94,7 +95,7 @@ describe('D18 — Edit appointment', () => {
   });
 
   it('renders Editar button per appointment row', async () => {
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -103,7 +104,7 @@ describe('D18 — Edit appointment', () => {
   });
 
   it('opens edit modal pre-populated with appointment data', async () => {
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -118,7 +119,7 @@ describe('D18 — Edit appointment', () => {
   });
 
   it('calls updateAppointment on edit submit', async () => {
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -146,7 +147,7 @@ describe('D20 — Conflict display', () => {
     const conflictError = Object.assign(new Error('Conflicto de horario'), { status: 409 });
     (createAppointment as ReturnType<typeof vi.fn>).mockRejectedValue(conflictError);
 
-    render(<Appointments />);
+    render(<ToastProvider><Appointments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });

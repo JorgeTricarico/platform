@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Garments from './Garments';
+import { ToastProvider } from '../components/ToastContext';
 
 vi.mock('../services/api', () => ({
   fetchGarments: vi.fn(),
@@ -39,7 +40,7 @@ beforeEach(() => {
 
 describe('Garments page', () => {
   it('renders the garments table with data', async () => {
-    render(<Garments />);
+    render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
       expect(screen.getByText('Pantalón (dobladillo)')).toBeInTheDocument();
@@ -47,7 +48,7 @@ describe('Garments page', () => {
   });
 
   it('displays location column', async () => {
-    render(<Garments />);
+    render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Ubicación')).toBeInTheDocument();
       expect(screen.getByText('Estante A')).toBeInTheDocument();
@@ -55,7 +56,7 @@ describe('Garments page', () => {
   });
 
   it('shows Ticket button for each garment', async () => {
-    render(<Garments />);
+    render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       const ticketButtons = screen.getAllByText('Ticket');
       expect(ticketButtons).toHaveLength(2);
@@ -63,7 +64,7 @@ describe('Garments page', () => {
   });
 
   it('renders search input with correct CSS class', async () => {
-    render(<Garments />);
+    render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
@@ -72,7 +73,7 @@ describe('Garments page', () => {
   });
 
   it('opens create modal on button click', async () => {
-    render(<Garments />);
+    render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
@@ -81,7 +82,7 @@ describe('Garments page', () => {
   });
 
   it('modal uses responsive CSS classes', async () => {
-    render(<Garments />);
+    render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
@@ -90,7 +91,7 @@ describe('Garments page', () => {
   });
 
   it('form uses CSS utility classes', async () => {
-    render(<Garments />);
+    render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });

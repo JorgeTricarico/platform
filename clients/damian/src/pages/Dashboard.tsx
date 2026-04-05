@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { createAppointment } from '../services/api';
 import { BUSINESS } from '../config';
+import { useToast } from '../components/ToastContext';
 import TodayAppointmentsWidget from '../components/TodayAppointmentsWidget';
 import StalePatientWidget from '../components/StalePatientWidget';
 import UpcomingAppointmentsWidget from '../components/UpcomingAppointmentsWidget';
 
 export default function Dashboard() {
+  const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
@@ -21,10 +23,11 @@ export default function Dashboard() {
       await createAppointment({ ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setIsModalOpen(false);
       setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
+      toast.success('Cita agendada correctamente');
       // Dispatch custom event so widgets re-fetch
       window.dispatchEvent(new Event('dashboard-refresh'));
     } catch (error) {
-      alert("Error al guardar la cita");
+      toast.error('Error al guardar la cita');
     }
   };
 

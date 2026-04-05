@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Dashboard from './Dashboard';
+import { ToastProvider } from '../components/ToastContext';
 
 const mockGarments = [
   {
@@ -38,14 +39,14 @@ beforeEach(() => {
 
 describe('Dashboard view', () => {
   it('renders the welcome message', async () => {
-    render(<Dashboard />);
+    render(<ToastProvider><Dashboard /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Hola, Ana 👋')).toBeInTheDocument();
     });
   });
 
   it('calculates the balance correctly based on data', async () => {
-    render(<Dashboard />);
+    render(<ToastProvider><Dashboard /></ToastProvider>);
     const totalIncome = mockFinances.filter(f => f.type === 'income').reduce((a, b) => a + b.amount, 0);
     const totalExpenses = mockFinances.filter(f => f.type === 'expense').reduce((a, b) => a + b.amount, 0);
     const expectedBalance = totalIncome - totalExpenses;
@@ -56,7 +57,7 @@ describe('Dashboard view', () => {
   });
 
   it('displays the list of urgent garments', async () => {
-    render(<Dashboard />);
+    render(<ToastProvider><Dashboard /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero')).toBeInTheDocument();
     });
