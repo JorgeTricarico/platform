@@ -1,0 +1,120 @@
+# Master Prompt — Platform (Zenko + Damian)
+
+> Copiar y pegar este prompt al inicio de cada nueva sesion de trabajo.
+> Ultima actualizacion: 2026-04-05 (post sesion 11)
+
+---
+
+## Contexto del proyecto
+
+Monorepo con 3 proyectos:
+- `backend/` — Express + Prisma + Supabase PostgreSQL (port 6543 pooler, 5432 direct)
+- `clients/zenko/` — React + Vite (Ana & Ariel, taller de arreglos de ropa)
+- `clients/damian/` — React + Vite (Damian, masajista/turnos/fichas clinicas)
+
+Deploy: Render (backend: `platform-backend`, frontends: static sites)
+Tests: Vitest (283 tests: 198 backend + 48 zenko + 37 damian)
+CI: GitHub Actions (solo backend por ahora)
+PWA: Ambas apps instalables, offline-first con IndexedDB cache + mutation queue
+
+## Estado actual (post sesion 11)
+
+### Completado recientemente
+- M8: Fix updateClient (bug critico de duplicados) + PUT /clients/:id
+- D18: Editar citas completas (PUT + edit modal)
+- D20: Deteccion conflictos horario (409 en POST+PUT)
+- Z16+D19: Editar/eliminar finanzas (PUT+DELETE + UI)
+- M9: Toast system (ToastProvider + useToast, 16 alert reemplazados)
+- D21: Musica persiste entre tabs (display:none vs unmount)
+- L6: PWA + offline-first (service worker, IndexedDB, mutation queue, sync)
+
+### Bugs conocidos activos
+- Gemini API key agotada (chat demo y Agent no funcionan)
+- Frontend .env apunta a localhost:3000 (no funciona desde Render deploy)
+- N+1 queries en /dashboard/stale-patients y /patients (critico para performance)
+- IDs con Date.now() en Order/Appointment/Finance (colision posible)
+- Cero loading state en botones submit (doble-click crea duplicados)
+- No hay Escape key ni focus trap en ningun modal
+- Zenko no tiene config.ts (greeting, repairTypes, currency hardcodeados)
+- CI no corre tests frontend
+
+## Prioridades ordenadas para proxima sesion
+
+### Criticas (bloquean deploy seguro)
+1. **M11** — JWT auth: proteger TODOS los endpoints (cero auth actualmente)
+2. **M20** — Fix N+1 queries en stale-patients y patients (docs/roadmap/M20-fix-n-plus-1.md)
+
+### Altas (calidad y estabilidad)
+3. **M17** — Loading state en botones submit (docs/roadmap/M17-loading-states.md)
+4. **M22** — UUID en todos los modelos (docs/roadmap/M22-uuid-migration.md)
+5. **D27** — Tests faltantes en Damian: 10 componentes sin tests (docs/roadmap/D27-tests-faltantes.md)
+6. **M12** — CI frontend: agregar tests de ambos clientes al GitHub Action
+7. **Z17** — config.ts para Zenko (docs/roadmap/Z17-config-ts.md)
+8. **M25** — Renovar Gemini API key (docs/roadmap/M25-gemini-key.md)
+9. **D22** — DELETE /appointments/:id + boton eliminar (docs/roadmap/D22-delete-appointments.md)
+10. **M16** — Shared packages workspace (docs/roadmap/M16-shared-packages.md)
+
+### Medias (UX y features)
+11. **M14** — Escape key + focus trap en modales
+12. **M21** — Status enum validation (docs/roadmap/M21-status-enum.md)
+13. **M10** — React Router (URLs reales, back/forward, deep linking)
+14. **D23** — Editar fichas clinicas desde Patients.tsx
+15. **D24** — Filtro "Proximas" vs "Historial" en Appointments
+16. **Z9** — WhatsApp quick-send boton "Avisar"
+17. **Z10** — Workflow "Entregar" auto-crear ingreso financiero
+18. **Z14** — Filtro por status en tabla Garments
+19. **Z15** — Highlight filas vencidas en Garments
+20. **Z18** — Mostrar deliveryDate e intakeDate en tabla Garments
+21. **M19** — Confirm modal custom (reemplazar window.confirm)
+22. **M23** — Cache TTL en cachedFetch
+23. **Z19** — Revenue widget en Zenko Dashboard
+24. **D25** — Revenue widget en Damian Dashboard
+25. **Z20 + D26** — DELETE /clients/:id + boton eliminar
+26. **M13** — Object storage para fotos (S3/R2)
+27. **M15** — Paginacion en endpoints y tablas
+
+### Bajas
+28. **M18** — Eliminar console.error leftovers
+29. **M24** — Extraer helpers compartidos backend (getMonthRange, etc)
+30. **D11** — Vista impresion fichas
+31. **Z12** — Export CSV/PDF mensual
+
+## Reglas de trabajo
+
+1. **TDD obligatorio** — tests ANTES de implementacion. Todo CRUD con unit + integration tests.
+2. **Push directo a main** — sin ramas ni PRs.
+3. **Sub-agentes siempre** — NUNCA leer archivos directo, delegar a sub-agentes para preservar contexto.
+4. **Responsive** — modales con `min(Xpx, 90vw)`. No inline width hardcodeado.
+5. **CSS variables** — usar `var(--color)` del design system. No hardcodear colores.
+6. **Toast, no alert** — usar `toast.error()` / `toast.success()` del ToastContext.
+7. **Commit frecuente** — commit despues de cada fase completada, no al final.
+8. **Audit post-sesion** — siempre hacer audit antes del push final. Agregar findings al ROADMAP.
+
+## Archivos clave
+
+| Archivo | Que es |
+|---------|--------|
+| `ROADMAP.md` | Fuente de verdad del roadmap (items pendientes/completados) |
+| `docs/roadmap/*.md` | Documentacion detallada de cada item |
+| `backend/src/schemas.ts` | Zod schemas para validacion |
+| `backend/src/routes/zenco.ts` | Rutas Zenko |
+| `backend/src/routes/damian.ts` | Rutas Damian |
+| `backend/src/__tests__/setup.ts` | Mocks de Prisma para tests |
+| `clients/*/src/services/api.ts` | Funciones API (con cachedFetch/mutationFetch) |
+| `clients/*/src/services/db.ts` | IndexedDB cache layer |
+| `clients/*/src/services/sync.ts` | Offline mutation sync |
+| `clients/*/src/components/ToastContext.tsx` | Toast notifications |
+| `clients/damian/src/config.ts` | Config de negocio Damian |
+| `backend/prisma/schema.prisma` | Schema de la DB |
+
+## Como empezar
+
+```
+continua con el master prompt
+```
+
+El agente va a:
+1. Leer la memoria persistente y el ROADMAP
+2. Verificar el estado actual (git status, test count)
+3. Proponer plan para la sesion basado en las prioridades
+4. Esperar aprobacion antes de ejecutar
