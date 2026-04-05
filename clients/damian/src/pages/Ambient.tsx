@@ -72,12 +72,13 @@ async function loadDemoTracksIfNeeded(): Promise<{ id: string; title: string; bl
 }
 
 export default function Ambient() {
-  const { lastCommand } = useMusicCommand();
+  const { lastCommand, setPlaybackState } = useMusicCommand();
   const [tracks, setTracks] = useState<LocalTrack[]>([]);
   const [activeTrack, setActiveTrack] = useState<LocalTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [loop, setLoop] = useState(true);
+  const [shuffle, setShuffle] = useState(false);
   const [commandFeedback, setCommandFeedback] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -85,6 +86,11 @@ export default function Ambient() {
 
   // Keep tracksRef in sync
   useEffect(() => { tracksRef.current = tracks; }, [tracks]);
+
+  // Sync playback state to MusicContext (for sidebar indicator)
+  useEffect(() => {
+    setPlaybackState(isPlaying, activeTrack?.title ?? null);
+  }, [isPlaying, activeTrack, setPlaybackState]);
 
   const [loadingDemos, setLoadingDemos] = useState(false);
 
@@ -115,6 +121,20 @@ export default function Ambient() {
     audioRef.current.volume = volume;
     audioRef.current.loop = loop;
   }, [volume, loop]);
+
+  const shuffleRef = useRef(false);
+  useEffect(() => { shuffleRef.current = shuffle; }, [shuffle]);
+
+  const getNextTrack = useCallback((currentTracks: LocalTrack[], current: LocalTrack | null): LocalTrack | null => {
+    if (currentTracks.length === 0) return null;
+    if (currentTracks.length === 1) return currentTracks[0];
+    if (shuffleRef.current) {
+      const others = current ? currentTracks.filter(t => t.id !== current.id) : currentTracks;
+      return others[Math.floor(Math.random() * others.length)];
+    }
+    const currentIdx = current ? currentTracks.findIndex(t => t.id === current.id) : -1;
+    return currentTracks[(currentIdx + 1) % currentTracks.length];
+  }, []);
 
   const playTrack = useCallback((track: LocalTrack) => {
     setActiveTrack(track);
@@ -162,10 +182,11 @@ export default function Ambient() {
         setCommandFeedback('No hay musica cargada');
         return;
       }
-      const currentIdx = activeTrack ? currentTracks.findIndex(t => t.id === activeTrack.id) : -1;
-      const nextTrack = currentTracks[(currentIdx + 1) % currentTracks.length];
-      playTrack(nextTrack);
-      setCommandFeedback(`Siguiente: ${nextTrack.title}`);
+      const next = getNextTrack(currentTracks, activeTrack);
+      if (next) {
+        playTrack(next);
+        setCommandFeedback(`Siguiente: ${next.title}`);
+      }
     }
 
     const timer = setTimeout(() => setCommandFeedback(null), 4000);
@@ -240,6 +261,9 @@ export default function Ambient() {
             <button className="btn" style={{ padding: '6px 14px', fontSize: '13px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }} onClick={() => setLoop(!loop)}>
               Loop: {loop ? 'ON' : 'OFF'}
             </button>
+            <button className="btn" style={{ padding: '6px 14px', fontSize: '13px', backgroundColor: shuffle ? 'var(--primary-color, #6366f1)' : 'var(--surface-secondary)', color: shuffle ? 'white' : 'inherit', border: '1px solid var(--border-color)' }} onClick={() => setShuffle(!shuffle)}>
+              Shuffle: {shuffle ? 'ON' : 'OFF'}
+            </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
             <span style={{ fontSize: '13px', color: 'var(--text-secondary)', width: '60px' }}>Volumen</span>
@@ -250,7 +274,13 @@ export default function Ambient() {
             ref={audioRef}
             src={activeTrack.url}
             loop={loop}
-            onEnded={() => setIsPlaying(false)}
+            onEnded={() => {
+              if (!loop && tracksRef.current.length > 1) {
+                const next = getNextTrack(tracksRef.current, activeTrack);
+                if (next) { playTrack(next); return; }
+              }
+              setIsPlaying(false);
+            }}
           />
         </div>
       )}
@@ -312,12 +342,6 @@ export default function Ambient() {
         </div>
       )}
 
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-      `}</style>
     </div>
   );
 }

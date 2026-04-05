@@ -7,15 +7,15 @@ import Patients from './pages/Patients';
 import Agent from './pages/Agent';
 import ChatDemo from './pages/ChatDemo';
 import Ambient from './pages/Ambient';
-import { MusicProvider } from './components/MusicContext';
+import { MusicProvider, useMusicCommand } from './components/MusicContext';
 import { BUSINESS } from './config';
 import logoUrl from './assets/logo.png';
 
-function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
+  const { isPlaying, currentTrackTitle } = useMusicCommand();
 
   return (
-    <MusicProvider>
     <div className="app-container">
       <aside className="sidebar">
         <div className="sidebar-logo">
@@ -48,9 +48,13 @@ function App() {
           <div
             className={`nav-link ${activeTab === 'ambient' ? 'active' : ''}`}
             onClick={() => setActiveTab('ambient')}
+            title={isPlaying && currentTrackTitle ? `Reproduciendo: ${currentTrackTitle}` : undefined}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
             Musica Ambiente
+            {isPlaying && (
+              <span style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--success-color, #22c55e)', animation: 'pulse 2s infinite', flexShrink: 0 }} />
+            )}
           </div>
           <div
             className={`nav-link ${activeTab === 'clients' ? 'active' : ''}`}
@@ -103,6 +107,13 @@ function App() {
         </div>
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <MusicProvider>
+      <AppContent />
     </MusicProvider>
   );
 }

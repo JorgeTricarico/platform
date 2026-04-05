@@ -243,3 +243,8 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 .badge.completed { background-color: #E1F0DA; color: var(--success-color); }
 
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

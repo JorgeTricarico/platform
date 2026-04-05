@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchPatients, fetchPatientRecords, createPatientRecord } from '../services/api';
 import type { DBPatient, DBPatientRecord } from '../services/api';
+import { downloadPatientPdf } from '../utils/exportPdf';
 
 const EMPTY_RECORD = { date: new Date().toISOString().split('T')[0], reason: '', symptoms: '', areas: '', treatment: '', observations: '', nextSession: '' };
 
@@ -66,7 +67,10 @@ export default function Patients() {
             <p className="subtitle">Tel: {selectedPatient.phone} {selectedPatient.email ? `| Email: ${selectedPatient.email}` : ''}</p>
             {selectedPatient.notes && <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Notas: {selectedPatient.notes}</p>}
           </div>
-          <button className="btn btn-primary" onClick={() => setIsNewRecord(true)}>+ Nueva Ficha</button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }} onClick={() => downloadPatientPdf({ patient: selectedPatient, records })}>Exportar PDF</button>
+            <button className="btn btn-primary" onClick={() => setIsNewRecord(true)}>+ Nueva Ficha</button>
+          </div>
         </div>
 
         {loadingRecords ? <div>Cargando historial...</div> : (

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../db.js';
 import { validate, createGarmentSchema, updateGarmentSchema, updateStatusSchema, createFinanceSchema, createClientSchema } from '../schemas.js';
 import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler.js';
+import { whatsappService } from '../services/whatsapp.js';
 
 const router = Router();
 
@@ -70,7 +71,7 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     data: { status }
   });
 
-  // When a garment is marked as ready, create a client notification
+  // When a garment is marked as ready, create a client notification + send WhatsApp
   if (status === 'listo') {
     await prisma.notification.create({
       data: {
@@ -80,6 +81,16 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
         read: false,
       },
     });
+
+    // Z7: WhatsApp notification — non-blocking
+    try {
+      await whatsappService.sendMessage(
+        updated.clientPhone,
+        `Hola ${updated.clientName}, tu prenda "${updated.garmentName}" está lista para retirar!`
+      );
+    } catch {
+      // WhatsApp failure must not block status update
+    }
   }
 
   res.json(updated);

@@ -3,10 +3,27 @@ import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
 
+// Mock whatsappService for Z7 tests
+vi.mock('../services/whatsapp.js', () => ({
+  whatsappService: {
+    sendMessage: vi.fn().mockResolvedValue({ id: 'msg-z7' }),
+    getStatus: vi.fn(),
+    getQR: vi.fn(),
+    onMessage: vi.fn(),
+  },
+}));
+
+import { whatsappService } from '../services/whatsapp.js';
+
+const mockWA = whatsappService as unknown as {
+  sendMessage: ReturnType<typeof vi.fn>;
+};
+
 const mockPrisma = prisma as unknown as {
   order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
   client: { findMany: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
+  notification: { create: ReturnType<typeof vi.fn> };
 };
 
 beforeEach(() => {
@@ -95,11 +112,67 @@ describe('POST /api/zenco/garments', () => {
 });
 
 describe('PUT /api/zenco/garments/:id/status', () => {
+  const fullOrder = {
+    id: 'ORD-1', clientName: 'Ana', clientPhone: '5491112345678',
+    garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar',
+    status: 'listo', intakeDate: '2026-04-01', deliveryDate: '2026-04-10', price: 3000,
+  };
+
   it('updates garment status', async () => {
-    mockPrisma.order.update.mockResolvedValue({ id: 'ORD-1', status: 'listo' });
+    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.notification.create.mockResolvedValue({});
     const res = await request(app).put('/api/zenco/garments/ORD-1/status').send({ status: 'listo' });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('listo');
+  });
+
+  // --- Z7: WhatsApp integration ---
+
+  it('sends WhatsApp message when status changes to listo', async () => {
+    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockWA.sendMessage.mockResolvedValue({ id: 'msg-z7' });
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').send({ status: 'listo' });
+    expect(res.status).toBe(200);
+    expect(mockWA.sendMessage).toHaveBeenCalledOnce();
+    expect(mockWA.sendMessage).toHaveBeenCalledWith(
+      '5491112345678',
+      'Hola Ana, tu prenda "Pantalon" está lista para retirar!'
+    );
+  });
+
+  it('does NOT send WhatsApp when status is not listo', async () => {
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'en_proceso' });
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').send({ status: 'en_proceso' });
+    expect(res.status).toBe(200);
+    expect(mockWA.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('still succeeds when WhatsApp fails (graceful degradation)', async () => {
+    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockWA.sendMessage.mockRejectedValue(new Error('WhatsApp not connected'));
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').send({ status: 'listo' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('listo');
+    // Notification should still be created
+    expect(mockPrisma.notification.create).toHaveBeenCalledOnce();
+  });
+
+  it('creates in-app notification even when WhatsApp fails', async () => {
+    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockWA.sendMessage.mockRejectedValue(new Error('Send failed'));
+
+    await request(app).put('/api/zenco/garments/ORD-1/status').send({ status: 'listo' });
+    expect(mockPrisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        clientId: '5491112345678',
+        type: 'prenda_lista',
+      }),
+    });
   });
 });
 

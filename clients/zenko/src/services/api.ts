@@ -103,3 +103,26 @@ export const createClient = async (data: Partial<DBClient>): Promise<DBClient> =
   if (!res.ok) throw new Error("Error al registrar cliente");
   return res.json();
 };
+
+// --- NOTIFICACIONES ---
+
+export interface DBNotification {
+  id: string;
+  clientId: string;
+  message: string;
+  type: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export const fetchNotifications = async (clientId: string): Promise<DBNotification[]> => {
+  const res = await fetch(`${API_URL}/notifications/${encodeURIComponent(clientId)}`);
+  if (!res.ok) throw new Error("Error al obtener notificaciones");
+  return res.json();
+};
+
+export const markNotificationRead = async (id: string): Promise<DBNotification> => {
+  const res = await fetch(`${API_URL}/notifications/${id}/read`, { method: 'PATCH' });
+  if (!res.ok) throw new Error("Error al marcar notificacion como leida");
+  return res.json();
+};
