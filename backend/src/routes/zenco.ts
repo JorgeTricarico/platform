@@ -64,7 +64,7 @@ router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req,
 }));
 
 router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { status } = req.body;
   const updated = await prisma.order.update({
     where: { id },
@@ -97,7 +97,7 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
 }));
 
 router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const data = req.body;
   const updated = await prisma.order.update({
     where: { id },
@@ -117,7 +117,7 @@ router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (r
 }));
 
 router.delete('/garments/:id', asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   await prisma.order.delete({ where: { id } });
   res.json({ success: true });
 }));
@@ -192,7 +192,7 @@ router.get('/clients/search', asyncHandler(async (req, res) => {
 // --- HISTORIAL DE ORDENES POR CLIENTE ---
 
 router.get('/clients/:id/orders', asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { status, from, to } = req.query as Record<string, string | undefined>;
 
   const client = await prisma.client.findUnique({ where: { id } });

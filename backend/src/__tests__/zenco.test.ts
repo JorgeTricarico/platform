@@ -22,7 +22,7 @@ const mockWA = whatsappService as unknown as {
 const mockPrisma = prisma as unknown as {
   order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
-  client: { findMany: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
+  client: { findMany: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   notification: { create: ReturnType<typeof vi.fn> };
 };
 

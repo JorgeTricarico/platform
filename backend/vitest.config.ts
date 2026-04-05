@@ -5,5 +5,6 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     setupFiles: ['./src/__tests__/setup.ts'],
+    exclude: ['src/__tests__/chat-e2e/**', 'node_modules/**'],
   },
 });

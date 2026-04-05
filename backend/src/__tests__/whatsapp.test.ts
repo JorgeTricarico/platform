@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import request from 'supertest';
 import { app } from '../index.js';
 
@@ -16,10 +16,10 @@ vi.mock('../services/whatsapp.js', () => {
 import { whatsappService } from '../services/whatsapp.js';
 
 const mockWA = whatsappService as unknown as {
-  getStatus: ReturnType<typeof vi.fn>;
-  getQR: ReturnType<typeof vi.fn>;
-  sendMessage: ReturnType<typeof vi.fn>;
-  onMessage: ReturnType<typeof vi.fn>;
+  getStatus: Mock<(...args: any[]) => any>;
+  getQR: Mock<(...args: any[]) => any>;
+  sendMessage: Mock<(...args: any[]) => any>;
+  onMessage: Mock<(...args: any[]) => any>;
 };
 
 beforeEach(() => {

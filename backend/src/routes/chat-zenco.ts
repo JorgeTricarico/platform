@@ -20,7 +20,7 @@ REGLAS ESTRICTAS:
 
 router.post('/', async (req, res) => {
   try {
-    const { message, history, senderPhone } = req.body;
+    const { message, history, senderPhone, sessionId } = req.body;
     if (!message) return res.status(400).json({ error: 'Mensaje requerido' });
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -65,7 +65,7 @@ router.post('/', async (req, res) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3.1-flash-lite-preview',
+      model: 'gemini-2.0-flash',
       systemInstruction: `${SYSTEM_PROMPT}${clientContext}${dbContext}`,
     });
     const chat = model.startChat({ history: history || [] });
@@ -82,6 +82,18 @@ router.post('/', async (req, res) => {
           create: { name: 'Cliente nuevo', phone: senderPhone, business: 'zenco', notes: 'Registrado automaticamente via chat' },
         });
       } catch { /* ignore registration errors */ }
+    }
+
+    // Persist messages if sessionId provided
+    if (sessionId) {
+      try {
+        await prisma.chatMessage.createMany({
+          data: [
+            { business: 'zenco', role: 'user', content: message, sessionId },
+            { business: 'zenco', role: 'assistant', content: reply, sessionId },
+          ],
+        });
+      } catch { /* persistence failure should not break chat */ }
     }
 
     res.json({ reply });

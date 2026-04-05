@@ -35,7 +35,7 @@ router.post('/appointments', validate(createAppointmentSchema), asyncHandler(asy
 }));
 
 router.put('/appointments/:id/status', validate(updateStatusSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { status } = req.body;
   const updated = await prisma.appointment.update({
     where: { id },
@@ -113,7 +113,7 @@ router.get('/clients/search', asyncHandler(async (req, res) => {
 // --- FICHAS CLINICAS ---
 
 router.get('/patients/:clientId/records', asyncHandler(async (req, res) => {
-  const { clientId } = req.params;
+  const clientId = req.params.clientId as string;
   const records = await prisma.patientRecord.findMany({
     where: { clientId },
     orderBy: { date: 'desc' }
@@ -122,7 +122,7 @@ router.get('/patients/:clientId/records', asyncHandler(async (req, res) => {
 }));
 
 router.post('/patients/:clientId/records', validate(createPatientRecordSchema), asyncHandler(async (req, res) => {
-  const { clientId } = req.params;
+  const clientId = req.params.clientId as string;
   const data = req.body;
   const record = await prisma.patientRecord.create({
     data: {
@@ -140,7 +140,7 @@ router.post('/patients/:clientId/records', validate(createPatientRecordSchema), 
 }));
 
 router.put('/patients/records/:id', validate(updatePatientRecordSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const data = req.body;
   const record = await prisma.patientRecord.update({
     where: { id },

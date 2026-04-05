@@ -104,6 +104,102 @@ async function main() {
     skipDuplicates: true
   });
 
+  // --- CLIENTES ZENCO ---
+  await prisma.client.createMany({
+    data: [
+      {
+        id: 'CLI-Z1',
+        name: 'María López',
+        phone: '11-5555-1234',
+        business: 'zenco',
+        notes: 'Cliente frecuente, prefiere dobladillos a máquina.'
+      },
+      {
+        id: 'CLI-Z2',
+        name: 'Carlos Méndez',
+        phone: '11-6666-5678',
+        business: 'zenco',
+        notes: 'Trae camperas de cuero para reparación de cierres.'
+      },
+      {
+        id: 'CLI-Z3',
+        name: 'Laura Fernández',
+        phone: '11-7777-9012',
+        business: 'zenco',
+        notes: 'Solicita entalles para eventos y fiestas.'
+      }
+    ],
+    skipDuplicates: true
+  });
+
+  // --- CLIENTES DAMIAN ---
+  await prisma.client.createMany({
+    data: [
+      {
+        id: 'CLI-D1',
+        name: 'Roberto Gómez',
+        phone: '11-4444-5555',
+        business: 'damian',
+        notes: 'Dolor lumbar crónico, viene cada 2 semanas.'
+      },
+      {
+        id: 'CLI-D2',
+        name: 'Elena Torres',
+        phone: '11-2222-3333',
+        business: 'damian',
+        notes: 'Deportista amateur, maratones frecuentes.'
+      },
+      {
+        id: 'CLI-D3',
+        name: 'Carla Ruiz',
+        phone: '11-7777-8888',
+        business: 'damian',
+        notes: 'Tratamiento de drenaje linfático post-quirúrgico.'
+      }
+    ],
+    skipDuplicates: true
+  });
+
+  // --- FICHAS CLINICAS (Damian) ---
+  await prisma.patientRecord.createMany({
+    data: [
+      {
+        id: 'PAT-001',
+        clientId: 'CLI-D1',
+        date: '2026-04-01',
+        reason: 'Contractura lumbar con irradiación a glúteo derecho',
+        symptoms: 'Dolor agudo al inclinarse, rigidez matutina, sensación de ardor en zona L4-L5.',
+        areas: 'Zona lumbar, glúteo derecho, cadena posterior de pierna derecha.',
+        treatment: 'Masaje descontracturante profundo con maniobras de amasamiento y fricción transversal. Termoterapia local 10 min.',
+        observations: 'Paciente presenta mucha tensión acumulada. Responde bien al calor previo. Reducción notable del dolor al finalizar la sesión.',
+        nextSession: 'Continuar con descontracturante, incorporar estiramiento activo de psoas. Próxima cita en 10 días.'
+      },
+      {
+        id: 'PAT-002',
+        clientId: 'CLI-D2',
+        date: '2026-04-03',
+        reason: 'Recuperación muscular post-maratón',
+        symptoms: 'Sobrecarga en cuádriceps y gemelos bilaterales, fatiga muscular generalizada, leve edema en tobillos.',
+        areas: 'Cuádriceps, isquiotibiales, gemelos y sóleo bilateral. Planta del pie derecho.',
+        treatment: 'Masaje deportivo con técnica de effleurage y petrissage en piernas completas. Presoterapia manual en tobillos. Estiramiento asistido al cierre.',
+        observations: 'Excelente estado físico general. Recuperación más rápida de lo esperado para el volumen de la carrera (42 km). No presenta lesiones estructurales.',
+        nextSession: 'Una sesión más de recuperación en 7 días, luego mantenimiento mensual según calendario de competencias.'
+      },
+      {
+        id: 'PAT-003',
+        clientId: 'CLI-D3',
+        date: '2026-04-05',
+        reason: 'Dolor cervical con cefalea tensional recurrente',
+        symptoms: 'Rigidez en nuca, dolor que irradia hacia occipital y sienes, sensación de "cabeza pesada". Más intenso al final del día laboral.',
+        areas: 'Región cervical alta y baja, trapecios, suboccipitales, hombros.',
+        treatment: 'Drenaje linfático manual en zona cervical y facial. Masaje relajante en trapecios con aceite de lavanda. Técnica de inhibición suboccipital.',
+        observations: 'La paciente trabaja muchas horas frente a pantalla sin pausas activas. Se recomienda corrección postural. Alivio inmediato post-sesión reportado por la paciente.',
+        nextSession: 'Incorporar ejercicios de movilidad cervical en casa. Repetir sesión en 2 semanas. Evaluar progreso con y sin drenaje.'
+      }
+    ],
+    skipDuplicates: true
+  });
+
   console.log("Seed completado para Zenco y Damian!");
 }
 

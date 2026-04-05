@@ -49,6 +49,11 @@ vi.mock('../db.js', () => {
       update: vi.fn(),
       findUnique: vi.fn().mockResolvedValue(null),
     },
+    chatMessage: {
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+      createMany: vi.fn().mockResolvedValue({ count: 0 }),
+    },
   };
   return { prisma: mockPrisma };
 });

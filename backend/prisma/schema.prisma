@@ -115,6 +115,22 @@ model PatientRecord {
 }
 
 // =============================================
+// CHAT — Historial de mensajes por sesión
+// =============================================
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  business  String               // "zenco" o "damian"
+  role      String               // "user" o "assistant"
+  content   String
+  sessionId String
+  createdAt DateTime @default(now())
+
+  @@index([business, sessionId])
+  @@map("chat_messages")
+}
+
+// =============================================
 // NOTIFICACIONES — Avisos a clientes (Zenco)
 // =============================================
 

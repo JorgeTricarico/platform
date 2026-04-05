@@ -10,6 +10,7 @@ import { agentDamianRoutes } from './routes/agent-damian.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { garmentPhotosRoutes } from './routes/garment-photos.js';
 import { whatsappRoutes } from './routes/whatsapp.js';
+import { chatHistoryRoutes } from './routes/chat-history.js';
 import { errorHandler, requestLogger } from './middleware/errorHandler.js';
 
 const app = express();
@@ -24,10 +25,12 @@ app.use('/uploads', express.static(path.resolve('uploads')));
 
 // Rutas namespacedas por negocio
 app.use('/api/zenco', zencoRoutes);
+app.use('/api/zenco/chat/history', chatHistoryRoutes);
 app.use('/api/zenco/chat', chatZencoRoutes);
 app.use('/api/zenco/notifications', notificationRoutes);
 app.use('/api/zenco/garments/:id/photos', garmentPhotosRoutes);
 app.use('/api/damian', damianRoutes);
+app.use('/api/damian/chat/history', chatHistoryRoutes);
 app.use('/api/damian/chat', chatDamianRoutes);
 app.use('/api/damian/agent', agentDamianRoutes);
 app.use('/api/whatsapp', whatsappRoutes);

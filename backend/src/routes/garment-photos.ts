@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { unlink } from 'fs/promises';
@@ -40,7 +40,7 @@ const upload = multer({
 // GET /api/zenco/garments/:id/photos
 // =============================================
 
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request<{ id: string }>, res) => {
   try {
     const { id } = req.params;
     const photos = await prisma.garmentPhoto.findMany({
@@ -59,7 +59,7 @@ router.get('/', async (req, res) => {
 
 const uploadSingle = upload.single('photo');
 
-router.post('/', (req, res) => {
+router.post('/', (req: Request<{ id: string }>, res) => {
   uploadSingle(req, res, async (err) => {
     if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
       res.status(400).json({ error: 'El archivo supera el tamaño máximo de 5MB' });
@@ -98,7 +98,7 @@ router.post('/', (req, res) => {
 // DELETE /api/zenco/garments/:id/photos/:photoId
 // =============================================
 
-router.delete('/:photoId', async (req, res) => {
+router.delete('/:photoId', async (req: Request<{ id: string; photoId: string }>, res) => {
   try {
     const { id, photoId } = req.params;
 

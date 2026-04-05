@@ -48,7 +48,9 @@ export default function Dashboard() {
   if (loading && garments.length === 0) return <div>Cargando dashboard...</div>;
 
   const pendingGarments = garments.filter(g => g.status !== 'entregado');
-  const urgentGarments = pendingGarments.filter(g => new Date(g.deliveryDate) <= new Date('2026-04-06')).sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const urgentGarments = pendingGarments.filter(g => new Date(g.deliveryDate) <= tomorrow).sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
   
   const totalIncome = finances.filter(f => f.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
   const totalExpenses = finances.filter(f => f.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);

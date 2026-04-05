@@ -12,14 +12,47 @@ interface GeminiMessage {
   parts: { text: string }[];
 }
 
+function getSessionId(): string {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const key = `zenco-chat-session-${today}`;
+  let sessionId = localStorage.getItem(key);
+  if (!sessionId) {
+    sessionId = `${today}-${crypto.randomUUID().slice(0, 8)}`;
+    localStorage.setItem(key, sessionId);
+  }
+  return sessionId;
+}
+
+const WELCOME_MSG: Message = { role: 'bot', text: 'Hola! Soy Ana de Zenco. Puedo ayudarte con consultas sobre arreglos de ropa, estado de tus pedidos, o presupuestos. Escribime!' };
+
 export default function ChatDemo() {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', text: 'Hola! Soy Ana de Zenco. Puedo ayudarte con consultas sobre arreglos de ropa, estado de tus pedidos, o presupuestos. Escribime!' }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MSG]);
   const [history, setHistory] = useState<GeminiMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sessionId = useRef(getSessionId());
+
+  // Load chat history from DB on mount
+  useEffect(() => {
+    fetch(`${API_URL}/chat/history?sessionId=${sessionId.current}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.messages?.length > 0) {
+          const restored: Message[] = data.messages.map((m: { role: string; content: string }) => ({
+            role: m.role === 'user' ? 'user' : 'bot',
+            text: m.content,
+          }));
+          const restoredHistory: GeminiMessage[] = data.messages.map((m: { role: string; content: string }) => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content }],
+          }));
+          setMessages([WELCOME_MSG, ...restored]);
+          setHistory(restoredHistory);
+        }
+      })
+      .catch(() => { /* ignore — first visit or offline */ });
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -36,7 +69,7 @@ export default function ChatDemo() {
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg, history })
+        body: JSON.stringify({ message: userMsg, history, sessionId: sessionId.current })
       });
       const data = await res.json();
       const botReply = data.reply || 'No pude procesar tu mensaje.';
