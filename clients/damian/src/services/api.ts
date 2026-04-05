@@ -169,13 +169,24 @@ export const fetchDashboardStalePatients = async (): Promise<DashboardStalePatie
 
 // --- AGENTE IA ---
 
-export const sendAgentMessage = async (message: string, history: unknown[] = []): Promise<string> => {
+export interface AgentAction {
+  type: string;
+  action?: string;
+  query?: string | null;
+  [key: string]: unknown;
+}
+
+export interface AgentResponse {
+  reply: string;
+  actions?: AgentAction[];
+}
+
+export const sendAgentMessage = async (message: string, history: unknown[] = []): Promise<AgentResponse> => {
   const res = await fetch(`${API_URL}/agent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, history })
   });
   if (!res.ok) throw new Error("Error del agente");
-  const data = await res.json();
-  return data.reply;
+  return res.json();
 };

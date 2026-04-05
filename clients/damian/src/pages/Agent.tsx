@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { sendAgentMessage } from '../services/api';
+import { useMusicCommand } from '../components/MusicContext';
+import type { MusicCommand } from '../components/MusicContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -7,8 +9,9 @@ interface Message {
 }
 
 export default function Agent() {
+  const { sendMusicCommand } = useMusicCommand();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', text: 'Hola Damian! Soy tu asistente. Puedo ayudarte a buscar pacientes, ver historiales clinicos, guardar fichas de sesion, o ver los turnos del dia. Que necesitas?' }
+    { role: 'assistant', text: 'Hola Damian! Soy tu asistente. Puedo ayudarte a buscar pacientes, ver historiales clinicos, guardar fichas de sesion, controlar la musica, o ver los turnos del dia. Que necesitas?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,8 +30,15 @@ export default function Agent() {
     setLoading(true);
 
     try {
-      const reply = await sendAgentMessage(text);
+      const { reply, actions } = await sendAgentMessage(text);
       setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
+      if (actions) {
+        for (const action of actions) {
+          if (action.type === 'music_command' && action.action) {
+            sendMusicCommand({ action: action.action as MusicCommand['action'], query: action.query });
+          }
+        }
+      }
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', text: 'Error al comunicar con el agente. Intenta de nuevo.' }]);
     }

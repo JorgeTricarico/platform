@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useMusicCommand } from '../components/MusicContext';
 
 interface LocalTrack {
   id: string;
@@ -55,13 +56,19 @@ async function deleteFromDB(id: string) {
 // For now, local files are the ad-free solution
 
 export default function Ambient() {
+  const { lastCommand } = useMusicCommand();
   const [tracks, setTracks] = useState<LocalTrack[]>([]);
   const [activeTrack, setActiveTrack] = useState<LocalTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [loop, setLoop] = useState(true);
+  const [commandFeedback, setCommandFeedback] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tracksRef = useRef<LocalTrack[]>([]);
+
+  // Keep tracksRef in sync
+  useEffect(() => { tracksRef.current = tracks; }, [tracks]);
 
   // Load cached tracks on mount
   useEffect(() => {
@@ -84,6 +91,64 @@ export default function Ambient() {
     audioRef.current.loop = loop;
   }, [volume, loop]);
 
+  const playTrack = useCallback((track: LocalTrack) => {
+    setActiveTrack(track);
+    setIsPlaying(true);
+    setTimeout(() => { audioRef.current?.play(); }, 50);
+  }, []);
+
+  // Listen for music commands from agent
+  useEffect(() => {
+    if (!lastCommand) return;
+    const currentTracks = tracksRef.current;
+
+    if (lastCommand.action === 'pause') {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+      setCommandFeedback('Musica pausada');
+    } else if (lastCommand.action === 'play') {
+      if (currentTracks.length === 0) {
+        setCommandFeedback('No hay musica cargada — subi tracks en Musica Ambiente');
+        return;
+      }
+      if (lastCommand.query) {
+        const q = lastCommand.query.toLowerCase();
+        const match = currentTracks.find(t => t.title.toLowerCase().includes(q));
+        if (match) {
+          playTrack(match);
+          setCommandFeedback(`Reproduciendo: ${match.title}`);
+        } else {
+          setCommandFeedback(`No encontre "${lastCommand.query}" en tus tracks`);
+        }
+      } else {
+        const track = activeTrack || currentTracks[0];
+        if (track) {
+          if (activeTrack && audioRef.current) {
+            audioRef.current.play();
+            setIsPlaying(true);
+          } else {
+            playTrack(track);
+          }
+          setCommandFeedback(`Reproduciendo: ${track.title}`);
+        }
+      }
+    } else if (lastCommand.action === 'next') {
+      if (currentTracks.length === 0) {
+        setCommandFeedback('No hay musica cargada');
+        return;
+      }
+      const currentIdx = activeTrack ? currentTracks.findIndex(t => t.id === activeTrack.id) : -1;
+      const nextTrack = currentTracks[(currentIdx + 1) % currentTracks.length];
+      playTrack(nextTrack);
+      setCommandFeedback(`Siguiente: ${nextTrack.title}`);
+    }
+
+    const timer = setTimeout(() => setCommandFeedback(null), 4000);
+    return () => clearTimeout(timer);
+  }, [lastCommand]);
+
+  const play = (track: LocalTrack) => playTrack(track);
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -96,12 +161,6 @@ export default function Ambient() {
       setTracks(prev => [...prev, { id, title, blob: file, url }]);
     }
     e.target.value = '';
-  };
-
-  const play = (track: LocalTrack) => {
-    setActiveTrack(track);
-    setIsPlaying(true);
-    setTimeout(() => { audioRef.current?.play(); }, 50);
   };
 
   const togglePlay = () => {
@@ -136,6 +195,13 @@ export default function Ambient() {
         </button>
         <input ref={fileInputRef} type="file" accept="audio/*" multiple hidden onChange={handleFileSelect} />
       </div>
+
+      {/* Command feedback from agent */}
+      {commandFeedback && (
+        <div className="card" style={{ marginBottom: '16px', padding: '12px 20px', backgroundColor: 'var(--primary-color, #6366f1)', color: 'white', fontWeight: 600, fontSize: '14px' }}>
+          Asistente IA: {commandFeedback}
+        </div>
+      )}
 
       {/* Player activo */}
       {activeTrack && (

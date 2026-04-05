@@ -7,6 +7,7 @@ import Patients from './pages/Patients';
 import Agent from './pages/Agent';
 import ChatDemo from './pages/ChatDemo';
 import Ambient from './pages/Ambient';
+import { MusicProvider } from './components/MusicContext';
 import { BUSINESS } from './config';
 import logoUrl from './assets/logo.png';
 
@@ -14,6 +15,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
 
   return (
+    <MusicProvider>
     <div className="app-container">
       <aside className="sidebar">
         <div className="sidebar-logo">
@@ -101,6 +103,7 @@ function App() {
         </div>
       </main>
     </div>
+    </MusicProvider>
   );
 }
 
