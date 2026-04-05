@@ -32,7 +32,7 @@ services:
   - type: web
     name: zenko-app
     runtime: static
-    rootDir: clients/zenco
+    rootDir: clients/zenko
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
