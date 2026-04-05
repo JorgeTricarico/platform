@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================
+// ZENCO — Arreglos de Ropa (Ana & Ariel)
+// =============================================
+
+model Order {
+  id           String   @id
+  clientName   String
+  clientPhone  String
+  garmentName  String
+  repairType   String
+  description  String
+  status       String   @default("recibido")
+  deliveryDate String
+  price        Float
+  createdAt    DateTime @default(now())
+}
+
+model ZencoFinance {
+  id          String @id
+  date        String
+  type        String
+  category    String
+  amount      Float
+  description String
+
+  @@map("zenco_finances")
+}
+
+// =============================================
+// DAMIAN — Masajes y Bienestar
+// =============================================
+
+model Appointment {
+  id          String   @id
+  clientName  String
+  clientPhone String
+  service     String
+  duration    Int
+  date        String
+  time        String
+  status      String   @default("pendiente")
+  price       Float
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model DamianFinance {
+  id          String @id
+  date        String
+  type        String
+  category    String
+  amount      Float
+  description String
+
+  @@map("damian_finances")
+}

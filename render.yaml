@@ -1,0 +1,61 @@
+# =============================================================
+# PLATFORM — Render Blueprint (Free Tier Optimized)
+# 1 Backend unificado + N Static Sites por cliente
+# =============================================================
+
+services:
+
+  # ─────────────────────────────────────────────
+  # BACKEND CENTRALIZADO — Todos los clientes
+  # ─────────────────────────────────────────────
+  - type: web
+    name: platform-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npx tsc --outDir dist
+    startCommand: node dist/src/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # ─────────────────────────────────────────────
+  # CLIENTE: ZENCO — Arreglos de Ropa (Ana & Ariel)
+  # ─────────────────────────────────────────────
+  - type: web
+    name: zenco-app
+    runtime: static
+    rootDir: clients/zenco
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # ─────────────────────────────────────────────
+  # CLIENTE: DAMIAN — Masajes y Bienestar
+  # ─────────────────────────────────────────────
+  - type: web
+    name: damian-app
+    runtime: static
+    rootDir: clients/damian
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

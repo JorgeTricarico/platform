@@ -1,0 +1,29 @@
+# Ignorar entornos de node
+node_modules/
+dist/
+dist-tsc/
+build/
+
+# Ignorar variables de entorno
+.env
+.env.*
+!.env.example
+
+# Ignorar Bases de Datos locales de SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignorar autenticaciones y sesiones del bot
+auth_info_baileys/
+server-bot/auth_info_baileys/
+
+# Scripts con tokens (no commitear)
+push-*.sh
+create-repos.sh
+
+# Ignorar reportes
+coverage/
+playwright-report/
+test-results/
+.vite
