@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-05
+> Ultima actualizacion: 2026-04-05 (sesion 3)
 
 ## Completado
 
@@ -31,6 +31,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | L4 | Analytics dashboard (metricas de negocio) | [L4](docs/roadmap/L4-analytics-dashboard.md) | pendiente | media |
 | L5 | Backup automatico DB a S3/GCS | [L5](docs/roadmap/L5-backup-automatico.md) | pendiente | media |
 | L6 | PWA instalable en celular | [L6](docs/roadmap/L6-pwa.md) | pendiente | media |
+| C6 | Configurar MCP Supabase para migraciones directas | [C6](docs/roadmap/C6-mcp-supabase.md) | pendiente | media |
 
 ---
 
@@ -51,11 +52,13 @@ Mejoras que aplican a ambos clientes o al backend general.
 | # | Item | Doc | Estado | Prioridad |
 |---|------|-----|--------|-----------|
 | D1 | Ficha clinica enriquecida (peso, altura, presion, alergias) | [D1](docs/roadmap/D1-ficha-clinica-enriquecida.md) | pendiente | media |
-| D2 | Dashboard Damian: proximos turnos + pacientes sin ficha | [D2](docs/roadmap/D2-dashboard-damian-widgets.md) | **en progreso** | media |
+| D2 | Dashboard Damian: proximos turnos + pacientes sin ficha | [D2](docs/roadmap/D2-dashboard-damian-widgets.md) | **backend completo** | media |
 | D3 | Export PDF de historia clinica | [D3](docs/roadmap/D3-export-pdf-fichas.md) | pendiente | media |
 | D4 | Google Calendar sync (turnos automaticos) | [D4](docs/roadmap/D4-google-calendar.md) | pendiente | media |
 | D5 | Recordatorio de turno al cliente (24h antes) | [D5](docs/roadmap/D5-recordatorio-turno.md) | pendiente | media |
 | D6 | Estadisticas de pacientes (frecuencia, motivos recurrentes) | [D6](docs/roadmap/D6-estadisticas-pacientes.md) | pendiente | baja |
+| D7 | Frontend dashboard Damian — widgets React para los 3 endpoints | [D7](docs/roadmap/D7-frontend-dashboard-damian.md) | pendiente | alta |
+| D8 | Integracion musica+chat — procesar actions del agente en frontend | [D8](docs/roadmap/D8-musica-chat-frontend.md) | pendiente | media |
 
 ---
 
