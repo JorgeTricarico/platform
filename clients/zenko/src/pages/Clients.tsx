@@ -74,7 +74,7 @@ export default function Clients() {
             placeholder="Buscar por nombre, telefono..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', width: '320px', outline: 'none', fontFamily: 'inherit', fontSize: '14px' }}
+            className="input-search"
           />
         </div>
         <div className="table-container">
@@ -102,8 +102,8 @@ export default function Clients() {
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('es-AR')}</td>
                   <td>
                     <button
-                      className="btn"
-                      style={{ padding: '6px 12px', fontSize: '13px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                      className="btn btn-small"
+                      style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
                       onClick={() => openEdit(c)}
                     >
                       Editar
@@ -148,19 +148,19 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div className="card" style={{ width: '480px', padding: '32px' }}>
+    <div className="modal-overlay">
+      <div className="card modal-card">
         <h2 style={{ marginTop: 0 }}>{title}</h2>
-        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <input required name="phone" placeholder="Telefono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc', opacity: phoneDisabled ? 0.6 : 1 }} />
-            <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+        <form onSubmit={onSubmit} className="form-group">
+          <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className="input" />
+          <div className="form-row">
+            <input required name="phone" placeholder="Telefono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input" style={{ flex: 1, opacity: phoneDisabled ? 0.6 : 1 }} />
+            <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className="input" style={{ flex: 1 }} />
           </div>
-          <input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-          <textarea name="notes" placeholder="Notas (opcional)" value={form.notes} onChange={handle} rows={3} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: 'inherit', resize: 'vertical' }} />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-            <button type="button" onClick={onClose} style={{ padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
+          <input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} className="input" />
+          <textarea name="notes" placeholder="Notas (opcional)" value={form.notes} onChange={handle} rows={3} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
             <button type="submit" className="btn btn-primary">Guardar</button>
           </div>
         </form>

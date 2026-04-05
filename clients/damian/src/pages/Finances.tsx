@@ -66,13 +66,12 @@ export default function Finances() {
           type="month"
           value={filterMonth}
           onChange={e => setFilterMonth(e.target.value)}
-          style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', fontFamily: 'inherit', fontSize: '14px' }}
+          className="input"
         />
         {filterMonth && (
           <button
-            className="btn"
+            className="btn btn-filter"
             onClick={() => setFilterMonth('')}
-            style={{ padding: '10px 16px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)', cursor: 'pointer', fontWeight: 600, borderRadius: '8px' }}
           >
             Todos
           </button>
@@ -135,22 +134,22 @@ export default function Finances() {
       </div>
 
       {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="card" style={{ width: '420px', padding: '32px' }}>
+        <div className="modal-overlay">
+          <div className="card modal-card modal-sm">
             <h2 style={{ marginTop: 0 }}>Nuevo Registro Financiero</h2>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <select name="type" value={form.type} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+            <form onSubmit={handleSubmit} className="form-group">
+              <div className="form-row">
+                <select name="type" value={form.type} onChange={handle} className="input" style={{ flex: 1 }}>
                   <option value="income">Ingreso</option>
                   <option value="expense">Gasto</option>
                 </select>
-                <input required name="date" type="date" value={form.date} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                <input required name="date" type="date" value={form.date} onChange={handle} className="input" style={{ flex: 1 }} />
               </div>
-              <input required name="category" placeholder={form.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={form.category} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-              <input required name="amount" type="number" placeholder="Monto ($)" value={form.amount || ''} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-              <input name="description" placeholder="Descripcion adicional (opcional)" value={form.description} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} style={{ padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
+              <input required name="category" placeholder={form.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={form.category} onChange={handle} className="input" />
+              <input required name="amount" type="number" placeholder="Monto ($)" value={form.amount || ''} onChange={handle} className="input" />
+              <input name="description" placeholder="Descripcion adicional (opcional)" value={form.description} onChange={handle} className="input" />
+              <div className="form-actions">
+                <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="btn-secondary">Cancelar</button>
                 <button type="submit" className="btn btn-primary">Guardar</button>
               </div>
             </form>

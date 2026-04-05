@@ -430,6 +430,131 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   cursor: pointer;
 }
 
+/* ========================= */
+/* FORMS & MODALS            */
+/* ========================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+  width: min(480px, 90vw);
+}
+.modal-card.modal-sm { width: min(420px, 90vw); }
+.modal-card.modal-md { width: min(450px, 90vw); }
+.modal-card.modal-lg { width: min(540px, 90vw); }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+}
+.input:focus {
+  border-color: var(--primary-color);
+}
+
+.input-search {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  width: min(320px, 100%);
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+}
+.input-search:focus {
+  border-color: var(--primary-color);
+}
+
+.input-filter {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.btn-secondary {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+}
+.btn-secondary:hover {
+  background-color: var(--surface-secondary);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 13px;
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+.btn-small:hover {
+  background-color: var(--bg-color);
+}
+
+.btn-filter {
+  padding: 10px 16px;
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.btn-filter:hover {
+  background-color: var(--bg-color);
+}
+
 /* Hamburger button (hidden on desktop) */
 .hamburger-btn {
   display: none;

@@ -110,7 +110,7 @@ export default function Garments() {
             placeholder="Buscar por cliente, prenda o nro orden..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', width: '320px', outline: 'none', fontFamily: 'inherit', fontSize: '14px' }}
+            className="input-search"
           />
         </div>
         <div className="table-container">
@@ -145,22 +145,22 @@ export default function Garments() {
                   <td>{getStatusBadge(g.status)}</td>
                   <td style={{ display: 'flex', gap: '8px' }}>
                     <button
-                      className="btn"
-                      style={{ padding: '6px 12px', fontSize: '13px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                      className="btn btn-small"
+                      style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
                       onClick={() => openEdit(g)}
                     >
                       Editar
                     </button>
                     <button
-                      className="btn"
-                      style={{ padding: '6px 12px', fontSize: '13px', backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
+                      className="btn btn-small"
+                      style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
                       onClick={() => generateTicket(g)}
                     >
                       Ticket
                     </button>
                     <button
-                      className="btn"
-                      style={{ padding: '6px 12px', fontSize: '13px', backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                      className="btn btn-small"
+                      style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
                       onClick={() => handleDelete(g.id)}
                     >
                       Eliminar
@@ -223,47 +223,47 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, gar
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div className="card" style={{ width: '480px', padding: '32px' }}>
+    <div className="modal-overlay">
+      <div className="card modal-card">
         <h2 style={{ marginTop: 0 }}>{title}</h2>
-        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <input required name="clientName" placeholder="Nombre Cliente" value={form.clientName} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-            <input required name="clientPhone" placeholder="Teléfono" value={form.clientPhone} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+        <form onSubmit={onSubmit} className="form-group">
+          <div className="form-row">
+            <input required name="clientName" placeholder="Nombre Cliente" value={form.clientName} onChange={handle} className="input" style={{ flex: 1 }} />
+            <input required name="clientPhone" placeholder="Teléfono" value={form.clientPhone} onChange={handle} className="input" style={{ flex: 1 }} />
           </div>
-          <input required name="garmentName" placeholder="Ej: Pantalón de Vestir" value={form.garmentName} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <select required name="repairType" value={form.repairType} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+          <input required name="garmentName" placeholder="Ej: Pantalón de Vestir" value={form.garmentName} onChange={handle} className="input" />
+          <div className="form-row">
+            <select required name="repairType" value={form.repairType} onChange={handle} className="input" style={{ flex: 1 }}>
               <option value="">Tipo de Arreglo...</option>
               <option value="dobladillo">Dobladillo</option>
               <option value="cierre">Cambio de Cierre</option>
               <option value="entalle">Entalle / Achicar</option>
               <option value="diseño">Diseño Nuevo</option>
             </select>
-            <input required name="price" type="number" placeholder="Costo ($)" value={form.price || ''} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+            <input required name="price" type="number" placeholder="Costo ($)" value={form.price || ''} onChange={handle} className="input" style={{ flex: 1 }} />
           </div>
-          <input required name="description" placeholder="Detalle exacto del trabajo a realizar..." value={form.description} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-          <input name="location" placeholder="Ubicación en local (ej: Estante 3, Perchero B)" value={form.location} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <input required name="description" placeholder="Detalle exacto del trabajo a realizar..." value={form.description} onChange={handle} className="input" />
+          <input name="location" placeholder="Ubicación en local (ej: Estante 3, Perchero B)" value={form.location} onChange={handle} className="input" />
+          <div className="form-row">
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Ingreso</label>
-              <input required name="intakeDate" type="date" value={form.intakeDate} onChange={handle} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
+              <input required name="intakeDate" type="date" value={form.intakeDate} onChange={handle} className="input" style={{ width: '100%', boxSizing: 'border-box' }} />
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Entrega</label>
-              <input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
+              <input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} className="input" style={{ width: '100%', boxSizing: 'border-box' }} />
             </div>
           </div>
           {showStatus && (
-            <select name="status" value={form.status} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+            <select name="status" value={form.status} onChange={handle} className="input">
               <option value="recibido">Recibido</option>
               <option value="en_proceso">En Proceso</option>
               <option value="listo">Listo para Entrega</option>
               <option value="entregado">Entregado</option>
             </select>
           )}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-            <button type="button" onClick={onClose} style={{ padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
             <button type="submit" className="btn btn-primary">Guardar</button>
           </div>
         </form>

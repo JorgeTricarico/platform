@@ -58,7 +58,7 @@ export default function Patients() {
   if (selectedPatient) {
     return (
       <div>
-        <button className="btn" style={{ marginBottom: '16px', padding: '8px 16px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }} onClick={() => { setSelectedPatient(null); setRecords([]); }}>
+        <button className="btn btn-small" style={{ marginBottom: '16px' }} onClick={() => { setSelectedPatient(null); setRecords([]); }}>
           &larr; Volver a lista
         </button>
         <div className="flex-between">
@@ -68,7 +68,7 @@ export default function Patients() {
             {selectedPatient.notes && <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Notas: {selectedPatient.notes}</p>}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }} onClick={() => downloadPatientPdf({ patient: selectedPatient, records })}>Exportar PDF</button>
+            <button className="btn btn-small" onClick={() => downloadPatientPdf({ patient: selectedPatient, records })}>Exportar PDF</button>
             <button className="btn btn-primary" onClick={() => setIsNewRecord(true)}>+ Nueva Ficha</button>
           </div>
         </div>
@@ -95,19 +95,19 @@ export default function Patients() {
         )}
 
         {isNewRecord && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div className="card" style={{ width: '540px', padding: '32px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="modal-overlay">
+            <div className="card modal-card modal-lg" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
               <h2 style={{ marginTop: 0 }}>Nueva Ficha Clinica — {selectedPatient.name}</h2>
-              <form onSubmit={handleNewRecord} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <input required name="date" type="date" value={recordForm.date} onChange={e => setRecordForm(p => ({ ...p, date: e.target.value }))} style={inputStyle} />
-                <input required name="reason" placeholder="Motivo de consulta" value={recordForm.reason} onChange={e => setRecordForm(p => ({ ...p, reason: e.target.value }))} style={inputStyle} />
-                <textarea name="symptoms" placeholder="Sintomas reportados por el paciente" value={recordForm.symptoms} onChange={e => setRecordForm(p => ({ ...p, symptoms: e.target.value }))} rows={2} style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
-                <textarea name="areas" placeholder="Zonas trabajadas (ej: cervical, lumbar, hombros)" value={recordForm.areas} onChange={e => setRecordForm(p => ({ ...p, areas: e.target.value }))} rows={2} style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
-                <textarea name="treatment" placeholder="Tratamiento aplicado" value={recordForm.treatment} onChange={e => setRecordForm(p => ({ ...p, treatment: e.target.value }))} rows={2} style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
-                <textarea name="observations" placeholder="Observaciones del terapeuta" value={recordForm.observations} onChange={e => setRecordForm(p => ({ ...p, observations: e.target.value }))} rows={3} style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
-                <input name="nextSession" placeholder="Indicaciones proxima sesion" value={recordForm.nextSession} onChange={e => setRecordForm(p => ({ ...p, nextSession: e.target.value }))} style={inputStyle} />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                  <button type="button" onClick={() => { setIsNewRecord(false); setRecordForm({ ...EMPTY_RECORD }); }} style={{ padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}>Cancelar</button>
+              <form onSubmit={handleNewRecord} className="form-group">
+                <input required name="date" type="date" value={recordForm.date} onChange={e => setRecordForm(p => ({ ...p, date: e.target.value }))} className="input" />
+                <input required name="reason" placeholder="Motivo de consulta" value={recordForm.reason} onChange={e => setRecordForm(p => ({ ...p, reason: e.target.value }))} className="input" />
+                <textarea name="symptoms" placeholder="Sintomas reportados por el paciente" value={recordForm.symptoms} onChange={e => setRecordForm(p => ({ ...p, symptoms: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+                <textarea name="areas" placeholder="Zonas trabajadas (ej: cervical, lumbar, hombros)" value={recordForm.areas} onChange={e => setRecordForm(p => ({ ...p, areas: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+                <textarea name="treatment" placeholder="Tratamiento aplicado" value={recordForm.treatment} onChange={e => setRecordForm(p => ({ ...p, treatment: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+                <textarea name="observations" placeholder="Observaciones del terapeuta" value={recordForm.observations} onChange={e => setRecordForm(p => ({ ...p, observations: e.target.value }))} rows={3} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+                <input name="nextSession" placeholder="Indicaciones proxima sesion" value={recordForm.nextSession} onChange={e => setRecordForm(p => ({ ...p, nextSession: e.target.value }))} className="input" />
+                <div className="form-actions">
+                  <button type="button" onClick={() => { setIsNewRecord(false); setRecordForm({ ...EMPTY_RECORD }); }} className="btn-secondary">Cancelar</button>
                   <button type="submit" className="btn btn-primary">Guardar Ficha</button>
                 </div>
               </form>
@@ -135,7 +135,7 @@ export default function Patients() {
             placeholder="Buscar paciente por nombre o telefono..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', width: '320px', outline: 'none', fontFamily: 'inherit', fontSize: '14px' }}
+            className="input-search"
           />
         </div>
         <div className="table-container">
@@ -164,8 +164,7 @@ export default function Patients() {
                   <td style={{ fontSize: '13px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.lastReason || '-'}</td>
                   <td>
                     <button
-                      className="btn btn-primary"
-                      style={{ padding: '6px 14px', fontSize: '13px' }}
+                      className="btn btn-primary btn-small"
                       onClick={() => openHistory(p)}
                     >
                       Ver Historial
@@ -187,5 +186,3 @@ export default function Patients() {
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = { padding: '10px', borderRadius: '6px', border: '1px solid #ccc' };

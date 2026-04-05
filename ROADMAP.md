@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-05 (sesion 8)
+> Ultima actualizacion: 2026-04-05 (sesion 9)
 
 ## Completado
 
@@ -34,7 +34,15 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M7 | Tests E2E chatbot con API real (prompts + comportamiento) | [M7](docs/roadmap/M7-chatbot-e2e-tests.md) | **completado** | alta |
 | C6 | Configurar MCP Supabase para migraciones directas | [C6](docs/roadmap/C6-mcp-supabase.md) | pendiente | media |
 | C7 | Migration automatica via Supabase SQL | [C7](docs/roadmap/C7-migration-automatica.md) | **completado** | alta |
-| M6 | Responsive completo — ambos clientes 100% usables en celular | [M6](docs/roadmap/M6-responsive-mobile.md) | pendiente | alta |
+| M6 | Responsive completo — ambos clientes 100% usables en celular | [M6](docs/roadmap/M6-responsive-mobile.md) | **completado** (media queries + sidebar + modales min(X,90vw) + CSS consolidado) | alta |
+| M8 | Fix: updateClient endpoint + Clients.tsx edit bug (crea duplicado) | — | pendiente | **critica** |
+| M9 | Toast system — reemplazar alert() con notificaciones styled | — | pendiente | alta |
+| M10 | React Router — URLs reales, back/forward, deep linking | — | pendiente | media |
+| M11 | Auth basica (JWT) — proteger todos los endpoints | — | pendiente | **critica** |
+| M12 | CI frontend — agregar lint + tests de ambos clientes al CI | — | pendiente | alta |
+| M13 | Object storage para fotos (S3/R2) — filesystem efimero en Render | — | pendiente | media |
+| M14 | Cerrar modales con Escape + focus trap | — | pendiente | media |
+| M15 | Paginacion en endpoints y tablas (garments, clients, appointments) | — | pendiente | media |
 
 ---
 
@@ -50,6 +58,14 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z6 | Frontend notificaciones (badge + panel en sidebar) | [Z6](docs/roadmap/Z6-frontend-notificaciones.md) | **completado** | media |
 | Z7 | Conectar notificacion prenda lista con WhatsApp | [Z7](docs/roadmap/Z7-whatsapp-prenda-lista.md) | **completado** | alta |
 | Z8 | Galeria de fotos en vista detalle de orden | [Z8](docs/roadmap/Z8-galeria-fotos-orden.md) | **completado** | media |
+| Z9 | WhatsApp quick-send — boton "Avisar" con mensaje pre-armado por prenda | — | pendiente | alta |
+| Z10 | Workflow "Entregar" — auto-crear ingreso financiero al marcar entregado | — | pendiente | media |
+| Z11 | Tracking sena/saldo por orden (depositAmount, paid, balance) | — | pendiente | media |
+| Z12 | Export CSV/PDF mensual de ordenes y finanzas | — | pendiente | baja |
+| Z13 | Ranking de tipos de arreglo (chart en Dashboard) | — | pendiente | baja |
+| Z14 | Filtro por status en tabla Garments | — | pendiente | media |
+| Z15 | Highlight visual filas vencidas en Garments (deliveryDate < hoy) | — | pendiente | media |
+| Z16 | Editar/eliminar registros financieros | — | pendiente | media |
 
 ---
 
@@ -69,6 +85,14 @@ Mejoras que aplican a ambos clientes o al backend general.
 | D10 | Shuffle mode para el player de musica ambiente | [D10](docs/roadmap/D10-shuffle-mode-player.md) | **completado** | baja |
 | D11 | Vista de impresion optimizada para fichas (CSS @media print) | [D11](docs/roadmap/D11-vista-impresion-fichas.md) | pendiente | baja |
 | D12 | Filtros en historial de paciente (fecha, motivo) | [D12](docs/roadmap/D12-filtros-historial-paciente.md) | pendiente | baja |
+| D13 | Recurring appointments — programar cita semanal/quincenal automatica | — | pendiente | media |
+| D14 | Campos intake medico: contraindicaciones, alergias, medicacion | — | pendiente | media |
+| D15 | Escala de dolor 0-10 pre/post sesion en PatientRecord | — | pendiente | baja |
+| D16 | Revenue breakdown por servicio (chart) | — | pendiente | baja |
+| D17 | Razon de cancelacion al cambiar status de cita | — | pendiente | baja |
+| D18 | Editar citas completas (fecha, hora, servicio, precio) | — | pendiente | alta |
+| D19 | Editar/eliminar registros financieros | — | pendiente | media |
+| D20 | Deteccion de conflictos de horario en citas | — | pendiente | alta |
 
 ---
 

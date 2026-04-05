@@ -65,13 +65,12 @@ export default function Finances() {
           type="month"
           value={filterMonth}
           onChange={e => setFilterMonth(e.target.value)}
-          style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', fontFamily: 'inherit', fontSize: '14px' }}
+          className="input"
         />
         {filterMonth && (
           <button
-            className="btn"
+            className="btn btn-filter"
             onClick={() => setFilterMonth('')}
-            style={{ padding: '10px 16px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)', cursor: 'pointer', fontWeight: 600, borderRadius: '8px' }}
           >
             Todos
           </button>
@@ -135,16 +134,17 @@ export default function Finances() {
 
       {/* Modal Nuevo Registro */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="card" style={{ width: '420px', padding: '32px' }}>
+        <div className="modal-overlay">
+          <div className="card modal-card modal-sm">
             <h2 style={{ marginTop: 0 }}>Nuevo Registro Financiero</h2>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'flex', gap: '12px' }}>
+            <form onSubmit={handleSubmit} className="form-group">
+              <div className="form-row">
                 <select
                   name="type"
                   value={form.type}
                   onChange={handle}
-                  style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                  className="input"
+                  style={{ flex: 1 }}
                 >
                   <option value="income">Ingreso</option>
                   <option value="expense">Gasto</option>
@@ -155,7 +155,8 @@ export default function Finances() {
                   type="date"
                   value={form.date}
                   onChange={handle}
-                  style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                  className="input"
+                  style={{ flex: 1 }}
                 />
               </div>
               <input
@@ -164,7 +165,7 @@ export default function Finances() {
                 placeholder={form.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'}
                 value={form.category}
                 onChange={handle}
-                style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                className="input"
               />
               <input
                 required
@@ -173,20 +174,20 @@ export default function Finances() {
                 placeholder="Monto ($)"
                 value={form.amount || ''}
                 onChange={handle}
-                style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                className="input"
               />
               <input
                 name="description"
                 placeholder="Descripción adicional (opcional)"
                 value={form.description}
                 onChange={handle}
-                style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                className="input"
               />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+              <div className="form-actions">
                 <button
                   type="button"
                   onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }}
-                  style={{ padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
