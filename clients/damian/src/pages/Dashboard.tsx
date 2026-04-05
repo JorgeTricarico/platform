@@ -21,7 +21,8 @@ export default function Dashboard() {
       await createAppointment({ ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setIsModalOpen(false);
       setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
-      window.location.reload();
+      // Dispatch custom event so widgets re-fetch
+      window.dispatchEvent(new Event('dashboard-refresh'));
     } catch (error) {
       alert("Error al guardar la cita");
     }

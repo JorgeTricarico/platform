@@ -39,6 +39,7 @@ model Order {
   intakeDate   String   @default("")
   deliveryDate String
   price        Float
+  location     String?
   createdAt    DateTime @default(now())
 }
 

@@ -16,10 +16,11 @@ export default function Finances() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [filterMonth, setFilterMonth] = useState('');
 
-  const load = () => {
+  const load = (month?: string) => {
     setLoading(true);
-    fetchFinances()
+    fetchFinances(month || undefined)
       .then(data => {
         setFinances(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         setLoading(false);
@@ -27,7 +28,7 @@ export default function Finances() {
       .catch(err => { console.error(err); setLoading(false); });
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(filterMonth); }, [filterMonth]);
 
   const totalIncome = finances.filter(f => f.type === 'income').reduce((acc, f) => acc + f.amount, 0);
   const totalExpenses = finances.filter(f => f.type === 'expense').reduce((acc, f) => acc + f.amount, 0);
@@ -42,7 +43,7 @@ export default function Finances() {
       await createFinance({ ...form, amount: Number(form.amount) });
       setIsModalOpen(false);
       setForm({ ...EMPTY_FORM });
-      load();
+      load(filterMonth);
     } catch {
       alert('Error al guardar el registro');
     }
@@ -58,6 +59,24 @@ export default function Finances() {
           <p className="subtitle">Lleva el registro de todo el capital ingresado y los gastos del consultorio.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nuevo Registro</button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px' }}>
+        <input
+          type="month"
+          value={filterMonth}
+          onChange={e => setFilterMonth(e.target.value)}
+          style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', fontFamily: 'inherit', fontSize: '14px' }}
+        />
+        {filterMonth && (
+          <button
+            className="btn"
+            onClick={() => setFilterMonth('')}
+            style={{ padding: '10px 16px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)', cursor: 'pointer', fontWeight: 600, borderRadius: '8px' }}
+          >
+            Todos
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-3" style={{ marginBottom: '40px' }}>

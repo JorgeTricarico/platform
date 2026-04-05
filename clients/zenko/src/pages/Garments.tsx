@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { fetchGarments, createGarment, updateGarment, deleteGarment } from '../services/api';
 import type { DBGarment } from '../services/api';
 import PhotoGallery from '../components/PhotoGallery';
+import { generateTicket } from '../services/generateTicket';
 
 const EMPTY_FORM = {
   clientName: '', clientPhone: '', garmentName: '', repairType: '',
-  description: '', intakeDate: new Date().toISOString().split('T')[0], deliveryDate: '', price: 0, status: 'recibido'
+  description: '', intakeDate: new Date().toISOString().split('T')[0], deliveryDate: '', price: 0, status: 'recibido', location: ''
 };
 
 export default function Garments() {
@@ -54,7 +55,7 @@ export default function Garments() {
       clientName: g.clientName, clientPhone: g.clientPhone,
       garmentName: g.garmentName, repairType: g.repairType,
       description: g.description, intakeDate: g.intakeDate || '', deliveryDate: g.deliveryDate,
-      price: g.price, status: g.status
+      price: g.price, status: g.status, location: g.location || ''
     });
   };
 
@@ -120,6 +121,7 @@ export default function Garments() {
                 <th>Cliente</th>
                 <th>Prenda & Detalle</th>
                 <th>Costo</th>
+                <th>Ubicación</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -139,6 +141,7 @@ export default function Garments() {
                     </div>
                   </td>
                   <td style={{ fontWeight: 600 }}>${g.price.toLocaleString()}</td>
+                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{g.location || '—'}</td>
                   <td>{getStatusBadge(g.status)}</td>
                   <td style={{ display: 'flex', gap: '8px' }}>
                     <button
@@ -147,6 +150,13 @@ export default function Garments() {
                       onClick={() => openEdit(g)}
                     >
                       Editar
+                    </button>
+                    <button
+                      className="btn"
+                      style={{ padding: '6px 12px', fontSize: '13px', backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
+                      onClick={() => generateTicket(g)}
+                    >
+                      Ticket
                     </button>
                     <button
                       className="btn"
@@ -160,7 +170,7 @@ export default function Garments() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
                     No se encontraron órdenes.
                   </td>
                 </tr>
@@ -233,6 +243,7 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, gar
             <input required name="price" type="number" placeholder="Costo ($)" value={form.price || ''} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
           </div>
           <input required name="description" placeholder="Detalle exacto del trabajo a realizar..." value={form.description} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+          <input name="location" placeholder="Ubicación en local (ej: Estante 3, Perchero B)" value={form.location} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
           <div style={{ display: 'flex', gap: '12px' }}>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Ingreso</label>

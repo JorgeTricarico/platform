@@ -6,11 +6,18 @@ export default function UpcomingAppointmentsWidget() {
   const [appointments, setAppointments] = useState<DBAppointment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = () => {
     fetchDashboardAppointments()
       .then(setAppointments)
       .catch(err => console.error('Error cargando citas agendadas:', err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+    const onRefresh = () => load();
+    window.addEventListener('dashboard-refresh', onRefresh);
+    return () => window.removeEventListener('dashboard-refresh', onRefresh);
   }, []);
 
   if (loading) return <div className="card"><p>Cargando agenda...</p></div>;

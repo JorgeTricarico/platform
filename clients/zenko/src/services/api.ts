@@ -11,6 +11,7 @@ export interface DBGarment {
   intakeDate: string;
   deliveryDate: string;
   price: number;
+  location?: string;
 }
 
 export interface DBFinance {
@@ -28,8 +29,9 @@ export const fetchGarments = async (): Promise<DBGarment[]> => {
   return res.json();
 };
 
-export const fetchFinances = async (): Promise<DBFinance[]> => {
-  const res = await fetch(`${API_URL}/finances`);
+export const fetchFinances = async (month?: string): Promise<DBFinance[]> => {
+  const params = month ? `?month=${month}` : '';
+  const res = await fetch(`${API_URL}/finances${params}`);
   if (!res.ok) throw new Error("Error al obtener finanzas");
   return res.json();
 };

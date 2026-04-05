@@ -12,6 +12,7 @@ export const createGarmentSchema = z.object({
   price: z.union([z.number(), z.string().transform(Number)]),
   intakeDate: z.string().optional(),
   status: z.string().optional(),
+  location: z.string().nullish(),
 });
 
 export const updateGarmentSchema = createGarmentSchema;

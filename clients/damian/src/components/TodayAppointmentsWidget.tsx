@@ -6,11 +6,18 @@ export default function TodayAppointmentsWidget() {
   const [appointments, setAppointments] = useState<DBAppointment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = () => {
     fetchDashboardToday()
       .then(setAppointments)
       .catch(err => console.error('Error cargando turnos de hoy:', err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+    const onRefresh = () => load();
+    window.addEventListener('dashboard-refresh', onRefresh);
+    return () => window.removeEventListener('dashboard-refresh', onRefresh);
   }, []);
 
   if (loading) return <div className="card"><p>Cargando turnos de hoy...</p></div>;

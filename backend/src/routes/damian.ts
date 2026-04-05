@@ -46,8 +46,26 @@ router.put('/appointments/:id/status', validate(updateStatusSchema), asyncHandle
 
 // --- FINANZAS DAMIAN ---
 
+// Helper: get month range for a YYYY-MM string
+function getMonthRange(yearMonth: string): { start: string; end: string } {
+  const [year, month] = yearMonth.split('-').map(Number);
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0);
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0],
+  };
+}
+
 router.get('/finances', asyncHandler(async (req, res) => {
+  const month = req.query.month as string | undefined;
+  let where = {};
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const range = getMonthRange(month);
+    where = { date: { gte: range.start, lte: range.end } };
+  }
   const finances = await prisma.damianFinance.findMany({
+    where,
     orderBy: { date: 'desc' }
   });
   res.json(finances);

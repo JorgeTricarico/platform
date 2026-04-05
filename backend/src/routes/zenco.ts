@@ -57,7 +57,8 @@ router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req,
       status: data.status || 'recibido',
       intakeDate: data.intakeDate || new Date().toISOString().split('T')[0],
       deliveryDate: data.deliveryDate,
-      price: Number(data.price)
+      price: Number(data.price),
+      location: data.location || null
     }
   });
   res.json(newGarment);
@@ -110,7 +111,8 @@ router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (r
       status: data.status,
       intakeDate: data.intakeDate,
       deliveryDate: data.deliveryDate,
-      price: Number(data.price)
+      price: Number(data.price),
+      location: data.location ?? undefined
     }
   });
   res.json(updated);
@@ -125,7 +127,14 @@ router.delete('/garments/:id', asyncHandler(async (req, res) => {
 // --- FINANZAS ZENCO ---
 
 router.get('/finances', asyncHandler(async (req, res) => {
+  const month = req.query.month as string | undefined;
+  let where = {};
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const range = getMonthRange(month);
+    where = { date: { gte: range.start, lte: range.end } };
+  }
   const finances = await prisma.zencoFinance.findMany({
+    where,
     orderBy: { date: 'desc' }
   });
   res.json(finances);

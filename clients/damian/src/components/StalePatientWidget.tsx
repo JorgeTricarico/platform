@@ -6,11 +6,18 @@ export default function StalePatientWidget() {
   const [patients, setPatients] = useState<DashboardStalePatient[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = () => {
     fetchDashboardStalePatients()
       .then(setPatients)
       .catch(err => console.error('Error cargando pacientes sin ficha:', err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+    const onRefresh = () => load();
+    window.addEventListener('dashboard-refresh', onRefresh);
+    return () => window.removeEventListener('dashboard-refresh', onRefresh);
   }, []);
 
   if (loading) return <div className="card"><p>Cargando pacientes...</p></div>;
