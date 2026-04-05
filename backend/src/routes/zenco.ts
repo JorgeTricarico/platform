@@ -1,7 +1,41 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
+import { validate, createGarmentSchema, updateGarmentSchema, updateStatusSchema, createFinanceSchema, createClientSchema } from '../schemas.js';
 
 const router = Router();
+
+// --- DASHBOARD ---
+
+router.get('/dashboard', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const in3Days = new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0];
+
+    const [statusGroups, todayDeliveries, upcomingDeliveries] = await Promise.all([
+      prisma.order.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+      prisma.order.findMany({
+        where: { deliveryDate: today },
+        orderBy: { clientName: 'asc' },
+      }),
+      prisma.order.findMany({
+        where: { deliveryDate: { gt: today, lte: in3Days } },
+        orderBy: { deliveryDate: 'asc' },
+      }),
+    ]);
+
+    const byStatus: Record<string, number> = {};
+    for (const group of statusGroups) {
+      byStatus[group.status] = group._count._all;
+    }
+
+    res.json({ byStatus, todayDeliveries, upcomingDeliveries });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener dashboard' });
+  }
+});
 
 // --- PRENDAS (ORDERS) ---
 
@@ -16,7 +50,7 @@ router.get('/garments', async (req, res) => {
   }
 });
 
-router.post('/garments', async (req, res) => {
+router.post('/garments', validate(createGarmentSchema), async (req, res) => {
   try {
     const data = req.body;
     const newGarment = await prisma.order.create({
@@ -40,7 +74,7 @@ router.post('/garments', async (req, res) => {
   }
 });
 
-router.put('/garments/:id/status', async (req, res) => {
+router.put('/garments/:id/status', validate(updateStatusSchema), async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -54,7 +88,7 @@ router.put('/garments/:id/status', async (req, res) => {
   }
 });
 
-router.put('/garments/:id', async (req, res) => {
+router.put('/garments/:id', validate(updateGarmentSchema), async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
@@ -101,7 +135,7 @@ router.get('/finances', async (req, res) => {
   }
 });
 
-router.post('/finances', async (req, res) => {
+router.post('/finances', validate(createFinanceSchema), async (req, res) => {
   try {
     const data = req.body;
     const entry = await prisma.zencoFinance.create({
@@ -134,7 +168,7 @@ router.get('/clients', async (req, res) => {
   }
 });
 
-router.post('/clients', async (req, res) => {
+router.post('/clients', validate(createClientSchema), async (req, res) => {
   try {
     const data = req.body;
     // Upsert: si ya existe por telefono, actualizar

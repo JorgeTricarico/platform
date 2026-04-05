@@ -296,3 +296,174 @@ describe('GET /api/damian/patients', () => {
     expect(res.body[0].lastReason).toBeNull();
   });
 });
+
+// --- VALIDATION ---
+
+describe('Damian validation', () => {
+  it('POST /appointments returns 400 when clientName is missing', async () => {
+    const res = await request(app).post('/api/damian/appointments').send({
+      clientPhone: '1234', service: 'Masaje', duration: 60,
+      date: '2026-04-10', time: '10:00', price: 8000,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Datos invalidos');
+  });
+
+  it('POST /appointments returns 400 when duration is not a number', async () => {
+    const res = await request(app).post('/api/damian/appointments').send({
+      clientName: 'Juan', clientPhone: '1234', service: 'Masaje',
+      duration: 'una hora', date: '2026-04-10', time: '10:00', price: 8000,
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('PUT /appointments/:id/status returns 400 when status is empty', async () => {
+    const res = await request(app).put('/api/damian/appointments/APT-1/status').send({});
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /finances returns 400 when amount is not a number', async () => {
+    const res = await request(app).post('/api/damian/finances').send({
+      date: '2026-04-05', type: 'income', category: 'Masajes',
+      amount: 'mucho', description: 'Test',
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /clients returns 400 when phone is missing', async () => {
+    const res = await request(app).post('/api/damian/clients').send({ name: 'Juan' });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /patients/:clientId/records returns 400 when reason is missing', async () => {
+    const res = await request(app).post('/api/damian/patients/c1/records').send({ date: '2026-04-05' });
+    expect(res.status).toBe(400);
+  });
+});
+
+// --- DASHBOARD ---
+
+describe('GET /api/damian/dashboard/today', () => {
+  it('returns only today\'s appointments sorted by time', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const appointments = [
+      { id: 'APT-1', clientName: 'Juan', clientPhone: '1111', service: 'Descontracturante', duration: 60, date: today, time: '10:00', status: 'pendiente', price: 8000, notes: null },
+      { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Relajante', duration: 60, date: today, time: '14:00', status: 'confirmado', price: 7000, notes: null },
+    ];
+    mockPrisma.appointment.findMany.mockResolvedValue(appointments);
+    const res = await request(app).get('/api/damian/dashboard/today');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(2);
+    expect(res.body[0].time).toBe('10:00');
+    expect(res.body[1].time).toBe('14:00');
+    expect(mockPrisma.appointment.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { date: today },
+      orderBy: { time: 'asc' },
+    }));
+  });
+
+  it('returns empty array when no appointments today', async () => {
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
+    const res = await request(app).get('/api/damian/dashboard/today');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.appointment.findMany.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).get('/api/damian/dashboard/today');
+    expect(res.status).toBe(500);
+    expect(res.body.error).toContain('Error');
+  });
+});
+
+describe('GET /api/damian/dashboard/stale-patients', () => {
+  it('returns patients with no records at all', async () => {
+    mockPrisma.client.findMany.mockResolvedValue([
+      { id: 'c1', name: 'Nuevo Paciente', phone: '1111', business: 'damian', createdAt: new Date().toISOString() },
+    ]);
+    mockPrisma.patientRecord.findMany
+      .mockResolvedValueOnce([]); // no records for c1
+
+    const res = await request(app).get('/api/damian/dashboard/stale-patients');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].name).toBe('Nuevo Paciente');
+    expect(res.body[0].lastVisit).toBeNull();
+  });
+
+  it('returns patients whose last record is older than 30 days', async () => {
+    const oldDate = new Date();
+    oldDate.setDate(oldDate.getDate() - 45);
+    const oldDateStr = oldDate.toISOString().split('T')[0];
+
+    mockPrisma.client.findMany.mockResolvedValue([
+      { id: 'c1', name: 'Paciente Viejo', phone: '1111', business: 'damian', createdAt: new Date().toISOString() },
+    ]);
+    mockPrisma.patientRecord.findMany
+      .mockResolvedValueOnce([{ id: 'rec-1', clientId: 'c1', date: oldDateStr, reason: 'Cervical' }]);
+
+    const res = await request(app).get('/api/damian/dashboard/stale-patients');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].name).toBe('Paciente Viejo');
+    expect(res.body[0].lastVisit).toBe(oldDateStr);
+    expect(res.body[0].lastReason).toBe('Cervical');
+  });
+
+  it('excludes patients with recent records', async () => {
+    const recentDate = new Date().toISOString().split('T')[0];
+
+    mockPrisma.client.findMany.mockResolvedValue([
+      { id: 'c1', name: 'Paciente Activo', phone: '1111', business: 'damian', createdAt: new Date().toISOString() },
+    ]);
+    mockPrisma.patientRecord.findMany
+      .mockResolvedValueOnce([{ id: 'rec-1', clientId: 'c1', date: recentDate, reason: 'Control' }]);
+
+    const res = await request(app).get('/api/damian/dashboard/stale-patients');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.client.findMany.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).get('/api/damian/dashboard/stale-patients');
+    expect(res.status).toBe(500);
+    expect(res.body.error).toContain('Error');
+  });
+});
+
+describe('GET /api/damian/dashboard/appointments', () => {
+  it('returns upcoming appointments (today and future) excluding cancelled', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const appointments = [
+      { id: 'APT-1', clientName: 'Juan', clientPhone: '1111', service: 'Descontracturante', duration: 60, date: today, time: '10:00', status: 'pendiente', price: 8000, notes: null },
+      { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Relajante', duration: 60, date: '2026-04-10', time: '14:00', status: 'confirmado', price: 7000, notes: null },
+    ];
+    mockPrisma.appointment.findMany.mockResolvedValue(appointments);
+    const res = await request(app).get('/api/damian/dashboard/appointments');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(2);
+    expect(mockPrisma.appointment.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        date: { gte: today },
+        status: { not: 'cancelado' },
+      },
+      orderBy: [{ date: 'asc' }, { time: 'asc' }],
+    }));
+  });
+
+  it('returns empty array when no upcoming appointments', async () => {
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
+    const res = await request(app).get('/api/damian/dashboard/appointments');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.appointment.findMany.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).get('/api/damian/dashboard/appointments');
+    expect(res.status).toBe(500);
+    expect(res.body.error).toContain('Error');
+  });
+});

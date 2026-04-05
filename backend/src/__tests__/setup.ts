@@ -8,6 +8,8 @@ vi.mock('../db.js', () => {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      groupBy: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
     },
     zencoFinance: {
       findMany: vi.fn().mockResolvedValue([]),

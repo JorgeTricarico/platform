@@ -4,43 +4,60 @@
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
 > Ultima actualizacion: 2026-04-05
 
-## Estado: BLOQUEANTE
+## Completado
+
+| # | Item | Doc | Fecha |
+|---|------|-----|-------|
+| B1 | Migrar DB: clients + patient_records + intakeDate (port 5432) | [B1](docs/roadmap/B1-migracion-db.md) | 2026-04-05 |
+| C1 | Completar test suite backend Damian (TDD) | [C1](docs/roadmap/C1-tests-damian.md) | 2026-04-05 |
+| C5 | Redeploy en Render post-migracion | [C5](docs/roadmap/C5-redeploy-render.md) | 2026-04-05 |
+
+---
+
+## Plataforma (compartido)
+
+Mejoras que aplican a ambos clientes o al backend general.
 
 | # | Item | Doc | Estado | Prioridad |
 |---|------|-----|--------|-----------|
-| B1 | Migrar DB: clients + patient_records + intakeDate (port 5432) | [B1](docs/roadmap/B1-migracion-db.md) | pendiente | critica |
-
-## Corto plazo (proximas sesiones)
-
-| # | Item | Doc | Estado | Prioridad |
-|---|------|-----|--------|-----------|
-| C1 | Completar test suite backend Damian (TDD) | [C1](docs/roadmap/C1-tests-damian.md) | pendiente | alta |
-| C2 | Agregar zod validation a todos los endpoints | [C2](docs/roadmap/C2-zod-validation.md) | pendiente | alta |
+| C2 | Agregar zod validation a todos los endpoints | [C2](docs/roadmap/C2-zod-validation.md) | **completado** | alta |
 | C3 | Mejorar error handling: log real + details en dev | [C3](docs/roadmap/C3-error-handling.md) | pendiente | alta |
 | C4 | CI basico: GitHub Action que corra vitest en cada push | [C4](docs/roadmap/C4-ci-github-actions.md) | pendiente | media |
-| C5 | Redeploy en Render post-migracion | [C5](docs/roadmap/C5-redeploy-render.md) | pendiente | alta |
-
-## Medio plazo (1-2 semanas)
-
-| # | Item | Doc | Estado | Prioridad |
-|---|------|-----|--------|-----------|
-| M1 | Ficha clinica enriquecida (peso, altura, presion, alergias) | [M1](docs/roadmap/M1-ficha-clinica-enriquecida.md) | pendiente | media |
 | M2 | Historial de chat persistente en DB | [M2](docs/roadmap/M2-chat-history-persistente.md) | pendiente | media |
-| M3 | Dashboard Damian: proximos turnos + pacientes sin ficha | [M3](docs/roadmap/M3-dashboard-damian-widgets.md) | pendiente | media |
 | M4 | Notificaciones in-app (turno proximo, prenda lista) | [M4](docs/roadmap/M4-notificaciones-inapp.md) | pendiente | baja |
 | M5 | Busqueda global (clientes + ordenes + citas) | [M5](docs/roadmap/M5-busqueda-global.md) | pendiente | media |
-| M6 | Export PDF de historia clinica | [M6](docs/roadmap/M6-export-pdf-fichas.md) | pendiente | media |
-
-## Largo plazo (post-demo)
-
-| # | Item | Doc | Estado | Prioridad |
-|---|------|-----|--------|-----------|
 | L1 | WhatsApp real con Baileys | [L1](docs/roadmap/L1-whatsapp-baileys.md) | pendiente | alta |
-| L2 | Google Calendar sync (Damian) | [L2](docs/roadmap/L2-google-calendar.md) | pendiente | media |
 | L3 | Multi-tenant config-driven | [L3](docs/roadmap/L3-multi-tenant.md) | pendiente | baja |
 | L4 | Analytics dashboard (metricas de negocio) | [L4](docs/roadmap/L4-analytics-dashboard.md) | pendiente | media |
 | L5 | Backup automatico DB a S3/GCS | [L5](docs/roadmap/L5-backup-automatico.md) | pendiente | media |
 | L6 | PWA instalable en celular | [L6](docs/roadmap/L6-pwa.md) | pendiente | media |
+
+---
+
+## Zenko (Ana & Ariel — arreglos de ropa)
+
+| # | Item | Doc | Estado | Prioridad |
+|---|------|-----|--------|-----------|
+| Z1 | Dashboard Zenko: prendas pendientes + proximas entregas | [Z1](docs/roadmap/Z1-dashboard-zenko-widgets.md) | **completado** | alta |
+| Z2 | Notificacion "prenda lista" al cliente (in-app/WhatsApp) | [Z2](docs/roadmap/Z2-notificacion-prenda-lista.md) | pendiente | media |
+| Z3 | Historial de ordenes por cliente (vista consolidada) | [Z3](docs/roadmap/Z3-historial-ordenes-cliente.md) | pendiente | media |
+| Z4 | Fotos de prendas (upload al recibir) | [Z4](docs/roadmap/Z4-fotos-prendas.md) | pendiente | baja |
+| Z5 | Reporte semanal/mensual de arreglos y facturacion | [Z5](docs/roadmap/Z5-reporte-zenko.md) | pendiente | media |
+
+---
+
+## Damian (masajista — turnos y fichas clinicas)
+
+| # | Item | Doc | Estado | Prioridad |
+|---|------|-----|--------|-----------|
+| D1 | Ficha clinica enriquecida (peso, altura, presion, alergias) | [D1](docs/roadmap/D1-ficha-clinica-enriquecida.md) | pendiente | media |
+| D2 | Dashboard Damian: proximos turnos + pacientes sin ficha | [D2](docs/roadmap/D2-dashboard-damian-widgets.md) | **en progreso** | media |
+| D3 | Export PDF de historia clinica | [D3](docs/roadmap/D3-export-pdf-fichas.md) | pendiente | media |
+| D4 | Google Calendar sync (turnos automaticos) | [D4](docs/roadmap/D4-google-calendar.md) | pendiente | media |
+| D5 | Recordatorio de turno al cliente (24h antes) | [D5](docs/roadmap/D5-recordatorio-turno.md) | pendiente | media |
+| D6 | Estadisticas de pacientes (frecuencia, motivos recurrentes) | [D6](docs/roadmap/D6-estadisticas-pacientes.md) | pendiente | baja |
+
+---
 
 ## Mejoras del agente/skills
 
@@ -56,7 +73,7 @@
 
 ## Como agregar items
 
-1. Agregar fila a la tabla correspondiente con el proximo numero (ej: C6, M7, L7)
+1. Agregar fila a la tabla del cliente correspondiente con el proximo numero (ej: Z6, D7, A6)
 2. Crear documento `docs/roadmap/{ID}-{slug}.md` con el template de abajo
 3. Commitear ambos cambios juntos
 

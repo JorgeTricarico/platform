@@ -4,7 +4,7 @@ import { prisma } from '../db.js';
 import { app } from '../index.js';
 
 const mockPrisma = prisma as unknown as {
-  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
+  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
   client: { findMany: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
 };
@@ -184,6 +184,120 @@ describe('GET /api/zenco/clients/search', () => {
     const res = await request(app).get('/api/zenco/clients/search?q=maria');
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
+  });
+});
+
+// --- DASHBOARD ---
+
+describe('GET /api/zenco/dashboard', () => {
+  it('returns counts by status', async () => {
+    mockPrisma.order.groupBy.mockResolvedValue([
+      { status: 'recibido', _count: { _all: 3 } },
+      { status: 'en_proceso', _count: { _all: 5 } },
+      { status: 'listo', _count: { _all: 2 } },
+      { status: 'entregado', _count: { _all: 10 } },
+    ]);
+    mockPrisma.order.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/api/zenco/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.body.byStatus).toEqual({
+      recibido: 3,
+      en_proceso: 5,
+      listo: 2,
+      entregado: 10,
+    });
+  });
+
+  it('returns today deliveries', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const todayOrders = [
+      { id: 'ORD-1', clientName: 'Ana', garmentName: 'Pantalon', status: 'listo', deliveryDate: today },
+    ];
+    mockPrisma.order.groupBy.mockResolvedValue([]);
+    // First findMany call = todayDeliveries, second = upcomingDeliveries
+    mockPrisma.order.findMany
+      .mockResolvedValueOnce(todayOrders)
+      .mockResolvedValueOnce([]);
+
+    const res = await request(app).get('/api/zenco/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.body.todayDeliveries).toHaveLength(1);
+    expect(res.body.todayDeliveries[0].clientName).toBe('Ana');
+  });
+
+  it('returns upcoming deliveries (next 3 days, excluding today)', async () => {
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    const upcomingOrders = [
+      { id: 'ORD-2', clientName: 'Luis', garmentName: 'Campera', status: 'en_proceso', deliveryDate: tomorrow },
+    ];
+    mockPrisma.order.groupBy.mockResolvedValue([]);
+    mockPrisma.order.findMany
+      .mockResolvedValueOnce([])        // todayDeliveries
+      .mockResolvedValueOnce(upcomingOrders); // upcomingDeliveries
+
+    const res = await request(app).get('/api/zenco/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.body.upcomingDeliveries).toHaveLength(1);
+    expect(res.body.upcomingDeliveries[0].clientName).toBe('Luis');
+  });
+
+  it('returns empty dashboard when no orders exist', async () => {
+    mockPrisma.order.groupBy.mockResolvedValue([]);
+    mockPrisma.order.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/api/zenco/dashboard');
+    expect(res.status).toBe(200);
+    expect(res.body.byStatus).toEqual({});
+    expect(res.body.todayDeliveries).toEqual([]);
+    expect(res.body.upcomingDeliveries).toEqual([]);
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.order.groupBy.mockRejectedValue(new Error('DB error'));
+
+    const res = await request(app).get('/api/zenco/dashboard');
+    expect(res.status).toBe(500);
+    expect(res.body.error).toContain('Error');
+  });
+});
+
+// --- VALIDATION ---
+
+describe('Zenco validation', () => {
+  it('POST /garments returns 400 when clientName is missing', async () => {
+    const res = await request(app).post('/api/zenco/garments').send({
+      clientPhone: '1234', garmentName: 'Pantalon', repairType: 'dobladillo',
+      description: 'acortar', deliveryDate: '2026-04-10', price: 3000,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Datos invalidos');
+  });
+
+  it('POST /garments returns 400 when price is missing', async () => {
+    const res = await request(app).post('/api/zenco/garments').send({
+      clientName: 'Ana', clientPhone: '1234', garmentName: 'Pantalon',
+      repairType: 'dobladillo', description: 'acortar', deliveryDate: '2026-04-10',
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('PUT /garments/:id/status returns 400 when status is empty', async () => {
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').send({});
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /finances returns 400 when amount is not a number', async () => {
+    const res = await request(app).post('/api/zenco/finances').send({
+      date: '2026-04-05', type: 'income', category: 'Arreglos',
+      amount: 'not-a-number', description: 'Test',
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /clients returns 400 when name is missing', async () => {
+    const res = await request(app).post('/api/zenco/clients').send({ phone: '1234' });
+    expect(res.status).toBe(400);
   });
 });
 
