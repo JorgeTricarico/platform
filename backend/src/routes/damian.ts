@@ -139,4 +139,90 @@ router.get('/clients/search', async (req, res) => {
   }
 });
 
+// --- FICHAS CLINICAS ---
+
+router.get('/patients/:clientId/records', async (req, res) => {
+  try {
+    const { clientId } = req.params;
+    const records = await prisma.patientRecord.findMany({
+      where: { clientId },
+      orderBy: { date: 'desc' }
+    });
+    res.json(records);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener fichas clinicas' });
+  }
+});
+
+router.post('/patients/:clientId/records', async (req, res) => {
+  try {
+    const { clientId } = req.params;
+    const data = req.body;
+    const record = await prisma.patientRecord.create({
+      data: {
+        clientId,
+        date: data.date,
+        reason: data.reason,
+        symptoms: data.symptoms,
+        areas: data.areas,
+        treatment: data.treatment,
+        observations: data.observations,
+        nextSession: data.nextSession,
+      }
+    });
+    res.json(record);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al crear ficha clinica' });
+  }
+});
+
+router.put('/patients/records/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const record = await prisma.patientRecord.update({
+      where: { id },
+      data: {
+        reason: data.reason,
+        symptoms: data.symptoms,
+        areas: data.areas,
+        treatment: data.treatment,
+        observations: data.observations,
+        nextSession: data.nextSession,
+      }
+    });
+    res.json(record);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar ficha clinica' });
+  }
+});
+
+// Pacientes con sus fichas (lista para la vista principal)
+router.get('/patients', async (req, res) => {
+  try {
+    const clients = await prisma.client.findMany({
+      where: { business: 'damian' },
+      orderBy: { name: 'asc' }
+    });
+    // For each client, get count of records and last visit
+    const patientsWithInfo = await Promise.all(clients.map(async (c) => {
+      const records = await prisma.patientRecord.findMany({
+        where: { clientId: c.id },
+        orderBy: { date: 'desc' },
+        take: 1,
+      });
+      const totalRecords = await prisma.patientRecord.count({ where: { clientId: c.id } });
+      return {
+        ...c,
+        totalRecords,
+        lastVisit: records[0]?.date || null,
+        lastReason: records[0]?.reason || null,
+      };
+    }));
+    res.json(patientsWithInfo);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener pacientes' });
+  }
+});
+
 export { router as damianRoutes };

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { GoogleGenerativeAI, FunctionDeclarationSchemaType } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { prisma } from '../db.js';
 
 const router = Router();
@@ -26,31 +26,42 @@ REGLAS:
 - NUNCA inventes datos de citas. Si no sabes, preguntá.
 - si preguntan algo que no es de masajes, redirigí amablemente`;
 
-const tools = [
+const tools: any[] = [
   {
     functionDeclarations: [
       {
         name: 'book_appointment',
         description: 'Agenda un turno de masaje para un cliente. Usar cuando el cliente confirma que quiere un turno.',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            clientName: { type: FunctionDeclarationSchemaType.STRING, description: 'Nombre del cliente' },
-            clientPhone: { type: FunctionDeclarationSchemaType.STRING, description: 'Telefono del cliente' },
-            service: { type: FunctionDeclarationSchemaType.STRING, description: 'Tipo de masaje' },
-            date: { type: FunctionDeclarationSchemaType.STRING, description: 'Fecha del turno en formato YYYY-MM-DD' },
-            time: { type: FunctionDeclarationSchemaType.STRING, description: 'Hora del turno en formato HH:MM' },
+            clientName: { type: SchemaType.STRING, description: 'Nombre del cliente' },
+            clientPhone: { type: SchemaType.STRING, description: 'Telefono del cliente' },
+            service: { type: SchemaType.STRING, description: 'Tipo de masaje' },
+            date: { type: SchemaType.STRING, description: 'Fecha del turno en formato YYYY-MM-DD' },
+            time: { type: SchemaType.STRING, description: 'Hora del turno en formato HH:MM' },
           },
           required: ['clientName', 'service', 'date', 'time'],
+        },
+      },
+      {
+        name: 'lookup_client',
+        description: 'Busca un cliente por telefono en la base de datos. Usar cuando el cliente da su numero o queremos ver su historial.',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            phone: { type: SchemaType.STRING, description: 'Telefono del cliente' },
+          },
+          required: ['phone'],
         },
       },
       {
         name: 'check_appointments',
         description: 'Consulta los turnos agendados para una fecha dada, para ver disponibilidad.',
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            date: { type: FunctionDeclarationSchemaType.STRING, description: 'Fecha a consultar en formato YYYY-MM-DD' },
+            date: { type: SchemaType.STRING, description: 'Fecha a consultar en formato YYYY-MM-DD' },
           },
           required: ['date'],
         },
@@ -76,6 +87,22 @@ function matchService(input: string): string {
 }
 
 async function executeFunction(name: string, args: Record<string, string>) {
+  if (name === 'lookup_client') {
+    const phone = args.phone;
+    const client = await prisma.client.findUnique({
+      where: { phone_business: { phone, business: 'damian' } }
+    });
+    if (client) {
+      const appointments = await prisma.appointment.findMany({
+        where: { clientPhone: phone },
+        orderBy: { date: 'desc' },
+        take: 5,
+      });
+      return { found: true, name: client.name, phone: client.phone, notes: client.notes, appointments: appointments.map(a => ({ service: a.service, date: a.date, time: a.time, status: a.status })) };
+    }
+    return { found: false };
+  }
+
   if (name === 'book_appointment') {
     const service = matchService(args.service);
     const info = SERVICE_PRICES[service] || { price: 7000, duration: 60 };
@@ -110,16 +137,29 @@ async function executeFunction(name: string, args: Record<string, string>) {
 
 router.post('/', async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message, history, senderPhone } = req.body;
     if (!message) return res.status(400).json({ error: 'Mensaje requerido' });
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.json({ reply: 'el bot no esta configurado todavia, escribime directo!' });
 
+    // Pre-lookup client by phone
+    let clientHint = '';
+    try {
+      if (senderPhone) {
+        const client = await prisma.client.findUnique({
+          where: { phone_business: { phone: senderPhone, business: 'damian' } }
+        });
+        if (client) {
+          clientHint = `\n\n[INFO INTERNA - el cliente que escribe es: ${client.name} (tel: ${client.phone})${client.notes ? `, notas: ${client.notes}` : ''}. Podés saludarlo por nombre.]`;
+        }
+      }
+    } catch { /* ignore */ }
+
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: 'gemini-3.1-flash-lite-preview',
-      systemInstruction: SYSTEM_PROMPT,
+      systemInstruction: SYSTEM_PROMPT + clientHint,
       tools,
     });
 
@@ -149,6 +189,18 @@ router.post('/', async (req, res) => {
     }
 
     const reply = result.text();
+
+    // Auto-register client if senderPhone and not found
+    if (senderPhone && !clientHint) {
+      try {
+        await prisma.client.upsert({
+          where: { phone_business: { phone: senderPhone, business: 'damian' } },
+          update: {},
+          create: { name: 'Cliente nuevo', phone: senderPhone, business: 'damian', notes: 'Registrado automaticamente via chat' },
+        });
+      } catch { /* ignore */ }
+    }
+
     res.json({ reply });
   } catch (error) {
     console.error('Chat Damian error:', error);

@@ -4,7 +4,7 @@ import type { DBGarment } from '../services/api';
 
 const EMPTY_FORM = {
   clientName: '', clientPhone: '', garmentName: '', repairType: '',
-  description: '', deliveryDate: '', price: 0, status: 'recibido'
+  description: '', intakeDate: new Date().toISOString().split('T')[0], deliveryDate: '', price: 0, status: 'recibido'
 };
 
 export default function Garments() {
@@ -52,7 +52,7 @@ export default function Garments() {
     setEditForm({
       clientName: g.clientName, clientPhone: g.clientPhone,
       garmentName: g.garmentName, repairType: g.repairType,
-      description: g.description, deliveryDate: g.deliveryDate,
+      description: g.description, intakeDate: g.intakeDate || '', deliveryDate: g.deliveryDate,
       price: g.price, status: g.status
     });
   };
@@ -230,7 +230,16 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus }: {
             <input required name="price" type="number" placeholder="Costo ($)" value={form.price || ''} onChange={handle} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
           </div>
           <input required name="description" placeholder="Detalle exacto del trabajo a realizar..." value={form.description} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-          <input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Ingreso</label>
+              <input required name="intakeDate" type="date" value={form.intakeDate} onChange={handle} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Entrega</label>
+              <input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
+            </div>
+          </div>
           {showStatus && (
             <select name="status" value={form.status} onChange={handle} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
               <option value="recibido">Recibido</option>

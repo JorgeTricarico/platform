@@ -8,6 +8,7 @@ export interface DBGarment {
   repairType: string;
   description: string;
   status: string;
+  intakeDate: string;
   deliveryDate: string;
   price: number;
 }
@@ -65,5 +66,40 @@ export const createFinance = async (data: Partial<DBFinance>): Promise<DBFinance
     body: JSON.stringify(data)
   });
   if (!res.ok) throw new Error("Error al guardar el registro");
+  return res.json();
+};
+
+// --- CLIENTES ---
+
+export interface DBClient {
+  id: string;
+  name: string;
+  phone: string;
+  altPhone?: string;
+  email?: string;
+  business: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export const fetchClients = async (): Promise<DBClient[]> => {
+  const res = await fetch(`${API_URL}/clients`);
+  if (!res.ok) throw new Error("Error al obtener clientes");
+  return res.json();
+};
+
+export const searchClients = async (q: string): Promise<DBClient[]> => {
+  const res = await fetch(`${API_URL}/clients/search?q=${encodeURIComponent(q)}`);
+  if (!res.ok) throw new Error("Error buscando clientes");
+  return res.json();
+};
+
+export const createClient = async (data: Partial<DBClient>): Promise<DBClient> => {
+  const res = await fetch(`${API_URL}/clients`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Error al registrar cliente");
   return res.json();
 };

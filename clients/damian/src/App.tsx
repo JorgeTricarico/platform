@@ -2,13 +2,16 @@ import { useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Appointments from './pages/Appointments';
 import Finances from './pages/Finances';
+import Clients from './pages/Clients';
+import Patients from './pages/Patients';
+import Agent from './pages/Agent';
 import ChatDemo from './pages/ChatDemo';
 import Ambient from './pages/Ambient';
 import { BUSINESS } from './config';
 import logoUrl from './assets/logo.png';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'chat' | 'ambient'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
 
   return (
     <div className="app-container">
@@ -48,6 +51,27 @@ function App() {
             Musica Ambiente
           </div>
           <div
+            className={`nav-link ${activeTab === 'clients' ? 'active' : ''}`}
+            onClick={() => setActiveTab('clients')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            Clientes
+          </div>
+          <div
+            className={`nav-link ${activeTab === 'patients' ? 'active' : ''}`}
+            onClick={() => setActiveTab('patients')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Fichas Clinicas
+          </div>
+          <div
+            className={`nav-link ${activeTab === 'agent' ? 'active' : ''}`}
+            onClick={() => setActiveTab('agent')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Asistente IA
+          </div>
+          <div
             className={`nav-link ${activeTab === 'chat' ? 'active' : ''}`}
             onClick={() => setActiveTab('chat')}
           >
@@ -69,6 +93,9 @@ function App() {
           {activeTab === 'dashboard' && <Dashboard />}
           {activeTab === 'appointments' && <Appointments />}
           {activeTab === 'finances' && <Finances />}
+          {activeTab === 'clients' && <Clients />}
+          {activeTab === 'patients' && <Patients />}
+          {activeTab === 'agent' && <Agent />}
           {activeTab === 'ambient' && <Ambient />}
           {activeTab === 'chat' && <ChatDemo />}
         </div>

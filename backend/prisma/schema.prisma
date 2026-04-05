@@ -36,6 +36,7 @@ model Order {
   repairType   String
   description  String
   status       String   @default("recibido")
+  intakeDate   String   @default("")
   deliveryDate String
   price        Float
   createdAt    DateTime @default(now())
@@ -79,4 +80,24 @@ model DamianFinance {
   description String
 
   @@map("damian_finances")
+}
+
+// =============================================
+// FICHAS CLINICAS — Historia clínica de pacientes (Damian)
+// =============================================
+
+model PatientRecord {
+  id          String   @id @default(uuid())
+  clientId    String
+  date        String
+  reason      String               // motivo de consulta
+  symptoms    String?              // sintomas reportados
+  areas       String?              // zonas trabajadas
+  treatment   String?              // tratamiento aplicado
+  observations String?             // observaciones del terapeuta
+  nextSession String?              // indicaciones para proxima sesion
+  createdAt   DateTime @default(now())
+
+  @@index([clientId])
+  @@map("patient_records")
 }

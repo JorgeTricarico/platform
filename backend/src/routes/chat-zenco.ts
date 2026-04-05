@@ -20,27 +20,65 @@ REGLAS ESTRICTAS:
 
 router.post('/', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, senderPhone } = req.body;
     if (!message) return res.status(400).json({ error: 'Mensaje requerido' });
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.json({ reply: 'El bot no esta configurado todavia. Contactanos directamente!' });
 
-    // Try to find relevant order data for context
-    let dbContext = '';
+    // Look up client by phone if provided
+    let clientContext = '';
     try {
-      const orders = await prisma.order.findMany({ take: 5, orderBy: { createdAt: 'desc' } });
-      if (orders.length > 0) {
-        dbContext = '\n\nPedidos recientes en la base de datos:\n' + orders.map(o =>
-          `- ${o.clientName} (${o.clientPhone}): ${o.garmentName} - ${o.repairType} - Estado: ${o.status} - Entrega: ${o.deliveryDate} - $${o.price}`
-        ).join('\n');
+      if (senderPhone) {
+        const client = await prisma.client.findUnique({
+          where: { phone_business: { phone: senderPhone, business: 'zenco' } }
+        });
+        if (client) {
+          clientContext = `\n\nCliente identificado: ${client.name} (tel: ${client.phone})${client.notes ? ` - Notas: ${client.notes}` : ''}`;
+          // Fetch their orders
+          const clientOrders = await prisma.order.findMany({
+            where: { clientPhone: senderPhone },
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+          });
+          if (clientOrders.length > 0) {
+            clientContext += '\nSus pedidos:\n' + clientOrders.map(o =>
+              `- ${o.garmentName} (${o.repairType}) - Estado: ${o.status} - Entrega: ${o.deliveryDate} - $${o.price}`
+            ).join('\n');
+          }
+        }
       }
-    } catch { /* DB not available, continue without context */ }
+    } catch { /* DB not available */ }
+
+    // General recent orders for context (only if no specific client found)
+    let dbContext = '';
+    if (!clientContext) {
+      try {
+        const orders = await prisma.order.findMany({ take: 5, orderBy: { createdAt: 'desc' } });
+        if (orders.length > 0) {
+          dbContext = '\n\nPedidos recientes en la base de datos:\n' + orders.map(o =>
+            `- ${o.clientName} (${o.clientPhone}): ${o.garmentName} - ${o.repairType} - Estado: ${o.status} - Entrega: ${o.deliveryDate} - $${o.price}`
+          ).join('\n');
+        }
+      } catch { /* DB not available */ }
+    }
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite-preview' });
-    const result = await model.generateContent(`${SYSTEM_PROMPT}${dbContext}\n\nMensaje del cliente: ${message}`);
+    const result = await model.generateContent(`${SYSTEM_PROMPT}${clientContext}${dbContext}\n\nMensaje del cliente: ${message}`);
     const reply = result.response.text();
+
+    // Auto-register client if phone provided and not found
+    if (senderPhone && !clientContext) {
+      try {
+        // Extract name from message or use placeholder
+        await prisma.client.upsert({
+          where: { phone_business: { phone: senderPhone, business: 'zenco' } },
+          update: {},
+          create: { name: 'Cliente nuevo', phone: senderPhone, business: 'zenco', notes: 'Registrado automaticamente via chat' },
+        });
+      } catch { /* ignore registration errors */ }
+    }
 
     res.json({ reply });
   } catch (error) {

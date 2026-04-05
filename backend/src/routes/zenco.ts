@@ -28,13 +28,15 @@ router.post('/garments', async (req, res) => {
         repairType: data.repairType,
         description: data.description,
         status: data.status || 'recibido',
+        intakeDate: data.intakeDate || new Date().toISOString().split('T')[0],
         deliveryDate: data.deliveryDate,
-        price: data.price
+        price: Number(data.price)
       }
     });
     res.json(newGarment);
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear orden' });
+    console.error('Error al crear orden:', error);
+    res.status(500).json({ error: 'Error al crear orden', details: String(error) });
   }
 });
 
@@ -65,8 +67,9 @@ router.put('/garments/:id', async (req, res) => {
         repairType: data.repairType,
         description: data.description,
         status: data.status,
+        intakeDate: data.intakeDate,
         deliveryDate: data.deliveryDate,
-        price: data.price
+        price: Number(data.price)
       }
     });
     res.json(updated);

@@ -2,11 +2,12 @@ import { useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Garments from './pages/Garments';
 import Finances from './pages/Finances';
+import Clients from './pages/Clients';
 import ChatDemo from './pages/ChatDemo';
 import logoUrl from './assets/logo.png';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'chat'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'clients' | 'chat'>('dashboard');
 
   return (
     <div className="app-container">
@@ -46,6 +47,13 @@ function App() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             Chat Bot Demo
           </div>
+          <div
+            className={`nav-link ${activeTab === 'clients' ? 'active' : ''}`}
+            onClick={() => setActiveTab('clients')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            Clientes
+          </div>
         </nav>
       </aside>
 
@@ -62,6 +70,7 @@ function App() {
           {activeTab === 'dashboard' && <Dashboard />}
           {activeTab === 'garments' && <Garments />}
           {activeTab === 'finances' && <Finances />}
+          {activeTab === 'clients' && <Clients />}
           {activeTab === 'chat' && <ChatDemo />}
         </div>
       </main>
