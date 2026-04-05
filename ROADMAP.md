@@ -66,6 +66,8 @@ Mejoras que aplican a ambos clientes o al backend general.
 | D8 | Integracion musica+chat — procesar actions del agente en frontend | [D8](docs/roadmap/D8-musica-chat-frontend.md) | **completado** | media |
 | D9 | Notificacion visual en sidebar cuando agente controla musica | [D9](docs/roadmap/D9-notificacion-musica-sidebar.md) | **completado** | baja |
 | D10 | Shuffle mode para el player de musica ambiente | [D10](docs/roadmap/D10-shuffle-mode-player.md) | **completado** | baja |
+| D11 | Vista de impresion optimizada para fichas (CSS @media print) | [D11](docs/roadmap/D11-vista-impresion-fichas.md) | pendiente | baja |
+| D12 | Filtros en historial de paciente (fecha, motivo) | [D12](docs/roadmap/D12-filtros-historial-paciente.md) | pendiente | baja |
 
 ---
 
