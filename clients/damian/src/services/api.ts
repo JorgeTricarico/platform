@@ -53,3 +53,13 @@ export const fetchFinances = async (): Promise<DBFinance[]> => {
   if (!res.ok) throw new Error("Error al obtener finanzas");
   return res.json();
 };
+
+export const createFinance = async (data: Partial<DBFinance>): Promise<DBFinance> => {
+  const res = await fetch(`${API_URL}/finances`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Error al guardar el registro");
+  return res.json();
+};

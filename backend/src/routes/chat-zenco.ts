@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
     } catch { /* DB not available, continue without context */ }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite-preview' });
     const result = await model.generateContent(`${SYSTEM_PROMPT}${dbContext}\n\nMensaje del cliente: ${message}`);
     const reply = result.response.text();
 

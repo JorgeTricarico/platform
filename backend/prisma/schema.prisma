@@ -7,6 +7,24 @@ datasource db {
 }
 
 // =============================================
+// CLIENTES — Registro compartido por negocio
+// =============================================
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  altPhone  String?
+  email     String?
+  business  String               // "zenco" o "damian"
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@unique([phone, business])
+  @@map("clients")
+}
+
+// =============================================
 // ZENCO — Arreglos de Ropa (Ana & Ariel)
 // =============================================
 

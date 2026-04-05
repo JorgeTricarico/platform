@@ -117,4 +117,59 @@ router.post('/finances', async (req, res) => {
   }
 });
 
+// --- CLIENTES ZENCO ---
+
+router.get('/clients', async (req, res) => {
+  try {
+    const clients = await prisma.client.findMany({
+      where: { business: 'zenco' },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(clients);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener clientes' });
+  }
+});
+
+router.post('/clients', async (req, res) => {
+  try {
+    const data = req.body;
+    // Upsert: si ya existe por telefono, actualizar
+    const client = await prisma.client.upsert({
+      where: { phone_business: { phone: data.phone, business: 'zenco' } },
+      update: { name: data.name, altPhone: data.altPhone, email: data.email, notes: data.notes },
+      create: {
+        name: data.name,
+        phone: data.phone,
+        altPhone: data.altPhone,
+        email: data.email,
+        business: 'zenco',
+        notes: data.notes,
+      }
+    });
+    res.json(client);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al registrar cliente' });
+  }
+});
+
+router.get('/clients/search', async (req, res) => {
+  try {
+    const q = (req.query.q as string || '').toLowerCase();
+    const clients = await prisma.client.findMany({
+      where: {
+        business: 'zenco',
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { phone: { contains: q } },
+          { altPhone: { contains: q } },
+        ]
+      }
+    });
+    res.json(clients);
+  } catch (error) {
+    res.status(500).json({ error: 'Error buscando cliente' });
+  }
+});
+
 export { router as zencoRoutes };
