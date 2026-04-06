@@ -30,8 +30,9 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   if (order.location) {
     doc.text(`Ubicación: ${order.location}`, 5, 55);
   }
-  doc.text(`Ingreso: ${order.intakeDate}`, 5, order.location ? 60 : 55);
-  doc.text(`Entrega: ${order.deliveryDate}`, 5, order.location ? 65 : 60);
+  const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  doc.text(`Ingreso: ${fmtDate(order.intakeDate)}`, 5, order.location ? 60 : 55);
+  doc.text(`Entrega: ${fmtDate(order.deliveryDate)}`, 5, order.location ? 65 : 60);
   doc.setFont('helvetica', 'bold');
   doc.text(`Precio: $${order.price.toLocaleString()}`, 5, order.location ? 70 : 65);
 

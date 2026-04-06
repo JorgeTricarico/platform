@@ -40,11 +40,11 @@ Script de visibilidad: `bash scripts/render-status.sh [status|deploys|logs|env]`
 
 **clients/zenko/.env (local):**
 - `VITE_API_URL=http://localhost:3000/api/zenco`
-- En Render: `VITE_API_URL=https://platform-backend-8upb.onrender.com` (configurado via env vars)
+- En Render: `VITE_API_URL=https://platform-backend-8upb.onrender.com` (el código agrega `/api/zenco` automáticamente si falta)
 
 **clients/damian/.env (local):**
 - `VITE_API_URL=http://localhost:3000/api/damian`
-- En Render: `VITE_API_URL=https://platform-backend-8upb.onrender.com` (configurado via env vars)
+- En Render: `VITE_API_URL=https://platform-backend-8upb.onrender.com` (el código agrega `/api/damian` automáticamente si falta)
 
 ## Estado actual (post sesion 14)
 

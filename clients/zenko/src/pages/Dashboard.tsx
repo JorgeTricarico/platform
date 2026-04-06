@@ -32,7 +32,8 @@ export default function Dashboard() {
   useEffect(() => { loadData(); }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,14 +54,14 @@ export default function Dashboard() {
   const pendingGarments = garments.filter(g => g.status !== 'entregado');
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const urgentGarments = pendingGarments.filter(g => new Date(g.deliveryDate) <= tomorrow).sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
+  const urgentGarments = pendingGarments.filter(g => new Date(g.deliveryDate + 'T23:59:59') <= tomorrow).sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
   
   const totalIncome = finances.filter(f => f.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
   const totalExpenses = finances.filter(f => f.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
   const balance = totalIncome - totalExpenses;
 
   const formatDate = (dateStr: string) => {
-    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short' };
+    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', timeZone: 'UTC' };
     return new Date(dateStr).toLocaleDateString('es-AR', options);
   };
 

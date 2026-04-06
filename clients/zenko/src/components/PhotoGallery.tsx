@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { fetchGarmentPhotos, uploadGarmentPhoto, deleteGarmentPhoto, type DBGarmentPhoto } from '../services/api';
 import { useToast } from './ToastContext';
 
-const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api/zenco', '') || 'http://localhost:3000';
+import { API_BASE } from '../services/config';
+const BASE_URL = API_BASE;
 
 interface PhotoGalleryProps {
   garmentId: string;

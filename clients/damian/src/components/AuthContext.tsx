@@ -21,10 +21,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+import { API_BASE } from '../services/config';
+
 function getApiBase(): string {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/damian';
-  // Remove last path segment (e.g., /zenco or /damian) to get base
-  return apiUrl.replace(/\/[^/]+$/, '');
+  return `${API_BASE}/api`;
 }
 
 function decodeTokenPayload(token: string): User | null {
