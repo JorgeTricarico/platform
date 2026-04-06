@@ -11,6 +11,20 @@ Skill obligatorio al cierre de cada sesion de trabajo. Genera reflexion y actual
 
 ## Protocolo (ejecutar EN ORDEN)
 
+### Paso 0: Análisis profundo del panorama (NUEVO — OBLIGATORIO)
+
+Antes de documentar, **reflexionar críticamente** sobre todo lo implementado en la sesión y el estado general del proyecto. Delegar a sub-agentes un audit completo:
+
+1. **Revisar cada archivo modificado** buscando: bugs potenciales, edge cases no cubiertos, validaciones faltantes, inconsistencias con el resto del codebase
+2. **Analizar UX** de las páginas afectadas: ¿qué confunde al usuario?, ¿qué falta para un workflow real?, ¿qué se puede hacer en menos clicks?
+3. **Detectar código duplicado** entre páginas/componentes que debería extraerse
+4. **Verificar consistencia** entre frontend y backend (schemas, types, validations)
+5. **Pensar como usuario final** del negocio: ¿qué necesita un taller de ropa / consultorio / etc. que no está?
+
+El resultado de este análisis alimenta TODOS los pasos siguientes. Sin este paso, la retro es solo documentación — no mejora.
+
+**Output esperado**: lista priorizada de mejoras con categorías (CRITICO/ALTO/MEDIO/BAJO) y archivos afectados.
+
 ### Paso 1: Reflexion de sesion
 
 Crear archivo `docs/reflections/YYYY-MM-DD.md` con esta estructura:
@@ -85,8 +99,11 @@ Al final, generar un prompt copy-pasteable para la proxima sesion que incluya:
 ## Reglas
 
 - **Siempre** crear reflexion, incluso si la sesion fue corta
+- **Siempre** ejecutar Paso 0 (análisis profundo) — la retro NO es solo documentar, es MEJORAR
 - **Nunca** agregar item al roadmap sin documento en `docs/roadmap/`
 - **Nunca** marcar como completado sin evidencia (tests pasan, deploy ok)
 - Las reflexiones son **acumulativas** — no borrar las anteriores
 - Si un item del roadmap se descarta, moverlo a una seccion "Descartados" con la razon
 - Convertir fechas relativas a absolutas (ej: "la semana que viene" → "2026-04-12")
+- **Cada mejora detectada en Paso 0** debe convertirse en un item del roadmap (Paso 2) con su documento. No se pierden insights — todo queda trackeado
+- **Priorizar** las mejoras: CRITICO (bugs, data integrity) > ALTO (backend, UX core) > MEDIO (UX minor, refactoring) > BAJO (nice-to-have)

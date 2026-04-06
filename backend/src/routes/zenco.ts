@@ -46,9 +46,11 @@ router.get('/garments', asyncHandler(async (req, res) => {
 
 router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req, res) => {
   const data = req.body;
+  const lastOrder = await prisma.order.findFirst({ orderBy: { createdAt: 'desc' }, select: { id: true } });
+  const nextNum = lastOrder ? (parseInt(lastOrder.id, 10) || 0) + 1 : 1;
   const newGarment = await prisma.order.create({
     data: {
-      id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: String(nextNum).padStart(4, '0'),
       clientName: data.clientName,
       clientPhone: data.clientPhone,
       garmentName: data.garmentName,
