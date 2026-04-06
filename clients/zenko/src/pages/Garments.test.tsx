@@ -125,15 +125,15 @@ describe('Garments page', () => {
     expect(rows[3]).toHaveTextContent('Camisa'); // entregado
   });
 
-  it('status badges have distinct symbols', async () => {
+  it('status badges have distinct colors and nowrap', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText(/Listo para Entrega/)).toBeInTheDocument();
+      expect(screen.getByText(/Listo/)).toBeInTheDocument();
     });
-    expect(screen.getByText(/Listo para Entrega/)).toHaveStyle({ color: '#2e7d32' });
-    expect(screen.getByText(/En Proceso/)).toHaveStyle({ color: '#1565c0' });
-    expect(screen.getByText(/Recibido/)).toHaveStyle({ color: '#e65100' });
-    expect(screen.getByText(/Entregado/)).toHaveStyle({ color: '#757575' });
+    expect(screen.getByText(/✓ Listo/)).toHaveStyle({ color: '#2e7d32', whiteSpace: 'nowrap' });
+    expect(screen.getByText(/⚙ En Proceso/)).toHaveStyle({ color: '#1565c0', whiteSpace: 'nowrap' });
+    expect(screen.getByText(/● Recibido/)).toHaveStyle({ color: '#e65100', whiteSpace: 'nowrap' });
+    expect(screen.getByText(/✔ Entregado/)).toHaveStyle({ color: '#757575', whiteSpace: 'nowrap' });
   });
 
   it('search filters by repairType and description', async () => {

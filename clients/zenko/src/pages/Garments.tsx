@@ -95,12 +95,16 @@ export default function Garments() {
     }
   };
 
+  const badgeStyle = (bg: string, fg: string, bd: string): React.CSSProperties => ({
+    background: bg, color: fg, border: `1px solid ${bd}`, whiteSpace: 'nowrap', display: 'inline-block', fontSize: '12px', padding: '4px 10px', borderRadius: '12px', fontWeight: 600
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'recibido': return <span className="badge" style={{ background: '#fff3e0', color: '#e65100', border: '1px solid #ffcc80' }}>&#9679; Recibido</span>;
-      case 'en_proceso': return <span className="badge" style={{ background: '#e3f2fd', color: '#1565c0', border: '1px solid #90caf9' }}>&#9881; En Proceso</span>;
-      case 'listo': return <span className="badge" style={{ background: '#e8f5e9', color: '#2e7d32', border: '1px solid #a5d6a7' }}>&#10003; Listo para Entrega</span>;
-      case 'entregado': return <span className="badge" style={{ background: '#f5f5f5', color: '#757575', border: '1px solid #e0e0e0' }}>&#10004; Entregado</span>;
+      case 'recibido': return <span style={badgeStyle('#fff3e0', '#e65100', '#ffcc80')}>● Recibido</span>;
+      case 'en_proceso': return <span style={badgeStyle('#e3f2fd', '#1565c0', '#90caf9')}>⚙ En Proceso</span>;
+      case 'listo': return <span style={badgeStyle('#e8f5e9', '#2e7d32', '#a5d6a7')}>✓ Listo</span>;
+      case 'entregado': return <span style={badgeStyle('#f5f5f5', '#757575', '#e0e0e0')}>✔ Entregado</span>;
       default: return null;
     }
   };
