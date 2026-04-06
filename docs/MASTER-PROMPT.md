@@ -1,7 +1,7 @@
 # Master Prompt — Platform (Zenko + Damian)
 
 > Copiar y pegar este prompt al inicio de cada nueva sesion de trabajo.
-> Ultima actualizacion: 2026-04-05 (post sesion 11)
+> Ultima actualizacion: 2026-04-06 (post sesion 12)
 
 ---
 
@@ -13,7 +13,7 @@ Monorepo con 3 proyectos:
 - `clients/damian/` — React + Vite (Damian, masajista/turnos/fichas clinicas)
 
 Deploy: Render (backend: `platform-backend`, frontends: static sites)
-Tests: Vitest (283 tests: 198 backend + 48 zenko + 37 damian)
+Tests: Vitest (301 tests: 216 backend + 48 zenko + 37 damian)
 CI: GitHub Actions (solo backend por ahora)
 PWA: Ambas apps instalables, offline-first con IndexedDB cache + mutation queue
 
@@ -43,19 +43,17 @@ Script de visibilidad: `bash scripts/render-status.sh [status|deploys|logs|env]`
 **clients/damian/.env:**
 - `VITE_API_URL=http://localhost:3000/api/damian` (BUG: apunta a localhost, no a Render)
 
-## Estado actual (post sesion 11)
+## Estado actual (post sesion 12)
 
 ### Completado recientemente
-- M8: Fix updateClient (bug critico de duplicados) + PUT /clients/:id
-- D18: Editar citas completas (PUT + edit modal)
-- D20: Deteccion conflictos horario (409 en POST+PUT)
-- Z16+D19: Editar/eliminar finanzas (PUT+DELETE + UI)
-- M9: Toast system (ToastProvider + useToast, 16 alert reemplazados)
-- D21: Musica persiste entre tabs (display:none vs unmount)
-- L6: PWA + offline-first (service worker, IndexedDB, mutation queue, sync)
-- M11 (backend): JWT auth completo — User model, register/login, middleware, business check (216 tests)
+- M11 (backend): JWT auth — User model, register/login, authenticate middleware, requireBusiness, 18 tests (216 backend total)
+- Render visibility: `scripts/render-status.sh` — status, deploys, logs, env
+- Infraestructura y .env mapeados en master prompt
 
 ### Bugs conocidos activos
+- **M11 INCOMPLETO** — backend protegido pero frontend no tiene login UI. Deploy actual rompe
+- **JWT_SECRET** falta en Render env vars — backend crashea en prod sin esto
+- **Tabla users** no existe en Supabase — falta correr migración
 - Gemini API key agotada (chat demo y Agent no funcionan)
 - Frontend .env apunta a localhost:3000 (no funciona desde Render deploy)
 - N+1 queries en /dashboard/stale-patients y /patients (critico para performance)
@@ -64,29 +62,38 @@ Script de visibilidad: `bash scripts/render-status.sh [status|deploys|logs|env]`
 - No hay Escape key ni focus trap en ningun modal
 - Zenko no tiene config.ts (greeting, repairTypes, currency hardcodeados)
 - CI no corre tests frontend
+- Últimos deploys fallaron en build (commit ci.yml)
 
-## Prioridades ordenadas para proxima sesion
+## Prioridades ordenadas para sesion 13
 
-### Criticas (bloquean deploy seguro)
-1. **M11** — JWT auth: proteger TODOS los endpoints (cero auth actualmente)
-2. **M20** — Fix N+1 queries en stale-patients y patients (docs/roadmap/M20-fix-n-plus-1.md)
+### Criticas (M11 completion — sin esto deploy rompe)
+1. **M11-a** — Migración DB: `prisma db push` para crear tabla users en Supabase
+2. **M11-b** — Agregar JWT_SECRET a Render env vars (backend service)
+3. **M11-c** — Login UI en ambos clientes (formulario + token storage en localStorage)
+4. **M11-d** — Actualizar api.ts: enviar Bearer token en todos los requests
+5. **M11-e** — Auto-redirect a login en 401
+6. **M11-f** — Seed script para usuarios iniciales (Ana, Damian, Jorge)
+7. **M11-g** — CORS restrictivo (solo Render URLs + localhost)
+
+### Criticas (performance)
+8. **M20** — Fix N+1 queries en stale-patients y patients (docs/roadmap/M20-fix-n-plus-1.md)
 
 ### Altas (calidad y estabilidad)
-3. **M17** — Loading state en botones submit (docs/roadmap/M17-loading-states.md)
-4. **M22** — UUID en todos los modelos (docs/roadmap/M22-uuid-migration.md)
-5. **D27** — Tests faltantes en Damian: 10 componentes sin tests (docs/roadmap/D27-tests-faltantes.md)
-6. **M12** — CI frontend: agregar tests de ambos clientes al GitHub Action
-7. **Z17** — config.ts para Zenko (docs/roadmap/Z17-config-ts.md)
-8. **M25** — Renovar Gemini API key (docs/roadmap/M25-gemini-key.md)
-9. **D22** — DELETE /appointments/:id + boton eliminar (docs/roadmap/D22-delete-appointments.md)
-10. **M16** — Shared packages workspace (docs/roadmap/M16-shared-packages.md)
+9. **M17** — Loading state en botones submit (docs/roadmap/M17-loading-states.md)
+10. **M22** — UUID en todos los modelos (docs/roadmap/M22-uuid-migration.md)
+11. **D27** — Tests faltantes en Damian: 10 componentes sin tests (docs/roadmap/D27-tests-faltantes.md)
+12. **M12** — CI frontend: agregar tests de ambos clientes al GitHub Action
+13. **Z17** — config.ts para Zenko (docs/roadmap/Z17-config-ts.md)
+14. **M25** — Renovar Gemini API key (docs/roadmap/M25-gemini-key.md)
+15. **D22** — DELETE /appointments/:id + boton eliminar (docs/roadmap/D22-delete-appointments.md)
+16. **M16** — Shared packages workspace (docs/roadmap/M16-shared-packages.md)
 
 ### Medias (UX y features)
-11. **M14** — Escape key + focus trap en modales
-12. **M21** — Status enum validation (docs/roadmap/M21-status-enum.md)
-13. **M10** — React Router (URLs reales, back/forward, deep linking)
-14. **D23** — Editar fichas clinicas desde Patients.tsx
-15. **D24** — Filtro "Proximas" vs "Historial" en Appointments
+17. **M14** — Escape key + focus trap en modales
+18. **M21** — Status enum validation (docs/roadmap/M21-status-enum.md)
+19. **M10** — React Router (URLs reales, back/forward, deep linking)
+20. **D23** — Editar fichas clinicas desde Patients.tsx
+21. **D24** — Filtro "Proximas" vs "Historial" en Appointments
 16. **Z9** — WhatsApp quick-send boton "Avisar"
 17. **Z10** — Workflow "Entregar" auto-crear ingreso financiero
 18. **Z14** — Filtro por status en tabla Garments
