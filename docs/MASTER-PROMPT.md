@@ -1,16 +1,16 @@
 # Master Prompt — Platform (Zenko + Damian)
 
 > Copiar y pegar este prompt al inicio de cada nueva sesion de trabajo.
-> Ultima actualizacion: 2026-04-06 (post sesion 13)
+> Ultima actualizacion: 2026-04-06 (post sesion 14)
 
 ---
 
 ## Contexto del proyecto
 
 Monorepo con 3 proyectos:
-- `backend/` — Express + Prisma + Supabase PostgreSQL (port 6543 pooler, 5432 direct)
-- `clients/zenko/` — React + Vite (Ana & Ariel, taller de arreglos de ropa)
-- `clients/damian/` — React + Vite (Damian, masajista/turnos/fichas clinicas)
+- `backend/` — Express 5 + Prisma 7 (adapter-pg) + Supabase PostgreSQL (port 6543 pooler, 5432 session mode)
+- `clients/zenko/` — React 19 + Vite 7 (Ana & Ariel, taller de arreglos de ropa)
+- `clients/damian/` — React 19 + Vite 7 (Damian, masajista/turnos/fichas clinicas)
 
 Deploy: Render (backend: `platform-backend`, frontends: static sites)
 Tests: Vitest (301 tests: 216 backend + 48 zenko + 37 damian)
@@ -22,7 +22,7 @@ PWA: Ambas apps instalables, offline-first con IndexedDB cache + mutation queue
 | Servicio | ID | URL | Tipo |
 |----------|-----|-----|------|
 | platform-backend | srv-d78t7c94tr6s73cggik0 | platform-backend-8upb.onrender.com | Web Service |
-| zenko-app | srv-d78t8ema2pns73dppgl0 | platform-ypkr.onrender.com | Static Site |
+| zenko-app | srv-d79sjinkijhs73937rc0 | zenko-app.onrender.com | Static Site |
 | damian-app | srv-d78t9c450q8c73f6g1k0 | damian-app.onrender.com | Static Site |
 
 Script de visibilidad: `bash scripts/render-status.sh [status|deploys|logs|env]`
@@ -34,37 +34,35 @@ Script de visibilidad: `bash scripts/render-status.sh [status|deploys|logs|env]`
 - `DIRECT_DATABASE_URL` — Supabase directa (port 5432, para migraciones)
 - `GEMINI_API_KEY` — Google AI (agotada)
 - `RENDER_API_TOKEN` — API token para scripts de visibilidad
-- `JWT_SECRET` — Configurado localmente. PENDIENTE: agregar en Render
-- `REQUIRE_AUTH` — `true` para produccion, `false` para demo mode (default: true)
+- `JWT_SECRET` — Configurado en local y Render
+- `REQUIRE_AUTH` — `true` en Render (produccion), `false` para demo mode local
 - `NODE_ENV`, `PORT`
 
-**clients/zenko/.env:**
-- `VITE_API_URL=http://localhost:3000/api/zenco` (BUG: apunta a localhost, no a Render)
+**clients/zenko/.env (local):**
+- `VITE_API_URL=http://localhost:3000/api/zenco`
+- En Render: `VITE_API_URL=https://platform-backend-8upb.onrender.com` (configurado via env vars)
 
-**clients/damian/.env:**
-- `VITE_API_URL=http://localhost:3000/api/damian` (BUG: apunta a localhost, no a Render)
+**clients/damian/.env (local):**
+- `VITE_API_URL=http://localhost:3000/api/damian`
+- En Render: `VITE_API_URL=https://platform-backend-8upb.onrender.com` (configurado via env vars)
 
-## Estado actual (post sesion 13)
+## Estado actual (post sesion 14)
 
-### Completado recientemente
-- M11 COMPLETO (codigo): JWT auth full stack — backend + frontend + tests
-  - Login por nombre (case insensitive), Bearer token en todos los requests
-  - REQUIRE_AUTH env var: `false` = demo mode (con boton "Probar Demo"), `true` = login obligatorio
-  - Login UI en ambos clientes con AuthContext + Login page
-  - CORS restrictivo (solo Render URLs + localhost)
-  - Seed script para 3 usuarios (Ana, Damian, Jorge)
-  - 301 tests (216 backend + 48 zenko + 37 damian)
-- Render visibility: `scripts/render-status.sh` — status, deploys, logs, env
-- Infraestructura y .env mapeados en master prompt
-
-### Pendiente infra M11 (Supabase dormida)
-- `prisma db push` — crear tabla users en Supabase
-- Ejecutar seed script (`npx prisma db seed`)
-- Agregar JWT_SECRET y REQUIRE_AUTH en Render env vars (backend service)
+### Completado sesion 14
+- **M11 COMPLETO (infra + codigo)**: JWT auth full stack desplegado en produccion
+  - `prisma db push` ejecutado (tabla users creada en Supabase)
+  - Seed ejecutado: 3 usuarios (Ana/zenco, Damian/damian, Jorge/all)
+  - JWT_SECRET + REQUIRE_AUTH configurados en Render
+  - VITE_API_URL configurado en ambos frontends en Render
+  - CORS actualizado con URLs reales (zenko-app.onrender.com, damian-app.onrender.com)
+- Zenko service recreado con slug correcto: `zenko-app.onrender.com`
+- Vite downgradeado 8→7 (compatibilidad con vite-plugin-pwa)
+- jsdom downgradeado 29→25 (compatibilidad con Node 20)
+- Express 5 type casts para req.params
+- **3 servicios LIVE en Render** — backend + zenko + damian
+- Base de conocimiento creada (Prisma/Supabase, stack versions, errores comunes)
 
 ### Bugs conocidos activos
-- **JWT_SECRET** falta en Render env vars — backend crashea en prod sin esto
-- Frontend .env apunta a localhost:3000 (no funciona desde Render deploy)
 - Gemini API key agotada (chat demo y Agent no funcionan)
 - N+1 queries en /dashboard/stale-patients y /patients (critico para performance)
 - IDs con Date.now() en Order/Appointment/Finance (colision posible)
@@ -72,31 +70,26 @@ Script de visibilidad: `bash scripts/render-status.sh [status|deploys|logs|env]`
 - No hay Escape key ni focus trap en ningun modal
 - Zenko no tiene config.ts (greeting, repairTypes, currency hardcodeados)
 - CI no corre tests frontend
-- Últimos deploys fallaron en build (commit ci.yml)
+- **Z-BUG**: Calendario fecha de entrega en ingles (debe estar en español) + seleccion de fecha no funciona
+- **Z-BUG**: Guardar prenda falla en produccion (investigar: CORS, auth, API path)
 
-## Prioridades ordenadas para sesion 14
-
-### Criticas (infra M11 — sin esto prod no funciona)
-1. **M11-infra-a** — `prisma db push` para crear tabla users en Supabase (requiere Supabase activa)
-2. **M11-infra-b** — Ejecutar seed script: `npx prisma db seed`
-3. **M11-infra-c** — Agregar JWT_SECRET y REQUIRE_AUTH a Render env vars (backend service)
-4. **M11-infra-d** — Actualizar VITE_API_URL en ambos clientes .env para apuntar a Render
+## Prioridades ordenadas para sesion 15
 
 ### Criticas (performance)
-5. **M20** — Fix N+1 queries en stale-patients y patients (docs/roadmap/M20-fix-n-plus-1.md)
+1. **M20** — Fix N+1 queries en stale-patients y patients (docs/roadmap/M20-fix-n-plus-1.md)
 
 ### Altas (calidad y estabilidad)
-6. **M17** — Loading state en botones submit (docs/roadmap/M17-loading-states.md)
-7. **M22** — UUID en todos los modelos (docs/roadmap/M22-uuid-migration.md)
-8. **D27** — Tests faltantes en Damian: 10 componentes sin tests (docs/roadmap/D27-tests-faltantes.md)
-9. **M12** — CI frontend: agregar tests de ambos clientes al GitHub Action
-10. **Z17** — config.ts para Zenko (docs/roadmap/Z17-config-ts.md)
-11. **M25** — Renovar Gemini API key (docs/roadmap/M25-gemini-key.md)
-12. **D22** — DELETE /appointments/:id + boton eliminar (docs/roadmap/D22-delete-appointments.md)
-13. **M16** — Shared packages workspace (docs/roadmap/M16-shared-packages.md)
+2. **M17** — Loading state en botones submit (docs/roadmap/M17-loading-states.md)
+3. **M22** — UUID en todos los modelos (docs/roadmap/M22-uuid-migration.md)
+4. **D27** — Tests faltantes en Damian: 10 componentes sin tests (docs/roadmap/D27-tests-faltantes.md)
+5. **M12** — CI frontend: agregar tests de ambos clientes al GitHub Action
+6. **Z17** — config.ts para Zenko (docs/roadmap/Z17-config-ts.md)
+7. **M25** — Renovar Gemini API key (docs/roadmap/M25-gemini-key.md)
+8. **D22** — DELETE /appointments/:id + boton eliminar (docs/roadmap/D22-delete-appointments.md)
+9. **M16** — Shared packages workspace (docs/roadmap/M16-shared-packages.md)
 
 ### Medias (UX y features)
-14. **M14** — Escape key + focus trap en modales
+10. **M14** — Escape key + focus trap en modales
 15. **M21** — Status enum validation (docs/roadmap/M21-status-enum.md)
 16. **M10** — React Router (URLs reales, back/forward, deep linking)
 17. **D23** — Editar fichas clinicas desde Patients.tsx
