@@ -23,7 +23,18 @@ function getJwtSecret(): string {
   return secret;
 }
 
+export function isAuthRequired(): boolean {
+  return process.env.REQUIRE_AUTH === 'true';
+}
+
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
+  // Bypass: if REQUIRE_AUTH !== 'true', let all requests through
+  if (!isAuthRequired()) {
+    req.user = { userId: 'anonymous', email: 'anonymous', role: 'admin', business: 'all' };
+    next();
+    return;
+  }
+
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Token requerido' });

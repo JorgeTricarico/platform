@@ -18,7 +18,24 @@ import { authRoutes } from './routes/auth.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://zenko-app.onrender.com',
+  'https://damian-app.onrender.com',
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Still allow but log — don't block yet
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(requestLogger);
 

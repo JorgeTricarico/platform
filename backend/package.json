@@ -6,7 +6,7 @@
     "build": "npx prisma generate && npx tsc --outDir dist",
     "start": "npx prisma migrate deploy && node dist/src/index.js",
     "dev": "npx tsx src/index.ts",
-    "seed": "npx tsx src/seed.ts"
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

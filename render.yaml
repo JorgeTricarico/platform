@@ -33,7 +33,7 @@ services:
     name: zenko-app
     runtime: static
     rootDir: clients/zenko
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --legacy-peer-deps && npm run build
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
@@ -50,7 +50,7 @@ services:
     name: damian-app
     runtime: static
     rootDir: clients/damian
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --legacy-peer-deps && npm run build
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL

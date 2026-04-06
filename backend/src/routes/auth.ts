@@ -3,9 +3,14 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../db.js';
 import { validate, registerSchema, loginSchema } from '../schemas.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { signToken } from '../middleware/auth.js';
+import { signToken, isAuthRequired } from '../middleware/auth.js';
 
 export const authRoutes = Router();
+
+// GET /api/auth/status — check if auth is required
+authRoutes.get('/status', (_req, res) => {
+  res.json({ requireAuth: isAuthRequired() });
+});
 
 // POST /api/auth/register
 authRoutes.post(
@@ -44,9 +49,10 @@ authRoutes.post(
   '/login',
   validate(loginSchema),
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { name, password } = req.body;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const users = await prisma.user.findMany({ where: { name: { equals: name, mode: 'insensitive' } } });
+    const user = users[0] || null;
     if (!user) {
       res.status(401).json({ error: 'Credenciales invalidas' });
       return;

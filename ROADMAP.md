@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-06 (sesion 12)
+> Ultima actualizacion: 2026-04-06 (sesion 13)
 
 ## Completado
 
@@ -38,7 +38,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M8 | Fix: updateClient endpoint + Clients.tsx edit bug (crea duplicado) | — | **completado** (PUT /clients/:id + fix handleEdit) | **critica** |
 | M9 | Toast system — reemplazar alert() con notificaciones styled | — | **completado** (ToastProvider + useToast, 16 alert→toast, success feedback) | alta |
 | M10 | React Router — URLs reales, back/forward, deep linking | — | pendiente | media |
-| M11 | Auth basica (JWT) — proteger todos los endpoints | [M11](docs/roadmap/M11-auth-jwt.md) | **parcial** (backend completo: User model, register/login, middleware, business check, 18 tests. Falta: frontend login, JWT_SECRET en Render, CORS restrict) | **critica** |
+| M11 | Auth basica (JWT) — proteger todos los endpoints | [M11](docs/roadmap/M11-auth-jwt.md) | **codigo completo** (backend + frontend + tests. Login por nombre, Bearer token, CORS restrictivo, AuthContext + Login UI, seed script. REQUIRE_AUTH env var controla demo mode. Pendiente infra: prisma db push, seed, Render env vars) | **critica** |
 | M12 | CI frontend — agregar lint + tests de ambos clientes al CI | — | pendiente | alta |
 | M13 | Object storage para fotos (S3/R2) — filesystem efimero en Render | — | pendiente | media |
 | M14 | Cerrar modales con Escape + focus trap + aria-modal | — | pendiente | media |

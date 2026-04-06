@@ -4,16 +4,34 @@ import Garments from './pages/Garments';
 import Finances from './pages/Finances';
 import Clients from './pages/Clients';
 import ChatDemo from './pages/ChatDemo';
+import Login from './pages/Login';
 import NotificationBell from './components/NotificationBell';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ToastProvider, useToast } from './components/ToastContext';
+import { AuthProvider, useAuth } from './components/AuthContext';
 import { setupOnlineSync } from './services/sync';
 import logoUrl from './assets/logo.png';
+
+function AuthGate() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return <Login />;
+  return <AppContent />;
+}
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'clients' | 'chat'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toast = useToast();
+  const { user, authRequired, logout } = useAuth();
 
   useEffect(() => {
     const cleanup = setupOnlineSync((count) => {
@@ -86,8 +104,11 @@ function AppContent() {
           </button>
           <NotificationBell clientId="all" />
           <div className="user-profile">
-            Ana & Ariel
+            {user?.name || 'Ana & Ariel'}
             <div className="user-avatar">Z</div>
+            {authRequired && (
+              <button className="btn" onClick={logout} style={{ marginLeft: 8, padding: '4px 8px', fontSize: '0.75rem' }}>Salir</button>
+            )}
           </div>
         </header>
 
@@ -105,9 +126,11 @@ function AppContent() {
 
 function App() {
   return (
-    <ToastProvider>
-      <AppContent />
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider>
+        <AuthGate />
+      </ToastProvider>
+    </AuthProvider>
   );
 }
 

@@ -2,9 +2,16 @@ export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/ap
 
 import { getCachedData, setCachedData, queueMutation } from './db';
 
+function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...extra };
+  const token = localStorage.getItem('auth_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 async function cachedFetch<T>(url: string): Promise<T> {
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     setCachedData(url, data);
@@ -20,14 +27,13 @@ async function mutationFetch(url: string, method: string, body?: unknown): Promi
   try {
     const res = await fetch(url, {
       method,
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      headers: getAuthHeaders(body ? { 'Content-Type': 'application/json' } : undefined),
       body: body ? JSON.stringify(body) : undefined,
     });
     return res;
   } catch (err) {
     if (!navigator.onLine) {
       await queueMutation({ url, method, body: body ? JSON.stringify(body) : undefined });
-      // Return a fake "accepted" response for offline
       return new Response(JSON.stringify({ offline: true, queued: true }), { status: 202 });
     }
     throw err;
@@ -173,6 +179,7 @@ export const uploadGarmentPhoto = async (garmentId: string, file: File): Promise
   formData.append('photo', file);
   const res = await fetch(`${API_URL}/garments/${garmentId}/photos`, {
     method: 'POST',
+    headers: getAuthHeaders(),
     body: formData,
   });
   if (!res.ok) throw new Error("Error al subir foto");

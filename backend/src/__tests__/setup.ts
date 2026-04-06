@@ -14,8 +14,9 @@ export function authHeader(business: string = 'zenco'): string {
   return `Bearer ${token}`;
 }
 
-// Auto-set JWT_SECRET for all tests
+// Auto-set JWT_SECRET and enable auth for all tests
 vi.stubEnv('JWT_SECRET', TEST_JWT_SECRET);
+vi.stubEnv('REQUIRE_AUTH', 'true');
 
 // Mock the db module so Prisma doesn't try to connect to a real DB
 vi.mock('../db.js', () => {

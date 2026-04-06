@@ -16,7 +16,7 @@ fi
 
 # Service IDs
 BACKEND_ID="srv-d78t7c94tr6s73cggik0"
-ZENKO_ID="srv-d78t8ema2pns73dppgl0"
+ZENKO_ID="srv-d79sjinkijhs73937rc0"
 DAMIAN_ID="srv-d78t9c450q8c73f6g1k0"
 
 API="https://api.render.com/v1"

@@ -7,18 +7,36 @@ import Patients from './pages/Patients';
 import Agent from './pages/Agent';
 import ChatDemo from './pages/ChatDemo';
 import Ambient from './pages/Ambient';
+import Login from './pages/Login';
 import { MusicProvider, useMusicCommand } from './components/MusicContext';
 import { ToastProvider, useToast } from './components/ToastContext';
+import { AuthProvider, useAuth } from './components/AuthContext';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { setupOnlineSync } from './services/sync';
 import { BUSINESS } from './config';
 import logoUrl from './assets/logo.svg';
+
+function AuthGate() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return <Login />;
+  return <AppContent />;
+}
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isPlaying, currentTrackTitle } = useMusicCommand();
   const toast = useToast();
+  const { user, authRequired, logout } = useAuth();
 
   useEffect(() => {
     const cleanup = setupOnlineSync((count) => {
@@ -112,8 +130,11 @@ function AppContent() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
           <div className="user-profile">
-            {BUSINESS.ownerName}
+            {user?.name || BUSINESS.ownerName}
             <div className="user-avatar">D</div>
+            {authRequired && (
+              <button className="btn" onClick={logout} style={{ marginLeft: 8, padding: '4px 8px', fontSize: '0.75rem' }}>Salir</button>
+            )}
           </div>
         </header>
 
@@ -134,11 +155,13 @@ function AppContent() {
 
 function App() {
   return (
-    <ToastProvider>
-      <MusicProvider>
-        <AppContent />
-      </MusicProvider>
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider>
+        <MusicProvider>
+          <AuthGate />
+        </MusicProvider>
+      </ToastProvider>
+    </AuthProvider>
   );
 }
 

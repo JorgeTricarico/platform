@@ -117,8 +117,8 @@ describe('Auth Routes', () => {
   describe('POST /api/auth/login', () => {
     const hashedPassword = bcrypt.hashSync('secret123', 10);
 
-    it('should login and return token', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    it('should login by name and return token', async () => {
+      vi.mocked(prisma.user.findMany).mockResolvedValue([{
         id: 'user-1',
         email: 'ana@zenco.com',
         passwordHash: hashedPassword,
@@ -126,20 +126,20 @@ describe('Auth Routes', () => {
         role: 'admin',
         business: 'zenco',
         createdAt: new Date(),
-      });
+      }]);
 
       const res = await request(app).post('/api/auth/login').send({
-        email: 'ana@zenco.com',
+        name: 'Ana',
         password: 'secret123',
       });
 
       expect(res.status).toBe(200);
       expect(res.body.token).toBeDefined();
-      expect(res.body.user.email).toBe('ana@zenco.com');
+      expect(res.body.user.name).toBe('Ana');
     });
 
     it('should return 401 for wrong password', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      vi.mocked(prisma.user.findMany).mockResolvedValue([{
         id: 'user-1',
         email: 'ana@zenco.com',
         passwordHash: hashedPassword,
@@ -147,10 +147,10 @@ describe('Auth Routes', () => {
         role: 'admin',
         business: 'zenco',
         createdAt: new Date(),
-      });
+      }]);
 
       const res = await request(app).post('/api/auth/login').send({
-        email: 'ana@zenco.com',
+        name: 'Ana',
         password: 'wrong-password',
       });
 
@@ -159,8 +159,10 @@ describe('Auth Routes', () => {
     });
 
     it('should return 401 for non-existent user', async () => {
+      vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+
       const res = await request(app).post('/api/auth/login').send({
-        email: 'noexiste@zenco.com',
+        name: 'NoExiste',
         password: 'secret123',
       });
 
@@ -170,7 +172,7 @@ describe('Auth Routes', () => {
 
     it('should return 400 for missing fields', async () => {
       const res = await request(app).post('/api/auth/login').send({
-        email: 'ana@zenco.com',
+        name: 'Ana',
       });
 
       expect(res.status).toBe(400);
@@ -229,8 +231,9 @@ describe('Auth Middleware', () => {
 
   it('should allow /api/auth routes without auth', async () => {
     // Login attempt (will fail with 401 credentials, NOT 401 token)
+    vi.mocked(prisma.user.findMany).mockResolvedValue([]);
     const res = await request(app).post('/api/auth/login').send({
-      email: 'test@test.com',
+      name: 'Test',
       password: 'test123',
     });
     // 401 from credentials check, not from auth middleware
