@@ -74,7 +74,7 @@ router.put('/appointments/:id/status', validate(updateStatusSchema), asyncHandle
 }));
 
 router.put('/appointments/:id', validate(updateAppointmentSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const data = req.body;
   if (data.date && data.time && data.duration) {
     const conflict = await findConflict(data.date, data.time, data.duration, id);
@@ -133,14 +133,14 @@ router.post('/finances', validate(createFinanceSchema), asyncHandler(async (req,
 }));
 
 router.put('/finances/:id', validate(updateFinanceSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const data = req.body;
   const updated = await prisma.damianFinance.update({ where: { id }, data });
   res.json(updated);
 }));
 
 router.delete('/finances/:id', asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   await prisma.damianFinance.delete({ where: { id } });
   res.json({ success: true });
 }));
@@ -173,7 +173,7 @@ router.post('/clients', validate(createClientSchema), asyncHandler(async (req, r
 }));
 
 router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const data = req.body;
   const updated = await prisma.client.update({
     where: { id },

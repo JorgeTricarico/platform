@@ -156,14 +156,14 @@ router.post('/finances', validate(createFinanceSchema), asyncHandler(async (req,
 }));
 
 router.put('/finances/:id', validate(updateFinanceSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const data = req.body;
   const updated = await prisma.zencoFinance.update({ where: { id }, data });
   res.json(updated);
 }));
 
 router.delete('/finances/:id', asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   await prisma.zencoFinance.delete({ where: { id } });
   res.json({ success: true });
 }));
@@ -197,7 +197,7 @@ router.post('/clients', validate(createClientSchema), asyncHandler(async (req, r
 }));
 
 router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const data = req.body;
   const updated = await prisma.client.update({
     where: { id },
