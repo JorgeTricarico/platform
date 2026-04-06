@@ -71,7 +71,7 @@ Script de visibilidad: `bash scripts/render-status.sh [status|deploys|logs|env]`
 - Zenko no tiene config.ts (greeting, repairTypes, currency hardcodeados)
 - CI no corre tests frontend
 - **Z-BUG**: Calendario fecha de entrega en ingles (debe estar en español) + seleccion de fecha no funciona
-- **Z-BUG**: Guardar prenda falla en produccion (investigar: CORS, auth, API path)
+- **Z-BUG**: Guardar prenda falla en produccion — POST va a /garments en vez de /api/zenco/garments. API_URL no se concatena bien con las rutas
 
 ## Prioridades ordenadas para sesion 15
 
