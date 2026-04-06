@@ -47,7 +47,7 @@ export default function Appointments() {
       loadData();
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 409) {
-        setConflictError((error as Error).message || 'Conflicto de horario');
+        setConflictError((error as unknown as Error).message || 'Conflicto de horario');
       } else {
         toast.error('Error al actualizar la cita');
       }
@@ -65,7 +65,7 @@ export default function Appointments() {
       loadData();
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 409) {
-        setConflictError((error as Error).message || 'Conflicto de horario');
+        setConflictError((error as unknown as Error).message || 'Conflicto de horario');
       } else {
         toast.error('Error al guardar la cita');
       }
