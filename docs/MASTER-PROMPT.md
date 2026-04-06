@@ -17,6 +17,32 @@ Tests: Vitest (283 tests: 198 backend + 48 zenko + 37 damian)
 CI: GitHub Actions (solo backend por ahora)
 PWA: Ambas apps instalables, offline-first con IndexedDB cache + mutation queue
 
+## Infraestructura Render
+
+| Servicio | ID | URL | Tipo |
+|----------|-----|-----|------|
+| platform-backend | srv-d78t7c94tr6s73cggik0 | platform-backend-8upb.onrender.com | Web Service |
+| zenko-app | srv-d78t8ema2pns73dppgl0 | platform-ypkr.onrender.com | Static Site |
+| damian-app | srv-d78t9c450q8c73f6g1k0 | damian-app.onrender.com | Static Site |
+
+Script de visibilidad: `bash scripts/render-status.sh [status|deploys|logs|env]`
+
+### Variables de entorno (.env)
+
+**backend/.env:**
+- `DATABASE_URL` — Supabase pooler (port 6543)
+- `DIRECT_DATABASE_URL` — Supabase directa (port 5432, para migraciones)
+- `GEMINI_API_KEY` — Google AI (agotada)
+- `RENDER_API_TOKEN` — API token para scripts de visibilidad
+- `JWT_SECRET` — (PENDIENTE: agregar en Render y local)
+- `NODE_ENV`, `PORT`
+
+**clients/zenko/.env:**
+- `VITE_API_URL=http://localhost:3000/api/zenco` (BUG: apunta a localhost, no a Render)
+
+**clients/damian/.env:**
+- `VITE_API_URL=http://localhost:3000/api/damian` (BUG: apunta a localhost, no a Render)
+
 ## Estado actual (post sesion 11)
 
 ### Completado recientemente
@@ -27,6 +53,7 @@ PWA: Ambas apps instalables, offline-first con IndexedDB cache + mutation queue
 - M9: Toast system (ToastProvider + useToast, 16 alert reemplazados)
 - D21: Musica persiste entre tabs (display:none vs unmount)
 - L6: PWA + offline-first (service worker, IndexedDB, mutation queue, sync)
+- M11 (backend): JWT auth completo — User model, register/login, middleware, business check (216 tests)
 
 ### Bugs conocidos activos
 - Gemini API key agotada (chat demo y Agent no funcionan)
@@ -106,6 +133,10 @@ PWA: Ambas apps instalables, offline-first con IndexedDB cache + mutation queue
 | `clients/*/src/components/ToastContext.tsx` | Toast notifications |
 | `clients/damian/src/config.ts` | Config de negocio Damian |
 | `backend/prisma/schema.prisma` | Schema de la DB |
+| `backend/.env` | Variables de entorno backend (DB, API keys, tokens) |
+| `clients/zenko/.env` | API URL para Zenko frontend |
+| `clients/damian/.env` | API URL para Damian frontend |
+| `scripts/render-status.sh` | Visibilidad Render (status, deploys, logs, env) |
 
 ## Como empezar
 
