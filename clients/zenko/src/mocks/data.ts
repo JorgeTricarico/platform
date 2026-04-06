@@ -1,5 +1,5 @@
 export type GarmentStatus = 'recibido' | 'en_proceso' | 'listo' | 'entregado';
-export type RepairType = 'cierre' | 'tela' | 'diseño' | 'dobladillo' | 'otro';
+export type RepairType = 'cierre' | 'tela' | 'diseño' | 'dobladillo' | 'entalle' | string;
 
 export interface Garment {
   id: string;

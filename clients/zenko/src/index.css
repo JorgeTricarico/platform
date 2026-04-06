@@ -147,7 +147,7 @@ body {
 /* Typography */
 h1 { font-size: 32px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.5px;}
 h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; }
-.subtitle { color: var(--text-secondary); font-size: 16px; margin-bottom: 32px; font-weight: 500;}
+.subtitle { color: var(--text-secondary); font-size: 16px; margin-bottom: 8px; font-weight: 500;}
 
 /* Components */
 .card {
