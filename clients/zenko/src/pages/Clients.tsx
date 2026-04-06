@@ -148,14 +148,24 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
   onClose: () => void;
   phoneDisabled?: boolean;
 }) {
+  const [submitting, setSubmitting] = useState(false);
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    setSubmitting(true);
+    try {
+      await onSubmit(e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="modal-overlay">
       <div className="card modal-card">
         <h2 style={{ marginTop: 0 }}>{title}</h2>
-        <form onSubmit={onSubmit} className="form-group">
+        <form onSubmit={handleSubmit} className="form-group">
           <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className="input" />
           <div className="form-row">
             <input required name="phone" placeholder="Telefono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input" style={{ flex: 1, opacity: phoneDisabled ? 0.6 : 1 }} />
@@ -165,7 +175,7 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
           <textarea name="notes" placeholder="Notas (opcional)" value={form.notes} onChange={handle} rows={3} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
           <div className="form-actions">
             <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
-            <button type="submit" className="btn btn-primary">Guardar</button>
+            <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
           </div>
         </form>
       </div>

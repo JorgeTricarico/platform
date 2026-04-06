@@ -11,6 +11,7 @@ export default function Dashboard() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', garmentName: '', repairType: '', description: '', deliveryDate: '', price: 0
   });
@@ -38,6 +39,7 @@ export default function Dashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await createGarment({ ...formData, price: Number(formData.price) });
       toast.success('Orden guardada correctamente');
@@ -46,6 +48,8 @@ export default function Dashboard() {
       loadData(); // Refrescar la tabla
     } catch (error) {
       toast.error('Error al guardar la orden');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -166,7 +170,7 @@ export default function Dashboard() {
 
               <div className="form-actions">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancelar</button>
-                <button type="submit" className="btn btn-primary">Crear Orden</button>
+                <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Crear Orden'}</button>
               </div>
             </form>
           </div>

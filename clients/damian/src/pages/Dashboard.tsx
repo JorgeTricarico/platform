@@ -9,6 +9,7 @@ import UpcomingAppointmentsWidget from '../components/UpcomingAppointmentsWidget
 export default function Dashboard() {
   const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
   });
@@ -19,6 +20,7 @@ export default function Dashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await createAppointment({ ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setIsModalOpen(false);
@@ -28,6 +30,8 @@ export default function Dashboard() {
       window.dispatchEvent(new Event('dashboard-refresh'));
     } catch (error) {
       toast.error('Error al guardar la cita');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -79,7 +83,9 @@ export default function Dashboard() {
 
               <div className="form-actions">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancelar</button>
-                <button type="submit" className="btn btn-primary">Agendar Cita</button>
+                <button type="submit" disabled={submitting} className="btn btn-primary">
+                  {submitting ? 'Agendando...' : 'Agendar Cita'}
+                </button>
               </div>
             </form>
           </div>

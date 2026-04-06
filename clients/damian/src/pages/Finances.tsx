@@ -19,6 +19,7 @@ export default function Finances() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [filterMonth, setFilterMonth] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   // Edit state
   const [editTarget, setEditTarget] = useState<DBFinance | null>(null);
@@ -48,6 +49,7 @@ export default function Finances() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await createFinance({ ...form, amount: Number(form.amount) });
       setIsModalOpen(false);
@@ -56,6 +58,8 @@ export default function Finances() {
       load(filterMonth);
     } catch {
       toast.error('Error al guardar el registro');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -73,6 +77,7 @@ export default function Finances() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editTarget) return;
+    setSubmitting(true);
     try {
       await updateFinance(editTarget.id, { ...editForm, amount: Number(editForm.amount) });
       setEditTarget(null);
@@ -80,6 +85,8 @@ export default function Finances() {
       load(filterMonth);
     } catch {
       toast.error('Error al actualizar el registro');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -212,7 +219,9 @@ export default function Finances() {
               <input name="description" placeholder="Descripcion adicional (opcional)" value={form.description} onChange={handle} className="input" />
               <div className="form-actions">
                 <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="btn-secondary">Cancelar</button>
-                <button type="submit" className="btn btn-primary">Guardar</button>
+                <button type="submit" disabled={submitting} className="btn btn-primary">
+                  {submitting ? 'Guardando...' : 'Guardar'}
+                </button>
               </div>
             </form>
           </div>
@@ -237,7 +246,9 @@ export default function Finances() {
               <input name="description" placeholder="Descripcion adicional (opcional)" value={editForm.description} onChange={handleEditChange} className="input" />
               <div className="form-actions">
                 <button type="button" onClick={() => setEditTarget(null)} className="btn-secondary">Cancelar</button>
-                <button type="submit" className="btn btn-primary">Guardar</button>
+                <button type="submit" disabled={submitting} className="btn btn-primary">
+                  {submitting ? 'Guardando...' : 'Guardar'}
+                </button>
               </div>
             </form>
           </div>

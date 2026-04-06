@@ -272,30 +272,36 @@ router.get('/dashboard/appointments', asyncHandler(async (req, res) => {
 }));
 
 router.get('/dashboard/stale-patients', asyncHandler(async (req, res) => {
-  const clients = await prisma.client.findMany({
-    where: { business: 'damian' },
-    orderBy: { name: 'asc' },
-  });
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const cutoff = thirtyDaysAgo.toISOString().split('T')[0];
 
-  const stale = [];
-  for (const c of clients) {
-    const records = await prisma.patientRecord.findMany({
-      where: { clientId: c.id },
-      orderBy: { date: 'desc' },
-      take: 1,
-    });
-    const lastRecord = records[0];
-    if (!lastRecord || lastRecord.date <= cutoff) {
-      stale.push({
-        ...c,
-        lastVisit: lastRecord?.date || null,
-        lastReason: lastRecord?.reason || null,
-      });
+  const clients = await prisma.client.findMany({ where: { business: 'damian' }, orderBy: { name: 'asc' } });
+  const clientIds = clients.map(c => c.id);
+
+  const allRecords = await prisma.patientRecord.findMany({
+    where: { clientId: { in: clientIds } },
+    orderBy: { date: 'desc' },
+    select: { clientId: true, date: true, reason: true },
+  });
+
+  const latestByClient = new Map<string, { date: string; reason: string | null }>();
+  for (const r of allRecords) {
+    if (!latestByClient.has(r.clientId)) {
+      latestByClient.set(r.clientId, { date: r.date, reason: r.reason });
     }
   }
+
+  const stale = clients
+    .filter(c => {
+      const last = latestByClient.get(c.id);
+      return !last || last.date <= cutoff;
+    })
+    .map(c => {
+      const last = latestByClient.get(c.id);
+      return { ...c, lastVisit: last?.date ?? null, lastReason: last?.reason ?? null };
+    });
+
   res.json(stale);
 }));
 
@@ -303,23 +309,39 @@ router.get('/dashboard/stale-patients', asyncHandler(async (req, res) => {
 router.get('/patients', asyncHandler(async (req, res) => {
   const clients = await prisma.client.findMany({
     where: { business: 'damian' },
-    orderBy: { name: 'asc' }
+    orderBy: { name: 'asc' },
   });
-  // For each client, get count of records and last visit
-  const patientsWithInfo = await Promise.all(clients.map(async (c) => {
-    const records = await prisma.patientRecord.findMany({
-      where: { clientId: c.id },
+
+  const clientIds = clients.map(c => c.id);
+
+  const [allRecords, countGroups] = await Promise.all([
+    prisma.patientRecord.findMany({
+      where: { clientId: { in: clientIds } },
       orderBy: { date: 'desc' },
-      take: 1,
-    });
-    const totalRecords = await prisma.patientRecord.count({ where: { clientId: c.id } });
-    return {
-      ...c,
-      totalRecords,
-      lastVisit: records[0]?.date || null,
-      lastReason: records[0]?.reason || null,
-    };
+      select: { clientId: true, date: true, reason: true },
+    }),
+    prisma.patientRecord.groupBy({
+      by: ['clientId'],
+      where: { clientId: { in: clientIds } },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const latestByClient = new Map<string, { date: string; reason: string | null }>();
+  for (const r of allRecords) {
+    if (!latestByClient.has(r.clientId)) {
+      latestByClient.set(r.clientId, { date: r.date, reason: r.reason });
+    }
+  }
+  const countByClient = new Map(countGroups.map(g => [g.clientId, g._count._all]));
+
+  const patientsWithInfo = clients.map(c => ({
+    ...c,
+    totalRecords: countByClient.get(c.id) ?? 0,
+    lastVisit: latestByClient.get(c.id)?.date ?? null,
+    lastReason: latestByClient.get(c.id)?.reason ?? null,
   }));
+
   res.json(patientsWithInfo);
 }));
 

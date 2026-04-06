@@ -224,14 +224,24 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, gar
   showStatus: boolean;
   garmentId?: string;
 }) {
+  const [submitting, setSubmitting] = useState(false);
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    setSubmitting(true);
+    try {
+      await onSubmit(e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="modal-overlay">
       <div className="card modal-card">
         <h2 style={{ marginTop: 0 }}>{title}</h2>
-        <form onSubmit={onSubmit} className="form-group">
+        <form onSubmit={handleSubmit} className="form-group">
           <div className="form-row">
             <input required name="clientName" placeholder="Nombre Cliente" value={form.clientName} onChange={handle} className="input" style={{ flex: 1 }} />
             <input required name="clientPhone" placeholder="Teléfono" value={form.clientPhone} onChange={handle} className="input" style={{ flex: 1 }} />
@@ -269,7 +279,7 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, gar
           )}
           <div className="form-actions">
             <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
-            <button type="submit" className="btn btn-primary">Guardar</button>
+            <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
           </div>
         </form>
         {garmentId && <PhotoGallery garmentId={garmentId} />}

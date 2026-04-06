@@ -12,6 +12,7 @@ export default function Appointments() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<DBAppointment | null>(null);
   const [conflictError, setConflictError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
   });
@@ -38,6 +39,7 @@ export default function Appointments() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editTarget) return;
+    setSubmitting(true);
     try {
       await updateAppointment(editTarget.id, { ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setEditTarget(null);
@@ -51,11 +53,14 @@ export default function Appointments() {
       } else {
         toast.error('Error al actualizar la cita');
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await createAppointment({ ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setIsModalOpen(false);
@@ -69,6 +74,8 @@ export default function Appointments() {
       } else {
         toast.error('Error al guardar la cita');
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -226,7 +233,9 @@ export default function Appointments() {
 
               <div className="form-actions">
                 <button type="button" onClick={() => { setIsModalOpen(false); setConflictError(''); }} className="btn-secondary">Cancelar</button>
-                <button type="submit" className="btn btn-primary">Agendar Cita</button>
+                <button type="submit" disabled={submitting} className="btn btn-primary">
+                  {submitting ? 'Agendando...' : 'Agendar Cita'}
+                </button>
               </div>
             </form>
           </div>
@@ -268,7 +277,9 @@ export default function Appointments() {
 
               <div className="form-actions">
                 <button type="button" onClick={() => { setEditTarget(null); setConflictError(''); }} className="btn-secondary">Cancelar</button>
-                <button type="submit" className="btn btn-primary">Guardar Cambios</button>
+                <button type="submit" disabled={submitting} className="btn btn-primary">
+                  {submitting ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
               </div>
             </form>
           </div>

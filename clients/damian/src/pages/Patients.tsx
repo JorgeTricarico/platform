@@ -16,6 +16,7 @@ export default function Patients() {
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [recordForm, setRecordForm] = useState({ ...EMPTY_RECORD });
+  const [submitting, setSubmitting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -44,6 +45,7 @@ export default function Patients() {
   const handleNewRecord = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPatient) return;
+    setSubmitting(true);
     try {
       await createPatientRecord(selectedPatient.id, recordForm);
       setIsNewRecord(false);
@@ -53,6 +55,7 @@ export default function Patients() {
       toast.success('Ficha guardada correctamente');
       load(); // refresh patient list too
     } catch { toast.error('Error al guardar ficha'); }
+    finally { setSubmitting(false); }
   };
 
   if (loading && patients.length === 0) return <div>Cargando pacientes...</div>;
@@ -111,7 +114,9 @@ export default function Patients() {
                 <input name="nextSession" placeholder="Indicaciones proxima sesion" value={recordForm.nextSession} onChange={e => setRecordForm(p => ({ ...p, nextSession: e.target.value }))} className="input" />
                 <div className="form-actions">
                   <button type="button" onClick={() => { setIsNewRecord(false); setRecordForm({ ...EMPTY_RECORD }); }} className="btn-secondary">Cancelar</button>
-                  <button type="submit" className="btn btn-primary">Guardar Ficha</button>
+                  <button type="submit" disabled={submitting} className="btn btn-primary">
+                    {submitting ? 'Guardando...' : 'Guardar Ficha'}
+                  </button>
                 </div>
               </form>
             </div>

@@ -16,6 +16,8 @@ export default function Finances() {
   const [finances, setFinances] = useState<DBFinance[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [editSubmitting, setEditSubmitting] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [filterMonth, setFilterMonth] = useState('');
 
@@ -47,6 +49,7 @@ export default function Finances() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await createFinance({ ...form, amount: Number(form.amount) });
       toast.success('Registro guardado correctamente');
@@ -55,6 +58,8 @@ export default function Finances() {
       load(filterMonth);
     } catch {
       toast.error('Error al guardar el registro');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -72,6 +77,7 @@ export default function Finances() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editTarget) return;
+    setEditSubmitting(true);
     try {
       await updateFinance(editTarget.id, { ...editForm, amount: Number(editForm.amount) });
       toast.success('Registro actualizado correctamente');
@@ -79,6 +85,8 @@ export default function Finances() {
       load(filterMonth);
     } catch {
       toast.error('Error al actualizar el registro');
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -253,7 +261,7 @@ export default function Finances() {
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn btn-primary">Guardar</button>
+                <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
               </div>
             </form>
           </div>
@@ -319,7 +327,7 @@ export default function Finances() {
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn btn-primary">Guardar</button>
+                <button type="submit" disabled={editSubmitting} className="btn btn-primary">{editSubmitting ? 'Guardando...' : 'Guardar'}</button>
               </div>
             </form>
           </div>
