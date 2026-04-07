@@ -26,3 +26,4 @@
 - [Session 21 Reflection](project_session21_reflection.md) — Z10 auto-ingreso, Z20 delete client, D24 filtros, 343 tests
 - [Subagent Strategy](feedback_subagent_strategy.md) — Features independientes → sub-agentes con worktrees; patrón compartido → sesión principal
 - [Session 22 Reflection](project_session22_reflection.md) — Z22 ingresos Zenko, D28 ingresos Damian, Z25 stale garments, 356 tests
+- [Session 23 Reflection](project_session23_reflection.md) — Finance normalization, statusChangedAt, Z26 Avisar, D29 Próxima Cita, 371 tests
