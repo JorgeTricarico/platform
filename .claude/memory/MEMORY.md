@@ -27,3 +27,4 @@
 - [Subagent Strategy](feedback_subagent_strategy.md) — Features independientes → sub-agentes con worktrees; patrón compartido → sesión principal
 - [Session 22 Reflection](project_session22_reflection.md) — Z22 ingresos Zenko, D28 ingresos Damian, Z25 stale garments, 356 tests
 - [Session 23 Reflection](project_session23_reflection.md) — Finance normalization, statusChangedAt, Z26 Avisar, D29 Próxima Cita, 371 tests
+- [Session 24 Reflection](project_session24_reflection.md) — 7 audit fixes (UUID, randomUUID, indexes, enum, logging, guards, submitting), 377 tests
