@@ -81,12 +81,16 @@ Riesgos, alternativas consideradas, decisiones.
 
 **NO se puede agregar un item al roadmap sin su documento de referencia.**
 
-### Paso 3: Commit
+### Paso 3: Commit + Push
 
-Commitear los cambios de reflexion + roadmap juntos con mensaje:
+Commitear los cambios de reflexion + roadmap juntos y pushear a main:
 ```
-docs: retrospective {fecha} + roadmap update
+git add docs/reflections/ ROADMAP.md
+git commit -m "docs: retrospective {fecha} + roadmap update"
+git push origin main
 ```
+
+**El push es obligatorio.** Sin push, los cambios no quedan en el repo remoto y la próxima sesión puede empezar con un roadmap desactualizado.
 
 ### Paso 4: Generar prompt de continuacion
 

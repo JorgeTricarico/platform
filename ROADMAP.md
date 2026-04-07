@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-07 (sesion 17)
+> Ultima actualizacion: 2026-04-07 (sesion 19)
 
 ## Completado
 
@@ -14,6 +14,11 @@
 | C8 | Vitest v4 migration — workspace→projects API, defineProject por cliente | [C8](docs/roadmap/C8-vitest-v4-migration.md) | 2026-04-07 |
 | C9 | Fix 249 test failures — Prisma mocks faltantes, IDs desactualizados, upload path | [C9](docs/roadmap/C9-fix-test-failures.md) | 2026-04-07 |
 | Z21 | Client search live feedback — "Buscando...", resultados, "No encontrados" | [Z21](docs/roadmap/Z21-client-search-live.md) | 2026-04-07 |
+| Z14 | Filtro por status en tabla Garments (chips Todos/Recibido/En Proceso/Listo/Entregado) | — | 2026-04-07 |
+| Z15 | Highlight visual filas vencidas en Garments (deliveryDate < hoy, status != entregado) | — | 2026-04-07 |
+| Z9  | WhatsApp quick-send — botón "Avisar" con link wa.me pre-armado por prenda | — | 2026-04-07 |
+| Z17 | config.ts para Zenko — centralizar repairTypes, businessName, currency, statuses, whatsappReadyMsg | — | 2026-04-07 |
+| D22 | DELETE /appointments/:id + botón eliminar cita en UI | [D22](docs/roadmap/D22-delete-appointments.md) | 2026-04-07 |
 
 ---
 
@@ -71,18 +76,19 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z6 | Frontend notificaciones (badge + panel en sidebar) | [Z6](docs/roadmap/Z6-frontend-notificaciones.md) | **completado** | media |
 | Z7 | Conectar notificacion prenda lista con WhatsApp | [Z7](docs/roadmap/Z7-whatsapp-prenda-lista.md) | **completado** | alta |
 | Z8 | Galeria de fotos en vista detalle de orden | [Z8](docs/roadmap/Z8-galeria-fotos-orden.md) | **completado** | media |
-| Z9 | WhatsApp quick-send — boton "Avisar" con mensaje pre-armado por prenda | — | pendiente | alta |
+| Z9 | WhatsApp quick-send — botón "Avisar" con link wa.me pre-armado por prenda | — | **completado** (botón verde en tabla, mensaje usa config.ts) | alta |
 | Z10 | Workflow "Entregar" — auto-crear ingreso financiero al marcar entregado | — | pendiente | media |
 | Z11 | Tracking sena/saldo por orden (depositAmount, paid, balance) | — | pendiente | media |
 | Z12 | Export CSV/PDF mensual de ordenes y finanzas | — | pendiente | baja |
 | Z13 | Ranking de tipos de arreglo (chart en Dashboard) | — | pendiente | baja |
-| Z14 | Filtro por status en tabla Garments | — | pendiente | media |
-| Z15 | Highlight visual filas vencidas en Garments (deliveryDate < hoy) | — | pendiente | media |
+| Z14 | Filtro por status en tabla Garments | — | **completado** (chips Todos/Recibido/En Proceso/Listo/Entregado con contadores) | media |
+| Z15 | Highlight visual filas vencidas en Garments (deliveryDate < hoy) | — | **completado** (badge "Vencido" rojo en columna Estado) | media |
 | Z16 | Editar/eliminar registros financieros | — | **completado** (PUT+DELETE /finances/:id + UI edit/delete) | media |
-| Z17 | config.ts para Zenko — centralizar repairTypes, businessName, currency | [Z17](docs/roadmap/Z17-config-ts.md) | pendiente | alta |
+| Z17 | config.ts para Zenko — centralizar repairTypes, businessName, currency, whatsappReadyMsg | — | **completado** (clients/zenko/src/config.ts, GarmentModal importa desde config) | alta |
 | Z18 | Mostrar deliveryDate e intakeDate en tabla Garments | — | pendiente | media |
 | Z19 | Revenue widget en Dashboard (income/expense cards del reports/summary) | — | pendiente | media |
 | Z20 | DELETE /clients/:id endpoint + botón eliminar cliente | — | pendiente | media |
+| Z22 | Botón "Avisar" solo visible/destacado cuando status === 'listo' | — | pendiente | media |
 
 ---
 
@@ -111,12 +117,13 @@ Mejoras que aplican a ambos clientes o al backend general.
 | D19 | Editar/eliminar registros financieros | — | **completado** (PUT+DELETE /finances/:id + UI edit/delete) | media |
 | D20 | Deteccion de conflictos de horario en citas | — | **completado** (409 en POST+PUT, inline error en modal) | alta |
 | D21 | Musica persiste al cambiar de pestaña | — | **completado** (display:none en vez de unmount) | alta |
-| D22 | DELETE /appointments/:id + botón eliminar cita | [D22](docs/roadmap/D22-delete-appointments.md) | pendiente | alta |
+| D22 | DELETE /appointments/:id + botón eliminar cita | [D22](docs/roadmap/D22-delete-appointments.md) | **completado** (endpoint + botón Eliminar rojo en UI) | alta |
 | D23 | Editar fichas clínicas desde Patients.tsx (PUT ya existe en backend) | — | pendiente | media |
 | D24 | Filtro "Próximas" vs "Historial" en Appointments.tsx | — | pendiente | media |
 | D25 | Revenue widget en Dashboard (resumen financiero mensual) | — | pendiente | media |
 | D26 | DELETE /clients/:id endpoint + botón eliminar cliente | — | pendiente | media |
 | D27 | Tests faltantes: Dashboard, Patients, Agent, Ambient, widgets | [D27](docs/roadmap/D27-tests-faltantes.md) | pendiente | alta |
+| D28 | Filtro por fecha/mes en lista de citas (hoy / esta semana / mes) | — | pendiente | media |
 
 ---
 
