@@ -38,7 +38,7 @@ export const updateStatusSchema = z.object({
 
 export const createFinanceSchema = z.object({
   date: z.string().min(1),
-  type: z.string().min(1),
+  type: z.enum(['income', 'expense']),
   category: z.string().min(1),
   amount: z.number(),
   description: z.string().min(1),

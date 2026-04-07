@@ -14,6 +14,7 @@ router.get('/:clientId', async (req, res) => {
     });
     res.json(notifications);
   } catch (error) {
+    console.error('[Notifications] Error:', error);
     res.status(500).json({ error: 'Error al obtener notificaciones' });
   }
 });
@@ -28,6 +29,7 @@ router.patch('/:id/read', async (req, res) => {
     });
     res.json(updated);
   } catch (error) {
+    console.error('[Notifications] Error:', error);
     res.status(500).json({ error: 'Error al marcar notificacion como leida' });
   }
 });

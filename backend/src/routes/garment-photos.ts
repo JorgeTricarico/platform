@@ -49,6 +49,7 @@ router.get('/', async (req: Request<{ id: string }>, res) => {
     });
     res.json(photos);
   } catch (error) {
+    console.error('[GarmentPhotos] Error:', error);
     res.status(500).json({ error: 'Error al obtener fotos' });
   }
 });
@@ -85,6 +86,7 @@ router.post('/', (req: Request<{ id: string }>, res) => {
       });
       res.json(photo);
     } catch (error) {
+      console.error('[GarmentPhotos] Error:', error);
       // If DB write fails, clean up the uploaded file
       if (req.file) {
         await unlink(req.file.path).catch(() => {});
@@ -119,6 +121,7 @@ router.delete('/:photoId', async (req: Request<{ id: string; photoId: string }>,
 
     res.json({ success: true });
   } catch (error) {
+    console.error('[GarmentPhotos] Error:', error);
     res.status(500).json({ error: 'Error al eliminar foto' });
   }
 });

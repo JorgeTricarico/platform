@@ -58,6 +58,9 @@ model Order {
   price        Float
   location     String?
   createdAt    DateTime @default(now())
+
+  @@index([status])
+  @@index([deliveryDate])
 }
 
 model GarmentPhoto {
@@ -79,6 +82,7 @@ model ZencoFinance {
   amount      Float
   description String
 
+  @@index([date])
   @@map("zenco_finances")
 }
 
@@ -99,6 +103,8 @@ model Appointment {
   notes       String?
   location    String   @default("Consultorio")
   createdAt   DateTime @default(now())
+
+  @@index([date])
 }
 
 model DamianFinance {
@@ -109,6 +115,7 @@ model DamianFinance {
   amount      Float
   description String
 
+  @@index([date])
   @@map("damian_finances")
 }
 
