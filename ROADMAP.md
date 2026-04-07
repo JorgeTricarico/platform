@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-07 (sesion 19)
+> Ultima actualizacion: 2026-04-07 (sesion 20)
 
 ## Completado
 
@@ -19,6 +19,9 @@
 | Z9  | WhatsApp quick-send — botón "Avisar" con link wa.me pre-armado por prenda | — | 2026-04-07 |
 | Z17 | config.ts para Zenko — centralizar repairTypes, businessName, currency, statuses, whatsappReadyMsg | — | 2026-04-07 |
 | D22 | DELETE /appointments/:id + botón eliminar cita en UI | [D22](docs/roadmap/D22-delete-appointments.md) | 2026-04-07 |
+| Z22 | Botón "Avisar" solo visible cuando status === 'listo' (era visible en todas las prendas) | — | 2026-04-07 |
+| D28 | Filtro por fecha en Appointments: chips Todos/Hoy/Esta semana/Este mes | — | 2026-04-07 |
+| Z18b | Historial de órdenes por cliente en Clients Zenko (botón → modal con tabla + stats) | — | 2026-04-07 |
 
 ---
 
@@ -88,7 +91,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z18 | Mostrar deliveryDate e intakeDate en tabla Garments | — | pendiente | media |
 | Z19 | Revenue widget en Dashboard (income/expense cards del reports/summary) | — | pendiente | media |
 | Z20 | DELETE /clients/:id endpoint + botón eliminar cliente | — | pendiente | media |
-| Z22 | Botón "Avisar" solo visible/destacado cuando status === 'listo' | — | pendiente | media |
+| Z22 | Botón "Avisar" solo visible/destacado cuando status === 'listo' | — | **completado** (condicional `g.status === 'listo'` en Garments.tsx) | media |
 
 ---
 
@@ -123,7 +126,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | D25 | Revenue widget en Dashboard (resumen financiero mensual) | — | pendiente | media |
 | D26 | DELETE /clients/:id endpoint + botón eliminar cliente | — | pendiente | media |
 | D27 | Tests faltantes: Dashboard, Patients, Agent, Ambient, widgets | [D27](docs/roadmap/D27-tests-faltantes.md) | pendiente | alta |
-| D28 | Filtro por fecha/mes en lista de citas (hoy / esta semana / mes) | — | pendiente | media |
+| D28 | Filtro por fecha/mes en lista de citas (hoy / esta semana / mes) | — | **completado** (chips Todos/Hoy/Esta semana/Este mes en Appointments.tsx) | media |
 
 ---
 
