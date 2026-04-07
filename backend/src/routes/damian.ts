@@ -331,6 +331,26 @@ router.get('/dashboard/stale-patients', asyncHandler(async (req, res) => {
   res.json(stale);
 }));
 
+// D29: Next appointment for a patient
+router.get('/patients/:clientId/next-appointment', asyncHandler(async (req, res) => {
+  const clientId = req.params.clientId as string;
+  const client = await prisma.client.findUnique({ where: { id: clientId } });
+  if (!client) {
+    res.status(404).json({ error: 'Paciente no encontrado' });
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  const appointment = await prisma.appointment.findFirst({
+    where: {
+      clientName: client.name,
+      date: { gte: today },
+      status: { notIn: ['cancelado', 'completado'] },
+    },
+    orderBy: [{ date: 'asc' }, { time: 'asc' }],
+  });
+  res.json(appointment ?? null);
+}));
+
 // Pacientes con sus fichas (lista para la vista principal)
 router.get('/patients', asyncHandler(async (req, res) => {
   const clients = await prisma.client.findMany({

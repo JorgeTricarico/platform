@@ -188,6 +188,10 @@ export const createPatientRecord = async (clientId: string, data: Partial<DBPati
   return res.json();
 };
 
+export const fetchNextAppointment = async (clientId: string): Promise<DBAppointment | null> => {
+  return cachedFetch<DBAppointment | null>(`${API_URL}/patients/${clientId}/next-appointment`);
+};
+
 // --- DASHBOARD ---
 
 export interface DashboardStalePatient extends DBClient {

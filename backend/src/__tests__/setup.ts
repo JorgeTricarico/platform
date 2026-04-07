@@ -51,6 +51,7 @@ vi.mock('../db.js', () => {
     },
     appointment: {
       findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
       findUnique: vi.fn().mockResolvedValue(null),
       create: vi.fn(),
       update: vi.fn(),

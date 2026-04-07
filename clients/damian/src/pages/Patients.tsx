@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fetchPatients, fetchPatientRecords, createPatientRecord } from '../services/api';
-import type { DBPatient, DBPatientRecord } from '../services/api';
+import { fetchPatients, fetchPatientRecords, createPatientRecord, fetchNextAppointment } from '../services/api';
+import type { DBPatient, DBPatientRecord, DBAppointment } from '../services/api';
 import { downloadPatientPdf } from '../utils/exportPdf';
 import { useToast } from '../components/ToastContext';
 
@@ -17,6 +17,8 @@ export default function Patients() {
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [recordForm, setRecordForm] = useState({ ...EMPTY_RECORD });
   const [submitting, setSubmitting] = useState(false);
+  const [nextAppointment, setNextAppointment] = useState<DBAppointment | null>(null);
+  const [loadingNextAppointment, setLoadingNextAppointment] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -35,11 +37,20 @@ export default function Patients() {
   const openHistory = async (patient: DBPatient) => {
     setSelectedPatient(patient);
     setLoadingRecords(true);
+    setLoadingNextAppointment(true);
     try {
-      const recs = await fetchPatientRecords(patient.id);
+      const [recs, appt] = await Promise.all([
+        fetchPatientRecords(patient.id),
+        fetchNextAppointment(patient.id),
+      ]);
       setRecords(recs);
-    } catch { setRecords([]); }
+      setNextAppointment(appt);
+    } catch {
+      setRecords([]);
+      setNextAppointment(null);
+    }
     setLoadingRecords(false);
+    setLoadingNextAppointment(false);
   };
 
   const handleNewRecord = async (e: React.FormEvent) => {
@@ -77,6 +88,23 @@ export default function Patients() {
             <button className="btn btn-small" onClick={() => downloadPatientPdf({ patient: selectedPatient, records })}>Exportar PDF</button>
             <button className="btn btn-primary" onClick={() => setIsNewRecord(true)}>+ Nueva Ficha</button>
           </div>
+        </div>
+
+        {/* D29: Próxima Cita widget */}
+        <div className="card" style={{ padding: '20px 24px', marginTop: '16px' }}>
+          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Próxima Cita</h3>
+          {loadingNextAppointment ? (
+            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Cargando...</div>
+          ) : nextAppointment ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '14px' }}>
+              <span>{new Date(nextAppointment.date + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{nextAppointment.time}</span>
+              <span style={{ fontWeight: 600 }}>{nextAppointment.service}</span>
+              <span className={`badge ${nextAppointment.status}`}>{nextAppointment.status}</span>
+            </div>
+          ) : (
+            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Sin citas programadas</div>
+          )}
         </div>
 
         {loadingRecords ? <div>Cargando historial...</div> : (

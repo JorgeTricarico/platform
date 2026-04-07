@@ -5,7 +5,7 @@ import { app } from '../index.js';
 import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
-  appointment: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
+  appointment: { findMany: ReturnType<typeof vi.fn>; findFirst: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
   damianFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
   client: { findMany: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   patientRecord: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn> };
@@ -631,6 +631,59 @@ describe('DELETE /api/damian/appointments/:id', () => {
     mockPrisma.appointment.delete.mockRejectedValue(new Error('DB error'));
     const res = await request(app).delete('/api/damian/appointments/APT-123').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(500);
+  });
+});
+
+// --- D29: NEXT APPOINTMENT FOR PATIENT ---
+
+describe('GET /api/damian/patients/:clientId/next-appointment', () => {
+  it('returns the next upcoming appointment for the patient', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
+    const upcoming = {
+      id: 'APT-1', clientName: 'Juan Perez', clientPhone: '1111',
+      service: 'Masaje descontracturante', duration: 60,
+      date: today, time: '10:00', status: 'pendiente', price: 8000, notes: null,
+    };
+    mockPrisma.appointment.findFirst.mockResolvedValue(upcoming);
+
+    const res = await request(app).get('/api/damian/patients/c1/next-appointment').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe('APT-1');
+    expect(res.body.service).toBe('Masaje descontracturante');
+    expect(mockPrisma.client.findUnique).toHaveBeenCalledWith({ where: { id: 'c1' } });
+    expect(mockPrisma.appointment.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        clientName: 'Juan Perez',
+        date: { gte: today },
+        status: { notIn: ['cancelado', 'completado'] },
+      }),
+      orderBy: [{ date: 'asc' }, { time: 'asc' }],
+    }));
+  });
+
+  it('returns null when no upcoming appointment exists', async () => {
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c2', name: 'Laura Garcia', phone: '2222', business: 'damian' });
+    mockPrisma.appointment.findFirst.mockResolvedValue(null);
+
+    const res = await request(app).get('/api/damian/patients/c2/next-appointment').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(200);
+    expect(res.body).toBeNull();
+  });
+
+  it('returns 404 when client not found', async () => {
+    mockPrisma.client.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).get('/api/damian/patients/nonexistent/next-appointment').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.client.findUnique.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).get('/api/damian/patients/c1/next-appointment').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBeDefined();
   });
 });
 
