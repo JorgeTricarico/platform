@@ -216,6 +216,10 @@ router.get('/clients/search', asyncHandler(async (req, res) => {
 
 router.get('/patients/:clientId/records', asyncHandler(async (req, res) => {
   const clientId = req.params.clientId as string;
+  const client = await prisma.client.findUnique({ where: { id: clientId } });
+  if (!client) {
+    return res.status(404).json({ error: 'Client not found' });
+  }
   const records = await prisma.patientRecord.findMany({
     where: { clientId },
     orderBy: { date: 'desc' }
@@ -225,6 +229,10 @@ router.get('/patients/:clientId/records', asyncHandler(async (req, res) => {
 
 router.post('/patients/:clientId/records', validate(createPatientRecordSchema), asyncHandler(async (req, res) => {
   const clientId = req.params.clientId as string;
+  const client = await prisma.client.findUnique({ where: { id: clientId } });
+  if (!client) {
+    return res.status(404).json({ error: 'Client not found' });
+  }
   const data = req.body;
   const record = await prisma.patientRecord.create({
     data: {

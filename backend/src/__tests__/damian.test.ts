@@ -192,6 +192,7 @@ describe('GET /api/damian/patients/:clientId/records', () => {
     const records = [
       { id: 'rec-1', clientId: 'c1', date: '2026-04-01', reason: 'Dolor cervical', symptoms: 'Tension', areas: 'Cervical, trapecio', treatment: 'Masaje descontracturante', observations: 'Mejoria', nextSession: 'En 1 semana' },
     ];
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
     mockPrisma.patientRecord.findMany.mockResolvedValue(records);
     const res = await request(app).get('/api/damian/patients/c1/records').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
@@ -200,10 +201,18 @@ describe('GET /api/damian/patients/:clientId/records', () => {
   });
 
   it('returns empty for patient with no records', async () => {
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
     mockPrisma.patientRecord.findMany.mockResolvedValue([]);
     const res = await request(app).get('/api/damian/patients/c1/records').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
+  });
+
+  it('returns 404 for non-existent client', async () => {
+    mockPrisma.client.findUnique.mockResolvedValue(null);
+    const res = await request(app).get('/api/damian/patients/FAKE/records').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('Client not found');
   });
 });
 
@@ -215,6 +224,7 @@ describe('POST /api/damian/patients/:clientId/records', () => {
       nextSession: 'Control en 5 dias',
     };
     const created = { id: 'rec-new', clientId: 'c1', ...input, createdAt: new Date().toISOString() };
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
     mockPrisma.patientRecord.create.mockResolvedValue(created);
 
     const res = await request(app).post('/api/damian/patients/c1/records').set('Authorization', authHeader('damian')).send(input);
@@ -228,6 +238,7 @@ describe('POST /api/damian/patients/:clientId/records', () => {
 
   it('creates record with minimal fields', async () => {
     const input = { date: '2026-04-05', reason: 'Control' };
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
     mockPrisma.patientRecord.create.mockResolvedValue({ id: 'rec-min', clientId: 'c1', ...input });
 
     const res = await request(app).post('/api/damian/patients/c1/records').set('Authorization', authHeader('damian')).send(input);
@@ -236,12 +247,22 @@ describe('POST /api/damian/patients/:clientId/records', () => {
   });
 
   it('returns 500 when prisma throws', async () => {
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
     mockPrisma.patientRecord.create.mockRejectedValue(new Error('DB error'));
     const res = await request(app).post('/api/damian/patients/c1/records').set('Authorization', authHeader('damian')).send({
       date: '2026-04-05', reason: 'Test',
     });
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
+  });
+
+  it('returns 404 for non-existent client', async () => {
+    mockPrisma.client.findUnique.mockResolvedValue(null);
+    const res = await request(app).post('/api/damian/patients/FAKE/records').set('Authorization', authHeader('damian')).send({
+      date: '2026-04-05', reason: 'Test',
+    });
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('Client not found');
   });
 });
 
@@ -333,6 +354,15 @@ describe('Damian validation', () => {
       amount: 'mucho', description: 'Test',
     });
     expect(res.status).toBe(400);
+  });
+
+  it('POST /finances returns 400 when type is invalid', async () => {
+    const res = await request(app).post('/api/damian/finances').set('Authorization', authHeader('damian')).send({
+      date: '2026-04-05', type: 'invalid', category: 'Masajes',
+      amount: 1000, description: 'Test',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Datos invalidos');
   });
 
   it('POST /clients returns 400 when phone is missing', async () => {
