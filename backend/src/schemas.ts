@@ -2,6 +2,21 @@ import { z } from 'zod';
 
 // --- ZENCO ---
 
+export const GARMENT_STATUSES = ['recibido', 'en_proceso', 'listo', 'entregado'] as const;
+export type GarmentStatus = typeof GARMENT_STATUSES[number];
+
+const positivePrice = z.union([
+  z.number().nonnegative(),
+  z.string().transform((val, ctx) => {
+    const n = Number(val);
+    if (isNaN(n) || n < 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Precio debe ser un numero positivo' });
+      return z.NEVER;
+    }
+    return n;
+  }),
+]);
+
 export const createGarmentSchema = z.object({
   clientName: z.string().min(1),
   clientPhone: z.string().min(1),
@@ -9,16 +24,16 @@ export const createGarmentSchema = z.object({
   repairType: z.string().min(1),
   description: z.string().min(1),
   deliveryDate: z.string().min(1),
-  price: z.union([z.number(), z.string().transform(Number)]),
+  price: positivePrice,
   intakeDate: z.string().optional(),
-  status: z.string().optional(),
+  status: z.enum(GARMENT_STATUSES).optional(),
   location: z.string().nullish(),
 });
 
 export const updateGarmentSchema = createGarmentSchema;
 
 export const updateStatusSchema = z.object({
-  status: z.string().min(1),
+  status: z.enum(GARMENT_STATUSES),
 });
 
 export const createFinanceSchema = z.object({
@@ -43,6 +58,9 @@ export const updateClientSchema = createClientSchema.partial();
 
 // --- DAMIAN ---
 
+export const APPOINTMENT_STATUSES = ['pendiente', 'confirmado', 'completado', 'cancelado'] as const;
+export type AppointmentStatus = typeof APPOINTMENT_STATUSES[number];
+
 export const createAppointmentSchema = z.object({
   clientName: z.string().min(1),
   clientPhone: z.string().min(1),
@@ -50,13 +68,17 @@ export const createAppointmentSchema = z.object({
   duration: z.number().positive(),
   date: z.string().min(1),
   time: z.string().min(1),
-  price: z.number(),
-  status: z.string().optional(),
+  price: z.number().nonnegative(),
+  status: z.enum(APPOINTMENT_STATUSES).optional(),
   notes: z.string().nullish(),
   location: z.string().optional(),
 });
 
 export const updateAppointmentSchema = createAppointmentSchema.partial();
+
+export const updateAppointmentStatusSchema = z.object({
+  status: z.enum(APPOINTMENT_STATUSES),
+});
 
 export const createPatientRecordSchema = z.object({
   date: z.string().min(1),

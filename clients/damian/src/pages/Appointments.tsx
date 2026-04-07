@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchAppointments, updateAppointmentStatus, createAppointment, updateAppointment } from '../services/api';
+import { fetchAppointments, updateAppointmentStatus, createAppointment, updateAppointment, deleteAppointment } from '../services/api';
 import type { DBAppointment } from '../services/api';
 import { BUSINESS } from '../config';
 import { useToast } from '../components/ToastContext';
@@ -92,6 +92,17 @@ export default function Appointments() {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Eliminar esta cita?')) return;
+    try {
+      await deleteAppointment(id);
+      toast.success('Cita eliminada');
+      loadData();
+    } catch {
+      toast.error('Error al eliminar la cita');
+    }
+  };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
@@ -190,6 +201,12 @@ export default function Appointments() {
                         onClick={() => openEdit(a)}
                         style={{ cursor: 'pointer' }}
                       >Editar</button>
+                      <button
+                        type="button"
+                        className="btn-small"
+                        onClick={() => handleDelete(a.id)}
+                        style={{ cursor: 'pointer', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5' }}
+                      >Eliminar</button>
                     </div>
                   </td>
                 </tr>

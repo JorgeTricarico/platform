@@ -93,6 +93,11 @@ export const updateAppointmentStatus = async (id: string, status: string): Promi
   return res.json();
 };
 
+export const deleteAppointment = async (id: string): Promise<void> => {
+  const res = await mutationFetch(`${API_URL}/appointments/${id}`, 'DELETE');
+  if (!res.ok && res.status !== 202) throw new Error("Error al eliminar la cita");
+};
+
 export const fetchFinances = async (month?: string): Promise<DBFinance[]> => {
   const params = month ? `?month=${month}` : '';
   return cachedFetch<DBFinance[]>(`${API_URL}/finances${params}`);

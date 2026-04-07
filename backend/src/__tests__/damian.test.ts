@@ -581,6 +581,24 @@ describe('DELETE /api/damian/finances/:id', () => {
   });
 });
 
+// --- D22: DELETE APPOINTMENT ---
+
+describe('DELETE /api/damian/appointments/:id', () => {
+  it('deletes an appointment and returns success', async () => {
+    mockPrisma.appointment.delete.mockResolvedValue({});
+    const res = await request(app).delete('/api/damian/appointments/APT-123').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ success: true });
+    expect(mockPrisma.appointment.delete).toHaveBeenCalledWith({ where: { id: 'APT-123' } });
+  });
+
+  it('returns 500 when prisma throws', async () => {
+    mockPrisma.appointment.delete.mockRejectedValue(new Error('DB error'));
+    const res = await request(app).delete('/api/damian/appointments/APT-123').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(500);
+  });
+});
+
 // --- D20: CONFLICT DETECTION ON POST ---
 
 describe('POST /api/damian/appointments - conflict detection', () => {

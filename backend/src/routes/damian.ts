@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
-import { validate, createAppointmentSchema, updateAppointmentSchema, updateStatusSchema, createFinanceSchema, updateFinanceSchema, createClientSchema, updateClientSchema, createPatientRecordSchema, updatePatientRecordSchema } from '../schemas.js';
+import { validate, createAppointmentSchema, updateAppointmentSchema, updateAppointmentStatusSchema, createFinanceSchema, updateFinanceSchema, createClientSchema, updateClientSchema, createPatientRecordSchema, updatePatientRecordSchema } from '../schemas.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = Router();
@@ -63,7 +63,7 @@ router.post('/appointments', validate(createAppointmentSchema), asyncHandler(asy
   res.json(newAppointment);
 }));
 
-router.put('/appointments/:id/status', validate(updateStatusSchema), asyncHandler(async (req, res) => {
+router.put('/appointments/:id/status', validate(updateAppointmentStatusSchema), asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   const { status } = req.body;
   const updated = await prisma.appointment.update({
@@ -88,6 +88,12 @@ router.put('/appointments/:id', validate(updateAppointmentSchema), asyncHandler(
     data,
   });
   res.json(updated);
+}));
+
+router.delete('/appointments/:id', asyncHandler(async (req, res) => {
+  const id = req.params.id as string;
+  await prisma.appointment.delete({ where: { id } });
+  res.json({ success: true });
 }));
 
 // --- FINANZAS DAMIAN ---
@@ -188,7 +194,11 @@ router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req
 }));
 
 router.get('/clients/search', asyncHandler(async (req, res) => {
-  const q = (req.query.q as string || '').toLowerCase();
+  const q = (req.query.q as string || '').trim();
+  if (!q) {
+    res.json([]);
+    return;
+  }
   const clients = await prisma.client.findMany({
     where: {
       business: 'damian',

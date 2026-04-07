@@ -214,7 +214,11 @@ router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req
 }));
 
 router.get('/clients/search', asyncHandler(async (req, res) => {
-  const q = (req.query.q as string || '').toLowerCase();
+  const q = (req.query.q as string || '').trim();
+  if (!q) {
+    res.json([]);
+    return;
+  }
   const clients = await prisma.client.findMany({
     where: {
       business: 'zenco',

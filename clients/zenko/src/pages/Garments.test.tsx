@@ -128,12 +128,12 @@ describe('Garments page', () => {
   it('status badges have distinct colors and nowrap', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText(/Listo/)).toBeInTheDocument();
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
-    expect(screen.getByText(/✓ Listo/)).toHaveStyle({ color: '#2e7d32', whiteSpace: 'nowrap' });
-    expect(screen.getByText(/⚙ En Proceso/)).toHaveStyle({ color: '#1565c0', whiteSpace: 'nowrap' });
-    expect(screen.getByText(/● Recibido/)).toHaveStyle({ color: '#e65100', whiteSpace: 'nowrap' });
-    expect(screen.getByText(/✔ Entregado/)).toHaveStyle({ color: '#757575', whiteSpace: 'nowrap' });
+    expect(screen.getByText('✓ Listo')).toHaveStyle({ color: '#2e7d32', whiteSpace: 'nowrap' });
+    expect(screen.getByText('⚙ En Proceso')).toHaveStyle({ color: '#1565c0', whiteSpace: 'nowrap' });
+    expect(screen.getByText('● Recibido')).toHaveStyle({ color: '#e65100', whiteSpace: 'nowrap' });
+    expect(screen.getByText('✔ Entregado')).toHaveStyle({ color: '#757575', whiteSpace: 'nowrap' });
   });
 
   it('search filters by repairType and description', async () => {
@@ -199,6 +199,89 @@ describe('Garments page', () => {
     const select = screen.getByDisplayValue('Tipo de Arreglo...');
     fireEvent.change(select, { target: { value: 'otro' } });
     expect(screen.getByPlaceholderText('Escribí el tipo de arreglo...')).toBeInTheDocument();
+  });
+
+  // Z14: Status filter chips
+  it('renders status filter chips', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Todos \(/)).toBeInTheDocument();
+    expect(screen.getByText(/Recibido \(/)).toBeInTheDocument();
+    expect(screen.getByText(/En Proceso \(/)).toBeInTheDocument();
+    expect(screen.getByText(/Listo \(/)).toBeInTheDocument();
+    expect(screen.getByText(/Entregado \(/)).toBeInTheDocument();
+  });
+
+  it('filters garments by status when chip is clicked', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText(/Listo \(/));
+    expect(screen.getByText('Vestido (diseño)')).toBeInTheDocument();
+    expect(screen.queryByText('Campera de Cuero (cierre)')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pantalón (dobladillo)')).not.toBeInTheDocument();
+  });
+
+  it('shows all garments when Todos chip is clicked', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText(/Listo \(/));
+    expect(screen.queryByText('Pantalón (dobladillo)')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText(/Todos \(/));
+    expect(screen.getByText('Pantalón (dobladillo)')).toBeInTheDocument();
+    expect(screen.getByText('Vestido (diseño)')).toBeInTheDocument();
+  });
+
+  it('shows count on filter chips', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Todos (4)')).toBeInTheDocument();
+    expect(screen.getByText('Recibido (1)')).toBeInTheDocument();
+    expect(screen.getByText('En Proceso (1)')).toBeInTheDocument();
+    expect(screen.getByText('Listo (1)')).toBeInTheDocument();
+    expect(screen.getByText('Entregado (1)')).toBeInTheDocument();
+  });
+
+  // Z15: Overdue row highlighting
+  it('highlights overdue garments with visual indicator', async () => {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const overdueGarments = [
+      {
+        id: 'ORD-OV1', clientName: 'Test Client', clientPhone: '1234',
+        garmentName: 'Overdue Garment', repairType: 'cierre',
+        description: 'Test', status: 'recibido',
+        intakeDate: '2026-01-01', deliveryDate: yesterday.toISOString().split('T')[0],
+        price: 1000, location: ''
+      },
+    ];
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(overdueGarments);
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Overdue Garment (cierre)')).toBeInTheDocument();
+    });
+    // The overdue row should have a visual indicator (text or icon)
+    expect(screen.getByText(/vencid/i)).toBeInTheDocument();
+  });
+
+  it('renders WhatsApp Avisar button for each garment', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+    });
+    const aviseButtons = screen.getAllByText('Avisar');
+    expect(aviseButtons).toHaveLength(4);
+    const firstLink = aviseButtons[0].closest('a');
+    expect(firstLink).toHaveAttribute('href', expect.stringContaining('wa.me'));
+    expect(firstLink).toHaveAttribute('target', '_blank');
   });
 
   it('client search calls searchClients API', async () => {

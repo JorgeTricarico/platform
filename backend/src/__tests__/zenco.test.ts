@@ -373,6 +373,56 @@ describe('Zenco validation', () => {
     const res = await request(app).post('/api/zenco/clients').set('Authorization', authHeader('zenco')).send({ phone: '1234' });
     expect(res.status).toBe(400);
   });
+
+  it('POST /garments returns 400 when status is invalid enum value', async () => {
+    const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send({
+      clientName: 'Ana', clientPhone: '1234', garmentName: 'Pantalon',
+      repairType: 'dobladillo', description: 'acortar', deliveryDate: '2026-04-10',
+      price: 3000, status: 'INVALID_STATUS',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Datos invalidos');
+  });
+
+  it('PUT /garments/:id/status returns 400 for invalid status value', async () => {
+    const res = await request(app).put('/api/zenco/garments/0001/status').set('Authorization', authHeader('zenco')).send({ status: 'inexistente' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Datos invalidos');
+  });
+
+  it('POST /garments returns 400 when price is negative', async () => {
+    const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send({
+      clientName: 'Ana', clientPhone: '1234', garmentName: 'Pantalon',
+      repairType: 'dobladillo', description: 'acortar', deliveryDate: '2026-04-10',
+      price: -500,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Datos invalidos');
+  });
+
+  it('POST /garments returns 400 when price is NaN string', async () => {
+    const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send({
+      clientName: 'Ana', clientPhone: '1234', garmentName: 'Pantalon',
+      repairType: 'dobladillo', description: 'acortar', deliveryDate: '2026-04-10',
+      price: 'abc',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Datos invalidos');
+  });
+
+  it('GET /clients/search returns empty array when q is empty', async () => {
+    const res = await request(app).get('/api/zenco/clients/search').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+    expect(mockPrisma.client.findMany).not.toHaveBeenCalled();
+  });
+
+  it('GET /clients/search returns empty array when q is whitespace only', async () => {
+    const res = await request(app).get('/api/zenco/clients/search?q=%20%20').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+    expect(mockPrisma.client.findMany).not.toHaveBeenCalled();
+  });
 });
 
 // --- REPORTS ---
