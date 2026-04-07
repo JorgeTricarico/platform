@@ -1,0 +1,8 @@
+# SQLite DB — binary, no commitear
+*.db
+*.db-wal
+*.db-shm
+
+# Chunks sí se commitean (backup portátil)
+!chunks/
+!chunks/.gitkeep
