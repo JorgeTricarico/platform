@@ -22,3 +22,5 @@
 - [Session 19 Reflection](project_session19_reflection.md) — D22 delete appointments, Z9 WhatsApp Avisar, Z17 config.ts Zenko, 324 tests
 - [Session 20 Reflection](project_session20_reflection.md) — Z9b Avisar solo listo, D23 filtro fecha turnos, Z18 historial cliente Zenko, 334 tests
 - [Fake Timers + waitFor](feedback_fake_timers_waitfor.md) — vi.useFakeTimers() bloquea waitFor; fix: shouldAdvanceTime: true
+- [Always Commit Push](feedback_always_commit_push.md) — Siempre commit+push sin preguntar
+- [Session 21 Reflection](project_session21_reflection.md) — Z10 auto-ingreso, Z20 delete client, D24 filtros, 343 tests
