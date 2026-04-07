@@ -24,3 +24,5 @@
 - [Fake Timers + waitFor](feedback_fake_timers_waitfor.md) — vi.useFakeTimers() bloquea waitFor; fix: shouldAdvanceTime: true
 - [Always Commit Push](feedback_always_commit_push.md) — Siempre commit+push sin preguntar
 - [Session 21 Reflection](project_session21_reflection.md) — Z10 auto-ingreso, Z20 delete client, D24 filtros, 343 tests
+- [Subagent Strategy](feedback_subagent_strategy.md) — Features independientes → sub-agentes con worktrees; patrón compartido → sesión principal
+- [Session 22 Reflection](project_session22_reflection.md) — Z22 ingresos Zenko, D28 ingresos Damian, Z25 stale garments, 356 tests
