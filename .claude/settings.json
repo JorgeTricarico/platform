@@ -7,16 +7,6 @@
       "Bash(node -e ':*)"
     ]
   },
-  "mcpServers": {
-    "engram": {
-      "command": "/home/jorge/.local/bin/engram",
-      "args": ["mcp", "--tools=agent"],
-      "env": {
-        "ENGRAM_DATA_DIR": "/home/jorge/Documents/Github/Platform/.engram",
-        "ENGRAM_PROJECT": "platform"
-      }
-    }
-  },
   "hooks": {
     "PreToolUse": [
       {

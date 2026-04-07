@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "engram": {
+      "command": "$HOME/.local/bin/engram",
+      "args": ["mcp", "--tools=agent"],
+      "env": {
+        "ENGRAM_DATA_DIR": "${PWD}/.engram",
+        "ENGRAM_PROJECT": "platform"
+      }
+    }
+  }
+}
