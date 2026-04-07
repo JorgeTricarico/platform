@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-06 (sesion 13)
+> Ultima actualizacion: 2026-04-07 (sesion 17)
 
 ## Completado
 
@@ -11,6 +11,9 @@
 | B1 | Migrar DB: clients + patient_records + intakeDate (port 5432) | [B1](docs/roadmap/B1-migracion-db.md) | 2026-04-05 |
 | C1 | Completar test suite backend Damian (TDD) | [C1](docs/roadmap/C1-tests-damian.md) | 2026-04-05 |
 | C5 | Redeploy en Render post-migracion | [C5](docs/roadmap/C5-redeploy-render.md) | 2026-04-05 |
+| C8 | Vitest v4 migration — workspace→projects API, defineProject por cliente | [C8](docs/roadmap/C8-vitest-v4-migration.md) | 2026-04-07 |
+| C9 | Fix 249 test failures — Prisma mocks faltantes, IDs desactualizados, upload path | [C9](docs/roadmap/C9-fix-test-failures.md) | 2026-04-07 |
+| Z21 | Client search live feedback — "Buscando...", resultados, "No encontrados" | [Z21](docs/roadmap/Z21-client-search-live.md) | 2026-04-07 |
 
 ---
 
@@ -44,10 +47,10 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M14 | Cerrar modales con Escape + focus trap + aria-modal | — | pendiente | media |
 | M15 | Paginacion en endpoints y tablas (garments, clients, appointments) | — | pendiente | media |
 | M16 | Shared packages workspace — extraer db.ts, sync.ts, ToastContext, OfflineIndicator | [M16](docs/roadmap/M16-shared-packages.md) | pendiente | alta |
-| M17 | Loading state en botones submit (evitar doble-click) | [M17](docs/roadmap/M17-loading-states.md) | pendiente | alta |
+| M17 | Loading state en botones submit (evitar doble-click) | [M17](docs/roadmap/M17-loading-states.md) | **completado** (sesion 15) | alta |
 | M18 | Eliminar console.error leftovers en 7 archivos frontend | — | pendiente | baja |
 | M19 | Confirm modal custom — reemplazar window.confirm con modal styled | — | pendiente | media |
-| M20 | Fix N+1 queries: stale-patients y patients (batch query) | [M20](docs/roadmap/M20-fix-n-plus-1.md) | pendiente | **critica** |
+| M20 | Fix N+1 queries: stale-patients y patients (batch query) | [M20](docs/roadmap/M20-fix-n-plus-1.md) | **completado** (sesion 15) | **critica** |
 | M21 | Status enum validation — zod enum para garment y appointment status | [M21](docs/roadmap/M21-status-enum.md) | pendiente | media |
 | M22 | UUID en todos los modelos — reemplazar Date.now() IDs en Order/Appointment/Finance | [M22](docs/roadmap/M22-uuid-migration.md) | pendiente | alta |
 | M23 | Cache TTL en cachedFetch — no servir datos stale indefinidamente | — | pendiente | media |
@@ -126,6 +129,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | A3 | Migration detector (schema changes sin db push) | [A3](docs/roadmap/A3-migration-detector.md) | pendiente | alta |
 | A4 | Retry con diagnostico (curl antes de buscar en codigo) | [A4](docs/roadmap/A4-retry-diagnostico.md) | pendiente | baja |
 | A5 | Testing automatizado post-implementacion | [A5](docs/roadmap/A5-testing-automatizado.md) | pendiente | media |
+| A6 | TDD enforcement via Claude Code hooks + CLAUDE.md rules | [A6](docs/roadmap/A6-tdd-enforcement-hooks.md) | **en progreso** | **critica** |
 
 ---
 

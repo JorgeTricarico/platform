@@ -92,13 +92,44 @@ After setup, `.agents/project-context.md` contains the auto-detected stack:
 language, framework, package manager, test framework, monorepo status.
 This file is auto-generated and gitignored.
 
+## TDD Obligatorio (A6)
+
+**REGLA ABSOLUTA: tests ANTES que codigo. Sin excepciones.**
+
+Para CUALQUIER cambio en archivos de produccion (`backend/src/routes/`, `clients/*/src/pages/`, `clients/*/src/components/`):
+
+1. **RED** — Escribir/actualizar el test que describe el comportamiento esperado. El test DEBE fallar.
+2. **GREEN** — Implementar el codigo minimo para que el test pase.
+3. **VERIFY** — Correr `npx vitest run` completo (no solo el archivo afectado).
+
+### Reglas de mocks
+- Si un route usa un metodo Prisma nuevo (ej: `findFirst`, `groupBy`): AGREGAR al mock en `backend/src/__tests__/setup.ts`
+- Si se cambia el formato de un campo (ej: IDs): ACTUALIZAR todos los tests que lo referencian
+- Los mocks deben cubrir TODOS los metodos Prisma usados en routes
+
+### Antes de commit
+- `npx vitest run` debe pasar al 100% (310+ tests)
+- Verificar que tests nuevos cubren happy path + error cases
+- Si hay tests failing pre-existentes: arreglarlos ANTES de implementar features nuevas
+
+### Secuencia obligatoria para features
+```
+1. Leer tests existentes del area afectada
+2. Escribir test para el nuevo comportamiento (RED)
+3. Verificar que falla por la razon correcta
+4. Implementar el codigo (GREEN)
+5. Refactorizar si necesario
+6. Correr suite completa
+```
+
 ## Global Guardrails
 
 1. **Plan-First** — every complex task needs a plan before execution
-2. **Audit post-change** — always validate after any code change
-3. **Continuous improvement** — if you see something broken, fix it or log it
-4. **Identity Control** — never expose secrets, tokens or sensitive data
-5. **Read before edit** — always read from disk before editing any file
+2. **TDD-First** — tests before implementation, always (see TDD Obligatorio above)
+3. **Audit post-change** — always validate after any code change
+4. **Continuous improvement** — if you see something broken, fix it or log it
+5. **Identity Control** — never expose secrets, tokens or sensitive data
+6. **Read before edit** — always read from disk before editing any file
 
 ## Directories
 

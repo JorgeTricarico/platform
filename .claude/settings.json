@@ -6,5 +6,29 @@
       "Bash(curl -s http://localhost:3000/health)",
       "Bash(node -e ':*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/tdd-guard.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/tdd-tracker.sh"
+          }
+        ]
+      }
+    ]
   }
 }
