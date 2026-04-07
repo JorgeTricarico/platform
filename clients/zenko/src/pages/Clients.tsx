@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fetchClients, searchClients, createClient, updateClient } from '../services/api';
-import type { DBClient } from '../services/api';
+import { fetchClients, searchClients, createClient, updateClient, fetchClientOrders } from '../services/api';
+import type { DBClient, DBGarment, ClientOrdersResponse } from '../services/api';
 import { useToast } from '../components/ToastContext';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
@@ -14,6 +14,8 @@ export default function Clients() {
   const [createForm, setCreateForm] = useState({ ...EMPTY_FORM });
   const [editTarget, setEditTarget] = useState<DBClient | null>(null);
   const [editForm, setEditForm] = useState({ ...EMPTY_FORM });
+  const [historialTarget, setHistorialTarget] = useState<DBClient | null>(null);
+  const [clientOrders, setClientOrders] = useState<ClientOrdersResponse | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -46,6 +48,15 @@ export default function Clients() {
   const openEdit = (c: DBClient) => {
     setEditTarget(c);
     setEditForm({ name: c.name, phone: c.phone, altPhone: c.altPhone || '', email: c.email || '', notes: c.notes || '' });
+  };
+
+  const openHistorial = async (c: DBClient) => {
+    setHistorialTarget(c);
+    setClientOrders(null);
+    try {
+      const data = await fetchClientOrders(c.id);
+      setClientOrders(data);
+    } catch { toast.error('Error al cargar historial'); }
   };
 
   const handleEdit = async (e: React.FormEvent) => {
@@ -104,13 +115,20 @@ export default function Clients() {
                   <td style={{ color: c.email ? 'inherit' : 'var(--text-secondary)' }}>{c.email || '-'}</td>
                   <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: c.notes ? 'inherit' : 'var(--text-secondary)' }}>{c.notes || '-'}</td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('es-AR')}</td>
-                  <td>
+                  <td style={{ display: 'flex', gap: '6px' }}>
                     <button
                       className="btn btn-small"
                       style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
                       onClick={() => openEdit(c)}
                     >
                       Editar
+                    </button>
+                    <button
+                      className="btn btn-small"
+                      style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
+                      onClick={() => openHistorial(c)}
+                    >
+                      Ver historial
                     </button>
                   </td>
                 </tr>
@@ -133,6 +151,54 @@ export default function Clients() {
 
       {editTarget && (
         <ClientModal title={`Editar: ${editTarget.name}`} form={editForm} setForm={setEditForm} onSubmit={handleEdit} onClose={() => setEditTarget(null)} phoneDisabled />
+      )}
+
+      {historialTarget && (
+        <div className="modal-overlay">
+          <div className="card modal-card modal-lg">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ margin: 0 }}>Historial — {historialTarget.name}</h2>
+              <button className="btn-secondary" onClick={() => setHistorialTarget(null)}>Cerrar</button>
+            </div>
+            {clientOrders === null ? (
+              <p>Cargando historial...</p>
+            ) : (
+              <>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                  {clientOrders.summary.totalOrders} órdenes en total
+                </p>
+                {clientOrders.orders.length === 0 ? (
+                  <p style={{ color: 'var(--text-secondary)' }}>Sin órdenes registradas.</p>
+                ) : (
+                  <div className="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Prenda</th>
+                          <th>Ingreso</th>
+                          <th>Entrega</th>
+                          <th>Estado</th>
+                          <th>Precio</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {clientOrders.orders.map((o: DBGarment) => (
+                          <tr key={o.id}>
+                            <td style={{ fontWeight: 600 }}>{o.garmentName} ({o.repairType})</td>
+                            <td style={{ fontSize: '13px' }}>{o.intakeDate || '-'}</td>
+                            <td style={{ fontSize: '13px' }}>{o.deliveryDate}</td>
+                            <td>{o.status}</td>
+                            <td>${o.price.toLocaleString('es-AR')}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

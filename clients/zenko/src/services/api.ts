@@ -140,6 +140,16 @@ export const updateClient = async (id: string, data: Partial<DBClient>): Promise
   return res.json();
 };
 
+export interface ClientOrdersResponse {
+  client: DBClient;
+  orders: DBGarment[];
+  summary: { totalOrders: number; totalGarments: number; garmentsByStatus: Record<string, number> };
+}
+
+export const fetchClientOrders = async (clientId: string): Promise<ClientOrdersResponse> => {
+  return cachedFetch<ClientOrdersResponse>(`${API_URL}/clients/${clientId}/orders`);
+};
+
 // --- NOTIFICACIONES ---
 
 export interface DBNotification {

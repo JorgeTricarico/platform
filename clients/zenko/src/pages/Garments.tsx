@@ -200,15 +200,17 @@ export default function Garments() {
                     >
                       Editar
                     </button>
-                    <a
-                      className="btn btn-small"
-                      href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReadyMsg(g.clientName, g.garmentName))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ backgroundColor: '#f0fff4', border: '1px solid #9ae6b4', color: '#276749', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
-                    >
-                      Avisar
-                    </a>
+                    {g.status === 'listo' && (
+                      <a
+                        className="btn btn-small"
+                        href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReadyMsg(g.clientName, g.garmentName))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ backgroundColor: '#f0fff4', border: '1px solid #9ae6b4', color: '#276749', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                      >
+                        Avisar
+                      </a>
+                    )}
                     <button
                       className="btn btn-small"
                       style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}

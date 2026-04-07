@@ -13,6 +13,7 @@ export default function Appointments() {
   const [editTarget, setEditTarget] = useState<DBAppointment | null>(null);
   const [conflictError, setConflictError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [dateFilter, setDateFilter] = useState<'todos' | 'hoy' | 'semana' | 'mes'>('todos');
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
   });
@@ -116,11 +117,27 @@ export default function Appointments() {
 
   if (loading) return <div>Cargando lista de citas...</div>;
 
-  const filtered = appointments.filter(a =>
-    a.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Monday
+  const weekStartStr = weekStart.toISOString().slice(0, 10);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const weekEndStr = weekEnd.toISOString().slice(0, 10);
+  const yearMonth = todayStr.slice(0, 7); // 'YYYY-MM'
+
+  const filtered = appointments.filter(a => {
+    const matchesSearch =
+      a.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.id.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+    if (dateFilter === 'hoy') return a.date === todayStr;
+    if (dateFilter === 'semana') return a.date >= weekStartStr && a.date <= weekEndStr;
+    if (dateFilter === 'mes') return a.date.startsWith(yearMonth);
+    return true;
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -143,7 +160,7 @@ export default function Appointments() {
       </div>
 
       <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
             type="text"
             placeholder="Buscar por cliente, servicio o ID..."
@@ -151,6 +168,20 @@ export default function Appointments() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="input-search"
           />
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {(['todos', 'hoy', 'semana', 'mes'] as const).map((f) => {
+              const label = { todos: 'Todos', hoy: 'Hoy', semana: 'Esta semana', mes: 'Este mes' }[f];
+              return (
+                <button
+                  key={f}
+                  onClick={() => setDateFilter(f)}
+                  className={`chip${dateFilter === f ? ' chip-active' : ''}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className="table-container">
           <table>

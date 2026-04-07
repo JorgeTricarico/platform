@@ -272,16 +272,27 @@ describe('Garments page', () => {
     expect(screen.getByText(/vencid/i)).toBeInTheDocument();
   });
 
-  it('renders WhatsApp Avisar button for each garment', async () => {
+  it('renders WhatsApp Avisar button only for garments with status listo', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
+    // Only ORD-003 (Vestido, status: 'listo') should have Avisar
     const aviseButtons = screen.getAllByText('Avisar');
-    expect(aviseButtons).toHaveLength(4);
-    const firstLink = aviseButtons[0].closest('a');
-    expect(firstLink).toHaveAttribute('href', expect.stringContaining('wa.me'));
-    expect(firstLink).toHaveAttribute('target', '_blank');
+    expect(aviseButtons).toHaveLength(1);
+    const link = aviseButtons[0].closest('a');
+    expect(link).toHaveAttribute('href', expect.stringContaining('wa.me'));
+    expect(link).toHaveAttribute('target', '_blank');
+  });
+
+  it('does not render Avisar button for non-listo garments', async () => {
+    const nonListoGarments = mockGarments.filter(g => g.status !== 'listo');
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(nonListoGarments);
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+    });
+    expect(screen.queryAllByText('Avisar')).toHaveLength(0);
   });
 
   it('client search calls searchClients API', async () => {

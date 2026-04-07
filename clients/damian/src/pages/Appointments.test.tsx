@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Appointments from './Appointments';
 import { ToastProvider } from '../components/ToastContext';
 
@@ -134,6 +134,105 @@ describe('D18 — Edit appointment', () => {
         expect.objectContaining({ clientName: 'Laura B.' })
       );
     });
+  });
+});
+
+// 2026-04-07 is Tuesday. Week: Mon Apr 6 – Sun Apr 12.
+const d23Appointments = [
+  {
+    id: 'APT-T1', clientName: 'Hoy Cliente', clientPhone: '11-0001-0001',
+    service: 'Masaje Hoy', duration: 60,
+    date: '2026-04-07', time: '09:00', status: 'pendiente', price: 5000
+  },
+  {
+    id: 'APT-T2', clientName: 'Semana Cliente', clientPhone: '11-0002-0002',
+    service: 'Masaje Semana', duration: 60,
+    date: '2026-04-10', time: '11:00', status: 'pendiente', price: 5000
+  },
+  {
+    id: 'APT-T3', clientName: 'Mes Cliente', clientPhone: '11-0003-0003',
+    service: 'Masaje Mes', duration: 60,
+    date: '2026-04-22', time: '15:00', status: 'pendiente', price: 5000
+  },
+  {
+    id: 'APT-T4', clientName: 'Otro Mes', clientPhone: '11-0004-0004',
+    service: 'Masaje Pasado', duration: 60,
+    date: '2026-03-15', time: '10:00', status: 'completado', price: 5000
+  }
+];
+
+describe('D23 — Date filter chips', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date('2026-04-07T12:00:00'));
+    vi.clearAllMocks();
+    (fetchAppointments as ReturnType<typeof vi.fn>).mockResolvedValue(d23Appointments);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('renders date filter chips: Todos, Hoy, Esta semana, Este mes', async () => {
+    render(<ToastProvider><Appointments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    expect(screen.getByText('Todos')).toBeDefined();
+    expect(screen.getByText('Hoy')).toBeDefined();
+    expect(screen.getByText('Esta semana')).toBeDefined();
+    expect(screen.getByText('Este mes')).toBeDefined();
+  });
+
+  it('"Todos" chip shows all appointments by default', async () => {
+    render(<ToastProvider><Appointments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    expect(screen.getByText('Semana Cliente')).toBeDefined();
+    expect(screen.getByText('Mes Cliente')).toBeDefined();
+    expect(screen.getByText('Otro Mes')).toBeDefined();
+  });
+
+  it('"Hoy" chip filters to only today\'s appointments', async () => {
+    render(<ToastProvider><Appointments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Hoy'));
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    expect(screen.queryByText('Semana Cliente')).toBeNull();
+    expect(screen.queryByText('Mes Cliente')).toBeNull();
+    expect(screen.queryByText('Otro Mes')).toBeNull();
+  });
+
+  it('"Esta semana" chip filters to this week\'s appointments', async () => {
+    render(<ToastProvider><Appointments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Esta semana'));
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    expect(screen.getByText('Semana Cliente')).toBeDefined(); // Apr 10, within week
+    expect(screen.queryByText('Mes Cliente')).toBeNull();     // Apr 22, outside week
+    expect(screen.queryByText('Otro Mes')).toBeNull();        // Mar 15, outside week
+  });
+
+  it('"Este mes" chip filters to this month\'s appointments', async () => {
+    render(<ToastProvider><Appointments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Este mes'));
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    expect(screen.getByText('Semana Cliente')).toBeDefined(); // Apr, same month
+    expect(screen.getByText('Mes Cliente')).toBeDefined();    // Apr, same month
+    expect(screen.queryByText('Otro Mes')).toBeNull();        // Mar, different month
   });
 });
 
