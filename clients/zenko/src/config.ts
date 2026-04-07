@@ -17,4 +17,6 @@ export const BUSINESS = {
   ] as const,
   whatsappReadyMsg: (clientName: string, garmentName: string) =>
     `Hola ${clientName}, tu prenda (${garmentName}) está lista para retirar. 🧵`,
+  whatsappReminderMsg: (clientName: string, garmentName: string) =>
+    `Hola ${clientName}, te recordamos que tu prenda "${garmentName}" está lista para retirar. ¡Te esperamos! 🧵`,
 };

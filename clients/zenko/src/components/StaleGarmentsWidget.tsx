@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchStaleGarments } from '../services/api';
 import type { StaleGarment } from '../services/api';
+import { BUSINESS } from '../config';
 
 export default function StaleGarmentsWidget() {
   const [garments, setGarments] = useState<StaleGarment[]>([]);
@@ -38,7 +39,18 @@ export default function StaleGarmentsWidget() {
                 <div style={{ fontWeight: 600 }}>{g.clientName}</div>
                 <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{g.garmentName} — {g.repairType}</div>
               </div>
-              <span className="badge urgent" style={{ fontSize: '12px' }}>{daysOverdue(g.deliveryDate)} dias — {formatDate(g.deliveryDate)}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="badge urgent" style={{ fontSize: '12px' }}>{daysOverdue(g.deliveryDate)} dias — {formatDate(g.deliveryDate)}</span>
+                <a
+                  className="btn btn-small"
+                  href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReminderMsg(g.clientName, g.garmentName))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ backgroundColor: '#f0fff4', border: '1px solid #9ae6b4', color: '#276749', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                >
+                  Avisar
+                </a>
+              </div>
             </div>
           ))}
         </div>
