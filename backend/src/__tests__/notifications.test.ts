@@ -6,6 +6,7 @@ import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   order: { update: ReturnType<typeof vi.fn> };
+  client: { findFirst: ReturnType<typeof vi.fn> };
   notification: {
     findMany: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
@@ -33,9 +34,10 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
       status: 'listo',
     };
     mockPrisma.order.update.mockResolvedValue(order);
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-abc', phone: '1111', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({
       id: 'notif-1',
-      clientId: '1111',
+      clientId: 'client-uuid-abc',
       message: 'Tu prenda "Vestido" está lista para retirar.',
       type: 'prenda_lista',
       read: false,
@@ -52,7 +54,7 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
     expect(mockPrisma.notification.create).toHaveBeenCalledOnce();
 
     const notifData = mockPrisma.notification.create.mock.calls[0][0].data;
-    expect(notifData.clientId).toBe('1111');
+    expect(notifData.clientId).toBe('client-uuid-abc');
     expect(notifData.type).toBe('prenda_lista');
     expect(notifData.message).toContain('Vestido');
     expect(notifData.read).toBe(false);

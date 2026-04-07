@@ -26,7 +26,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
     };
 
     const createdOrder = {
-      id: '0001',
+      id: 'uuid-mock-001',
       ...input,
       price: 4500, // number after conversion
       status: 'recibido',
@@ -37,7 +37,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
     mockPrisma.order.create.mockResolvedValue(createdOrder);
     const createRes = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(createRes.status).toBe(200);
-    expect(createRes.body.id).toBe('0001');
+    expect(createRes.body.id).toBe('uuid-mock-001');
 
     // Verify all fields were passed correctly to Prisma
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
@@ -51,7 +51,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
     expect(callData.price).toBe(4500); // number, not string
     expect(typeof callData.price).toBe('number');
     expect(callData.status).toBe('recibido');
-    expect(callData.id).toMatch(/^\d{4}$/);
+    expect(callData.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 
     // Step 2: List garments returns the created one
     mockPrisma.order.findMany.mockResolvedValue([createdOrder]);

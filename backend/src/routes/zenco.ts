@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
 import { prisma } from '../db.js';
 import { validate, createGarmentSchema, updateGarmentSchema, updateStatusSchema, createFinanceSchema, updateFinanceSchema, createClientSchema, updateClientSchema } from '../schemas.js';
 import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler.js';
@@ -70,11 +71,9 @@ router.get('/garments', asyncHandler(async (req, res) => {
 
 router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req, res) => {
   const data = req.body;
-  const lastOrder = await prisma.order.findFirst({ orderBy: { createdAt: 'desc' }, select: { id: true } });
-  const nextNum = lastOrder ? (parseInt(lastOrder.id, 10) || 0) + 1 : 1;
   const newGarment = await prisma.order.create({
     data: {
-      id: String(nextNum).padStart(4, '0'),
+      id: randomUUID(),
       clientName: data.clientName,
       clientPhone: data.clientPhone,
       garmentName: data.garmentName,
@@ -100,14 +99,19 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
 
   // When a garment is marked as ready, create a client notification + send WhatsApp
   if (status === 'listo') {
-    await prisma.notification.create({
-      data: {
-        clientId: updated.clientPhone,
-        message: `Tu prenda "${updated.garmentName}" está lista para retirar.`,
-        type: 'prenda_lista',
-        read: false,
-      },
+    const client = await prisma.client.findFirst({
+      where: { phone: updated.clientPhone, business: 'zenco' },
     });
+    if (client) {
+      await prisma.notification.create({
+        data: {
+          clientId: client.id,
+          message: `Tu prenda "${updated.garmentName}" está lista para retirar.`,
+          type: 'prenda_lista',
+          read: false,
+        },
+      });
+    }
 
     // Z7: WhatsApp notification — non-blocking
     try {

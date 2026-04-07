@@ -23,7 +23,7 @@ const mockWA = whatsappService as unknown as {
 const mockPrisma = prisma as unknown as {
   order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
-  client: { findMany: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
+  client: { findMany: ReturnType<typeof vi.fn>; findFirst: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   notification: { create: ReturnType<typeof vi.fn> };
 };
 
@@ -121,6 +121,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   it('updates garment status', async () => {
     mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
     expect(res.status).toBe(200);
@@ -131,6 +132,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   it('sends WhatsApp message when status changes to listo', async () => {
     mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockResolvedValue({ id: 'msg-z7' });
 
@@ -152,6 +154,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   it('still succeeds when WhatsApp fails (graceful degradation)', async () => {
     mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockRejectedValue(new Error('WhatsApp not connected'));
 
@@ -164,13 +167,14 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   it('creates in-app notification even when WhatsApp fails', async () => {
     mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockRejectedValue(new Error('Send failed'));
 
     await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
     expect(mockPrisma.notification.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        clientId: '5491112345678',
+        clientId: 'client-uuid-123',
         type: 'prenda_lista',
       }),
     });
@@ -198,6 +202,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   it('does NOT create ZencoFinance income for non-entregado status', async () => {
     mockPrisma.order.update.mockResolvedValue(fullOrder); // status 'listo'
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockResolvedValue({});
 
@@ -547,6 +552,15 @@ describe('Zenco validation', () => {
       amount: 'not-a-number', description: 'Test',
     });
     expect(res.status).toBe(400);
+  });
+
+  it('POST /finances returns 400 when type is invalid', async () => {
+    const res = await request(app).post('/api/zenco/finances').set('Authorization', authHeader('zenco')).send({
+      date: '2026-04-05', type: 'invalid', category: 'Arreglos',
+      amount: 1000, description: 'Test',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Datos invalidos');
   });
 
   it('POST /clients returns 400 when name is missing', async () => {
