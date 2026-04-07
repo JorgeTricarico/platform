@@ -8,7 +8,7 @@ const mockPrisma = prisma as unknown as {
   appointment: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
   damianFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
   client: { findMany: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
-  patientRecord: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
+  patientRecord: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn> };
 };
 
 beforeEach(() => {
@@ -275,7 +275,9 @@ describe('GET /api/damian/patients', () => {
     mockPrisma.patientRecord.findMany.mockResolvedValue([
       { id: 'rec-1', clientId: 'c1', date: '2026-04-01', reason: 'Cervical' },
     ]);
-    mockPrisma.patientRecord.count.mockResolvedValue(3);
+    mockPrisma.patientRecord.groupBy.mockResolvedValue([
+      { clientId: 'c1', _count: { _all: 3 } },
+    ]);
 
     const res = await request(app).get('/api/damian/patients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
@@ -290,7 +292,7 @@ describe('GET /api/damian/patients', () => {
       { id: 'c2', name: 'Nuevo Paciente', phone: '9999', business: 'damian', notes: null, createdAt: new Date().toISOString() },
     ]);
     mockPrisma.patientRecord.findMany.mockResolvedValue([]);
-    mockPrisma.patientRecord.count.mockResolvedValue(0);
+    mockPrisma.patientRecord.groupBy.mockResolvedValue([]);
 
     const res = await request(app).get('/api/damian/patients').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);

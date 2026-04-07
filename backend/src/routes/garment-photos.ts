@@ -10,7 +10,7 @@ const router = Router({ mergeParams: true });
 // STORAGE — Save files to backend/uploads/
 // =============================================
 
-const UPLOADS_DIR = path.resolve('uploads');
+const UPLOADS_DIR = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../uploads');
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),

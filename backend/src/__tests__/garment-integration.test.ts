@@ -26,7 +26,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
     };
 
     const createdOrder = {
-      id: 'ORD-1712345678-42',
+      id: '0001',
       ...input,
       price: 4500, // number after conversion
       status: 'recibido',
@@ -37,7 +37,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
     mockPrisma.order.create.mockResolvedValue(createdOrder);
     const createRes = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(createRes.status).toBe(200);
-    expect(createRes.body.id).toBe('ORD-1712345678-42');
+    expect(createRes.body.id).toBe('0001');
 
     // Verify all fields were passed correctly to Prisma
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
@@ -51,7 +51,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
     expect(callData.price).toBe(4500); // number, not string
     expect(typeof callData.price).toBe('number');
     expect(callData.status).toBe('recibido');
-    expect(callData.id).toMatch(/^ORD-/);
+    expect(callData.id).toMatch(/^\d{4}$/);
 
     // Step 2: List garments returns the created one
     mockPrisma.order.findMany.mockResolvedValue([createdOrder]);
@@ -67,7 +67,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
       clientName: 'Test', clientPhone: '0000', garmentName: 'Remera',
       repairType: 'estampar', description: 'logo', deliveryDate: '2026-04-20', price: 2000,
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-x', ...input, intakeDate: '2026-04-05', status: 'recibido' });
+    mockPrisma.order.create.mockResolvedValue({ id: '0002', ...input, intakeDate: '2026-04-05', status: 'recibido' });
 
     await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
@@ -76,7 +76,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
 
   it('full CRUD cycle: create → update status → update full → delete', async () => {
     const garment = {
-      id: 'ORD-CRUD', clientName: 'Test', clientPhone: '1111', garmentName: 'Jean',
+      id: '0003', clientName: 'Test', clientPhone: '1111', garmentName: 'Jean',
       repairType: 'parche', description: 'rodilla', intakeDate: '2026-04-05',
       deliveryDate: '2026-04-15', price: 3000, status: 'recibido',
     };
@@ -88,19 +88,19 @@ describe('Garment registration end-to-end (bug regression)', () => {
 
     // Update status
     mockPrisma.order.update.mockResolvedValue({ ...garment, status: 'listo' });
-    const r2 = await request(app).put('/api/zenco/garments/ORD-CRUD/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    const r2 = await request(app).put('/api/zenco/garments/0003/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
     expect(r2.status).toBe(200);
     expect(r2.body.status).toBe('listo');
 
     // Full update
     mockPrisma.order.update.mockResolvedValue({ ...garment, price: 3500, status: 'entregado' });
-    const r3 = await request(app).put('/api/zenco/garments/ORD-CRUD').set('Authorization', authHeader('zenco')).send({ ...garment, price: 3500, status: 'entregado' });
+    const r3 = await request(app).put('/api/zenco/garments/0003').set('Authorization', authHeader('zenco')).send({ ...garment, price: 3500, status: 'entregado' });
     expect(r3.status).toBe(200);
     expect(r3.body.price).toBe(3500);
 
     // Delete
     mockPrisma.order.delete.mockResolvedValue({});
-    const r4 = await request(app).delete('/api/zenco/garments/ORD-CRUD').set('Authorization', authHeader('zenco'));
+    const r4 = await request(app).delete('/api/zenco/garments/0003').set('Authorization', authHeader('zenco'));
     expect(r4.status).toBe(200);
     expect(r4.body.success).toBe(true);
   });

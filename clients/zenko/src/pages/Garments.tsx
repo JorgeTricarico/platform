@@ -249,16 +249,20 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, gar
   const [clientQuery, setClientQuery] = useState('');
   const [clientResults, setClientResults] = useState<DBClient[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searching, setSearching] = useState(false);
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (clientQuery.length < 2) { setClientResults([]); setShowDropdown(false); return; }
+    if (clientQuery.length < 2) { setClientResults([]); setShowDropdown(false); setSearching(false); return; }
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    setSearching(true);
+    setShowDropdown(true);
     searchTimeout.current = setTimeout(() => {
       searchClients(clientQuery).then(results => {
         setClientResults(results);
-        setShowDropdown(results.length > 0);
+        setSearching(false);
+        setShowDropdown(true);
       });
     }, 300);
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
@@ -323,7 +327,7 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, gar
                 placeholder="Buscar cliente por nombre o teléfono..."
                 value={clientQuery}
                 onChange={(e) => setClientQuery(e.target.value)}
-                onFocus={() => { if (clientResults.length > 0) setShowDropdown(true); }}
+                onFocus={() => { if (clientQuery.length >= 2) setShowDropdown(true); }}
                 className="input"
               />
               {showDropdown && (
@@ -332,21 +336,31 @@ function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, gar
                   background: 'white', border: '1px solid var(--border-color)', borderRadius: '8px',
                   maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}>
-                  {clientResults.map(c => (
-                    <div
-                      key={c.id}
-                      onClick={() => selectClient(c)}
-                      style={{
-                        padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--border-color)',
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-secondary)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
-                    >
-                      <span style={{ fontWeight: 600 }}>{c.name}</span>
-                      <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{c.phone}</span>
+                  {searching ? (
+                    <div style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                      Buscando...
                     </div>
-                  ))}
+                  ) : clientResults.length > 0 ? (
+                    clientResults.map(c => (
+                      <div
+                        key={c.id}
+                        onClick={() => selectClient(c)}
+                        style={{
+                          padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--border-color)',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-secondary)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+                      >
+                        <span style={{ fontWeight: 600 }}>{c.name}</span>
+                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{c.phone}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                      No se encontraron clientes
+                    </div>
+                  )}
                 </div>
               )}
               {form.clientName && (

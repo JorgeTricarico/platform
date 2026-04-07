@@ -23,6 +23,7 @@ vi.mock('../db.js', () => {
   const mockPrisma = {
     order: {
       findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -50,6 +51,7 @@ vi.mock('../db.js', () => {
     },
     appointment: {
       findMany: vi.fn().mockResolvedValue([]),
+      findUnique: vi.fn().mockResolvedValue(null),
       create: vi.fn(),
       update: vi.fn(),
     },
@@ -65,6 +67,7 @@ vi.mock('../db.js', () => {
       create: vi.fn(),
       update: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
+      groupBy: vi.fn().mockResolvedValue([]),
     },
     notification: {
       findMany: vi.fn().mockResolvedValue([]),
