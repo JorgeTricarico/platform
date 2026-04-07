@@ -96,6 +96,24 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     }
   }
 
+  // Z10: Auto-create income when garment is delivered
+  if (status === 'entregado') {
+    try {
+      await prisma.zencoFinance.create({
+        data: {
+          id: `FIN-Z-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          type: 'ingreso',
+          category: 'entrega_prenda',
+          amount: updated.price,
+          description: `Entrega: ${updated.garmentName} — ${updated.clientName}`,
+        },
+      });
+    } catch {
+      // Finance failure must not block status update
+    }
+  }
+
   res.json(updated);
 }));
 
@@ -211,6 +229,13 @@ router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req
     }
   });
   res.json(updated);
+}));
+
+// Z20: Delete client
+router.delete('/clients/:id', asyncHandler(async (req, res) => {
+  const id = req.params.id as string;
+  await prisma.client.delete({ where: { id } });
+  res.json({ success: true });
 }));
 
 router.get('/clients/search', asyncHandler(async (req, res) => {

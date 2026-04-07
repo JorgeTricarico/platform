@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchClients, searchClients, createClient, updateClient, fetchClientOrders } from '../services/api';
+import { fetchClients, searchClients, createClient, updateClient, deleteClient, fetchClientOrders } from '../services/api';
 import type { DBClient, DBGarment, ClientOrdersResponse } from '../services/api';
 import { useToast } from '../components/ToastContext';
 
@@ -70,6 +70,15 @@ export default function Clients() {
     } catch { toast.error('Error al actualizar cliente'); }
   };
 
+  const handleDelete = async (c: DBClient) => {
+    if (!confirm(`¿Eliminar a ${c.name}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await deleteClient(c.id);
+      toast.success('Cliente eliminado');
+      load();
+    } catch { toast.error('Error al eliminar cliente'); }
+  };
+
   if (loading && clients.length === 0) return <div>Cargando clientes...</div>;
 
   return (
@@ -129,6 +138,13 @@ export default function Clients() {
                       onClick={() => openHistorial(c)}
                     >
                       Ver historial
+                    </button>
+                    <button
+                      className="btn btn-small"
+                      style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                      onClick={() => handleDelete(c)}
+                    >
+                      Eliminar
                     </button>
                   </td>
                 </tr>

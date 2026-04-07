@@ -61,6 +61,7 @@ vi.mock('../db.js', () => {
       findUnique: vi.fn().mockResolvedValue(null),
       upsert: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
     },
     patientRecord: {

@@ -13,7 +13,7 @@ export default function Appointments() {
   const [editTarget, setEditTarget] = useState<DBAppointment | null>(null);
   const [conflictError, setConflictError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [dateFilter, setDateFilter] = useState<'todos' | 'hoy' | 'semana' | 'mes'>('todos');
+  const [dateFilter, setDateFilter] = useState<'todos' | 'hoy' | 'semana' | 'mes' | 'proximas' | 'historial'>('todos');
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
   });
@@ -136,6 +136,8 @@ export default function Appointments() {
     if (dateFilter === 'hoy') return a.date === todayStr;
     if (dateFilter === 'semana') return a.date >= weekStartStr && a.date <= weekEndStr;
     if (dateFilter === 'mes') return a.date.startsWith(yearMonth);
+    if (dateFilter === 'proximas') return a.date >= todayStr;
+    if (dateFilter === 'historial') return a.date < todayStr;
     return true;
   });
 
@@ -169,8 +171,8 @@ export default function Appointments() {
             className="input-search"
           />
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {(['todos', 'hoy', 'semana', 'mes'] as const).map((f) => {
-              const label = { todos: 'Todos', hoy: 'Hoy', semana: 'Esta semana', mes: 'Este mes' }[f];
+            {(['todos', 'proximas', 'historial', 'hoy', 'semana', 'mes'] as const).map((f) => {
+              const label = { todos: 'Todos', proximas: 'Próximas', historial: 'Historial', hoy: 'Hoy', semana: 'Esta semana', mes: 'Este mes' }[f];
               return (
                 <button
                   key={f}

@@ -236,6 +236,55 @@ describe('D23 — Date filter chips', () => {
   });
 });
 
+describe('D24 — Próximas / Historial filter', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date('2026-04-07T12:00:00'));
+    vi.clearAllMocks();
+    (fetchAppointments as ReturnType<typeof vi.fn>).mockResolvedValue(d23Appointments);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('renders Próximas and Historial chips', async () => {
+    render(<ToastProvider><Appointments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    expect(screen.getByText('Próximas')).toBeDefined();
+    expect(screen.getByText('Historial')).toBeDefined();
+  });
+
+  it('"Próximas" shows only today and future appointments', async () => {
+    render(<ToastProvider><Appointments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Próximas'));
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined(); // Apr 7, today
+    });
+    expect(screen.getByText('Semana Cliente')).toBeDefined(); // Apr 10, future
+    expect(screen.getByText('Mes Cliente')).toBeDefined();    // Apr 22, future
+    expect(screen.queryByText('Otro Mes')).toBeNull();        // Mar 15, past
+  });
+
+  it('"Historial" shows only past appointments', async () => {
+    render(<ToastProvider><Appointments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Hoy Cliente')).toBeDefined();
+    });
+    fireEvent.click(screen.getByText('Historial'));
+    await waitFor(() => {
+      expect(screen.getByText('Otro Mes')).toBeDefined();     // Mar 15, past
+    });
+    expect(screen.queryByText('Hoy Cliente')).toBeNull();     // Apr 7, today (not past)
+    expect(screen.queryByText('Semana Cliente')).toBeNull();   // Apr 10, future
+    expect(screen.queryByText('Mes Cliente')).toBeNull();      // Apr 22, future
+  });
+});
+
 describe('D20 — Conflict display', () => {
   beforeEach(() => {
     vi.clearAllMocks();

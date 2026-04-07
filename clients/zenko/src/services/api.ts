@@ -140,6 +140,11 @@ export const updateClient = async (id: string, data: Partial<DBClient>): Promise
   return res.json();
 };
 
+export const deleteClient = async (id: string): Promise<void> => {
+  const res = await mutationFetch(`${API_URL}/clients/${id}`, 'DELETE');
+  if (!res.ok && res.status !== 202) throw new Error("Error al eliminar cliente");
+};
+
 export interface ClientOrdersResponse {
   client: DBClient;
   orders: DBGarment[];

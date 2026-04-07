@@ -175,6 +175,45 @@ describe('PUT /api/zenco/garments/:id/status', () => {
       }),
     });
   });
+
+  // --- Z10: Auto-crear ingreso en ZencoFinance al entregar ---
+
+  it('creates ZencoFinance income when status changes to entregado', async () => {
+    const entregado = { ...fullOrder, status: 'entregado' };
+    mockPrisma.order.update.mockResolvedValue(entregado);
+    mockPrisma.zencoFinance.create.mockResolvedValue({});
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'entregado' });
+    expect(res.status).toBe(200);
+    expect(mockPrisma.zencoFinance.create).toHaveBeenCalledOnce();
+    expect(mockPrisma.zencoFinance.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        type: 'ingreso',
+        category: 'entrega_prenda',
+        amount: 3000,
+        description: expect.stringContaining('Pantalon'),
+      }),
+    });
+  });
+
+  it('does NOT create ZencoFinance income for non-entregado status', async () => {
+    mockPrisma.order.update.mockResolvedValue(fullOrder); // status 'listo'
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockWA.sendMessage.mockResolvedValue({});
+
+    await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    expect(mockPrisma.zencoFinance.create).not.toHaveBeenCalled();
+  });
+
+  it('still returns 200 when ZencoFinance create fails on entregado', async () => {
+    const entregado = { ...fullOrder, status: 'entregado' };
+    mockPrisma.order.update.mockResolvedValue(entregado);
+    mockPrisma.zencoFinance.create.mockRejectedValue(new Error('DB error'));
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'entregado' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('entregado');
+  });
 });
 
 describe('PUT /api/zenco/garments/:id', () => {
@@ -258,6 +297,24 @@ describe('GET /api/zenco/clients/search', () => {
     const res = await request(app).get('/api/zenco/clients/search?q=maria').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
+  });
+});
+
+// --- Z20: DELETE CLIENT ---
+
+describe('DELETE /api/zenco/clients/:id', () => {
+  it('deletes a client and returns success', async () => {
+    mockPrisma.client.delete.mockResolvedValue({ id: 'c1', name: 'Maria', phone: '1111', business: 'zenco' });
+    const res = await request(app).delete('/api/zenco/clients/c1').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ success: true });
+    expect(mockPrisma.client.delete).toHaveBeenCalledWith({ where: { id: 'c1' } });
+  });
+
+  it('returns 500 on DB error', async () => {
+    mockPrisma.client.delete.mockRejectedValue(new Error('Not found'));
+    const res = await request(app).delete('/api/zenco/clients/c999').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(500);
   });
 });
 

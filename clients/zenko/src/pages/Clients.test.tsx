@@ -21,10 +21,11 @@ vi.mock('../services/api', () => ({
   searchClients: vi.fn(),
   createClient: vi.fn().mockResolvedValue({}),
   updateClient: vi.fn().mockResolvedValue({}),
+  deleteClient: vi.fn().mockResolvedValue(undefined),
   fetchClientOrders: vi.fn(),
 }));
 
-import { fetchClients, createClient, updateClient, fetchClientOrders } from '../services/api';
+import { fetchClients, createClient, updateClient, deleteClient, fetchClientOrders } from '../services/api';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -158,6 +159,23 @@ describe('Z18 — Historial de órdenes por cliente', () => {
     fireEvent.click(screen.getByText('Ver historial'));
     await waitFor(() => {
       expect(screen.getByText(/2 órdenes/i)).toBeInTheDocument();
+    });
+  });
+});
+
+describe('Z20 — Eliminar cliente', () => {
+  it('renders delete button and calls deleteClient on confirm', async () => {
+    (fetchClients as ReturnType<typeof vi.fn>).mockResolvedValue(mockClients);
+    window.confirm = vi.fn(() => true);
+
+    render(<ToastProvider><Clients /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Eliminar'));
+    expect(window.confirm).toHaveBeenCalledWith('¿Eliminar a Ana Lopez? Esta acción no se puede deshacer.');
+    await waitFor(() => {
+      expect(deleteClient).toHaveBeenCalledWith('c1');
     });
   });
 });
