@@ -38,21 +38,23 @@ router.get('/dashboard', asyncHandler(async (req, res) => {
     byStatus[group.status] = group._count._all;
   }
 
-  const monthlyIncome = monthFinances.filter((f: { type: string }) => f.type === 'ingreso').reduce((sum: number, f: { amount: number }) => sum + f.amount, 0);
-  const monthlyExpenses = monthFinances.filter((f: { type: string }) => f.type === 'gasto').reduce((sum: number, f: { amount: number }) => sum + f.amount, 0);
+  const monthlyIncome = monthFinances.filter((f: { type: string }) => f.type === 'income').reduce((sum: number, f: { amount: number }) => sum + f.amount, 0);
+  const monthlyExpenses = monthFinances.filter((f: { type: string }) => f.type === 'expense').reduce((sum: number, f: { amount: number }) => sum + f.amount, 0);
 
   res.json({ byStatus, todayDeliveries, upcomingDeliveries, monthlyIncome, monthlyExpenses });
 }));
 
-// Z25: Garments with status 'listo' and deliveryDate > 7 days ago (not picked up)
+// Z25: Garments with status 'listo' and not picked up for > 7 days
+// Uses statusChangedAt (when it became 'listo') if available, falls back to deliveryDate
 router.get('/dashboard/stale-garments', asyncHandler(async (req, res) => {
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
-  const garments = await prisma.order.findMany({
-    where: {
-      status: 'listo',
-      deliveryDate: { lt: sevenDaysAgo },
-    },
+  const allListo = await prisma.order.findMany({
+    where: { status: 'listo' },
     orderBy: { deliveryDate: 'asc' },
+  });
+  const garments = allListo.filter((g: { statusChangedAt?: string | null; deliveryDate: string }) => {
+    const referenceDate = g.statusChangedAt ?? g.deliveryDate;
+    return referenceDate < sevenDaysAgo;
   });
   res.json(garments);
 }));
@@ -93,7 +95,7 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
   const { status } = req.body;
   const updated = await prisma.order.update({
     where: { id },
-    data: { status }
+    data: { status, statusChangedAt: new Date().toISOString() }
   });
 
   // When a garment is marked as ready, create a client notification + send WhatsApp
@@ -125,7 +127,7 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
         data: {
           id: `FIN-Z-${Date.now()}`,
           date: new Date().toISOString().split('T')[0],
-          type: 'ingreso',
+          type: 'income',
           category: 'entrega_prenda',
           amount: updated.price,
           description: `Entrega: ${updated.garmentName} — ${updated.clientName}`,

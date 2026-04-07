@@ -585,7 +585,7 @@ describe('PUT /api/damian/appointments/:id', () => {
 
 describe('PUT /api/damian/finances/:id', () => {
   it('updates a finance entry', async () => {
-    const updated = { id: 'f1', date: '2026-04-01', type: 'ingreso', category: 'Masajes', amount: 5000, description: 'Sesion Juan' };
+    const updated = { id: 'f1', date: '2026-04-01', type: 'income', category: 'Masajes', amount: 5000, description: 'Sesion Juan' };
     mockPrisma.damianFinance.update.mockResolvedValue(updated);
     const res = await request(app).put('/api/damian/finances/f1').set('Authorization', authHeader('damian')).send({ amount: 5000, description: 'Sesion Juan' });
     expect(res.status).toBe(200);

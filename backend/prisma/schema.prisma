@@ -51,8 +51,9 @@ model Order {
   garmentName  String
   repairType   String
   description  String
-  status       String   @default("recibido")
-  intakeDate   String   @default("")
+  status          String   @default("recibido")
+  statusChangedAt String?
+  intakeDate      String   @default("")
   deliveryDate String
   price        Float
   location     String?

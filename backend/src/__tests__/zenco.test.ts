@@ -188,7 +188,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
     expect(mockPrisma.zencoFinance.create).toHaveBeenCalledOnce();
     expect(mockPrisma.zencoFinance.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        type: 'ingreso',
+        type: 'income',
         category: 'entrega_prenda',
         amount: 3000,
         description: expect.stringContaining('Pantalon'),
@@ -403,9 +403,9 @@ describe('GET /api/zenco/dashboard — monthlyIncome', () => {
     mockPrisma.order.groupBy.mockResolvedValue([]);
     mockPrisma.order.findMany.mockResolvedValue([]);
     mockPrisma.zencoFinance.findMany.mockResolvedValue([
-      { id: 'FIN-Z-1', date: `${currentMonth}-05`, type: 'ingreso', category: 'entrega_prenda', amount: 5000, description: 'Entrega A' },
-      { id: 'FIN-Z-2', date: `${currentMonth}-10`, type: 'ingreso', category: 'entrega_prenda', amount: 3000, description: 'Entrega B' },
-      { id: 'FIN-Z-3', date: `${currentMonth}-12`, type: 'gasto', category: 'insumos', amount: 1000, description: 'Hilos' },
+      { id: 'FIN-Z-1', date: `${currentMonth}-05`, type: 'income', category: 'entrega_prenda', amount: 5000, description: 'Entrega A' },
+      { id: 'FIN-Z-2', date: `${currentMonth}-10`, type: 'income', category: 'entrega_prenda', amount: 3000, description: 'Entrega B' },
+      { id: 'FIN-Z-3', date: `${currentMonth}-12`, type: 'expense', category: 'insumos', amount: 1000, description: 'Hilos' },
     ]);
 
     const res = await request(app).get('/api/zenco/dashboard').set('Authorization', authHeader('zenco'));
@@ -456,6 +456,63 @@ describe('GET /api/zenco/dashboard/stale-garments', () => {
     const res = await request(app).get('/api/zenco/dashboard/stale-garments').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
+  });
+
+  it('uses statusChangedAt instead of deliveryDate when available', async () => {
+    const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString();
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    // deliveryDate is in the future but statusChangedAt is >7 days ago — should be stale
+    const staleByStatusChanged = [
+      { id: '0002', clientName: 'Luis', clientPhone: '222', garmentName: 'Saco', repairType: 'cierre', description: 'Cambiar cierre', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tomorrow, statusChangedAt: tenDaysAgo, price: 4000 },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(staleByStatusChanged);
+
+    const res = await request(app).get('/api/zenco/dashboard/stale-garments').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].clientName).toBe('Luis');
+  });
+
+  it('falls back to deliveryDate when statusChangedAt is null', async () => {
+    const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
+    const staleByDelivery = [
+      { id: '0003', clientName: 'Marta', clientPhone: '333', garmentName: 'Vestido', repairType: 'ruedo', description: 'acortar', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, statusChangedAt: null, price: 3000 },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(staleByDelivery);
+
+    const res = await request(app).get('/api/zenco/dashboard/stale-garments').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].clientName).toBe('Marta');
+  });
+
+  it('excludes garment with recent statusChangedAt even if deliveryDate is old', async () => {
+    const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString();
+    // statusChangedAt is recent (1 day ago) — NOT stale
+    const freshByStatusChanged = [
+      { id: '0004', clientName: 'Pablo', clientPhone: '444', garmentName: 'Camisa', repairType: 'cuello', description: 'reparar', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, statusChangedAt: yesterday, price: 2000 },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(freshByStatusChanged);
+
+    const res = await request(app).get('/api/zenco/dashboard/stale-garments').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(0);
+  });
+});
+
+// --- STATUS CHANGED AT ---
+
+describe('PUT /api/zenco/garments/:id/status — statusChangedAt', () => {
+  it('sets statusChangedAt when updating status', async () => {
+    const updated = { id: 'ORD-1', status: 'listo', statusChangedAt: new Date().toISOString() };
+    mockPrisma.order.update.mockResolvedValue(updated);
+    mockPrisma.notification.create.mockResolvedValue({});
+
+    await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    expect(mockPrisma.order.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ statusChangedAt: expect.any(String) }),
+    }));
   });
 });
 
@@ -727,7 +784,7 @@ describe('GET /health', () => {
 
 describe('PUT /api/zenco/finances/:id', () => {
   it('updates a finance entry', async () => {
-    const updated = { id: 'f1', date: '2026-04-01', type: 'ingreso', category: 'Arreglo', amount: 5000, description: 'Pantalon' };
+    const updated = { id: 'f1', date: '2026-04-01', type: 'income', category: 'Arreglo', amount: 5000, description: 'Pantalon' };
     mockPrisma.zencoFinance.update.mockResolvedValue(updated);
     const res = await request(app).put('/api/zenco/finances/f1').set('Authorization', authHeader('zenco')).send({ amount: 5000, description: 'Pantalon' });
     expect(res.status).toBe(200);
