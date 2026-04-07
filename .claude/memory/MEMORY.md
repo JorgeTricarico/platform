@@ -1,0 +1,24 @@
+- [Platform Status](project_zenko_status.md) — Estado completo del proyecto Zenko + Damian, bugs resueltos, pendientes
+- [Git Workflow](feedback_git_workflow.md) — Pushear directo a main, sin ramas ni PRs
+- [TDD Obligatorio](feedback_tdd_obligatorio.md) — Tests antes de implementacion, todo CRUD con unit + integration tests
+- [Reflexion sesion 2026-04-05](project_session_reflection_20260405.md) — Problemas detectados, roadmap plataforma y mejoras del agente
+- [MCP Connectors](reference_mcp_connectors.md) — PostHog/Slack cloud MCPs causan prompt overflow, como desactivar/reactivar
+- [Usar Sub-agentes](feedback_use_subagents.md) — NUNCA leer archivos directo, siempre delegar a sub-agentes para preservar contexto
+- [Responsive Inline Styles](feedback_responsive_inline_styles.md) — Modales con width hardcodeado necesitan min(X, 90vw) para mobile
+- [Session 10 Reflection](project_session10_reflection.md) — Bugs críticos, security gaps, UX/features propuestas del audit
+- [Session 11 Reflection](project_session11_reflection.md) — CRUD completo, toast, PWA offline, music fix, 283 tests
+- [Session 12 Reflection](project_session12_reflection.md) — JWT auth backend, Render visibility, M11 pendiente frontend/infra
+- [Render Infra](reference_render_infra.md) — Service IDs, URLs, script de visibilidad
+- [Session 13 Reflection](project_session13_reflection.md) — M11 auth full stack, login por nombre, modo demo, pendiente infra Render
+- [Session 14 Reflection](project_session14_reflection.md) — M11 infra LIVE, 3 servicios Render, errores build resueltos
+- [Prisma + Supabase](reference_prisma_supabase.md) — Puertos pooler, adapter obligatorio, seed config, errores comunes
+- [Stack Versions](reference_stack_versions.md) — Vite 7 (no 8), jsdom 25, Express 5 types, Render constraints
+- [Session 15 Reflection](project_session15_reflection.md) — Auto-detect entorno, N+1 fix, loading states, features QR pendientes
+- [Session 16 Reflection](project_session16_reflection.md) — Verificar deploy, features QR, UX cliente en órdenes, roadmap técnico
+- [Client Selection UX](feedback_client_selection_ux.md) — Buscar cliente existente o crear inline, nunca forzar creación nueva
+- [Retro Deep Analysis](feedback_retro_deep_analysis.md) — Retro debe analizar panorama profundo, no solo documentar
+- [Session 17 Reflection](project_session17_reflection.md) — Vitest v4 migration (249→0 failures), Prisma mock drift, client search UX
+- [Session 18 Reflection](project_session18_reflection.md) — Zod enums, price guard, client validation, GarmentModal shared, Z14 filter, Z15 overdue, 321 tests
+- [Session 19 Reflection](project_session19_reflection.md) — D22 delete appointments, Z9 WhatsApp Avisar, Z17 config.ts Zenko, 324 tests
+- [Session 20 Reflection](project_session20_reflection.md) — Z9b Avisar solo listo, D23 filtro fecha turnos, Z18 historial cliente Zenko, 334 tests
+- [Fake Timers + waitFor](feedback_fake_timers_waitfor.md) — vi.useFakeTimers() bloquea waitFor; fix: shouldAdvanceTime: true
