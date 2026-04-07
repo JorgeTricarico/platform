@@ -473,6 +473,41 @@ describe('GET /api/damian/dashboard/appointments', () => {
   });
 });
 
+// --- DASHBOARD: MONTHLY INCOME (D28) ---
+
+describe('GET /api/damian/dashboard/monthly-income', () => {
+  it('returns monthlyIncome summing current month income finances', async () => {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    mockPrisma.damianFinance.findMany.mockResolvedValue([
+      { id: 'FIN-D-1', date: `${currentMonth}-05`, type: 'income', category: 'Sesiones', amount: 8000, description: 'Masaje A' },
+      { id: 'FIN-D-2', date: `${currentMonth}-10`, type: 'income', category: 'Sesiones', amount: 7000, description: 'Masaje B' },
+      { id: 'FIN-D-3', date: `${currentMonth}-12`, type: 'expense', category: 'Insumos', amount: 2000, description: 'Aceites' },
+    ]);
+
+    const res = await request(app).get('/api/damian/dashboard/monthly-income').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(200);
+    expect(res.body.monthlyIncome).toBe(15000);
+    expect(res.body.monthlyExpenses).toBe(2000);
+  });
+
+  it('returns 0 when no finances exist this month', async () => {
+    mockPrisma.damianFinance.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/api/damian/dashboard/monthly-income').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(200);
+    expect(res.body.monthlyIncome).toBe(0);
+    expect(res.body.monthlyExpenses).toBe(0);
+  });
+
+  it('returns 500 on DB error', async () => {
+    mockPrisma.damianFinance.findMany.mockRejectedValue(new Error('DB error'));
+
+    const res = await request(app).get('/api/damian/dashboard/monthly-income').set('Authorization', authHeader('damian'));
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBeDefined();
+  });
+});
+
 describe('PUT /api/damian/clients/:id', () => {
   it('updates client fields by id', async () => {
     const updated = { id: 'c1', name: 'Juan Updated', phone: '5678', business: 'damian' };

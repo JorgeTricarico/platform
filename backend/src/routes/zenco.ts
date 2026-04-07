@@ -12,7 +12,10 @@ router.get('/dashboard', asyncHandler(async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const in3Days = new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0];
 
-  const [statusGroups, todayDeliveries, upcomingDeliveries] = await Promise.all([
+  const currentMonth = today.slice(0, 7); // YYYY-MM
+  const monthRange = getMonthRange(currentMonth);
+
+  const [statusGroups, todayDeliveries, upcomingDeliveries, monthFinances] = await Promise.all([
     prisma.order.groupBy({
       by: ['status'],
       _count: { _all: true },
@@ -25,6 +28,9 @@ router.get('/dashboard', asyncHandler(async (req, res) => {
       where: { deliveryDate: { gt: today, lte: in3Days } },
       orderBy: { deliveryDate: 'asc' },
     }),
+    prisma.zencoFinance.findMany({
+      where: { date: { gte: monthRange.start, lte: monthRange.end } },
+    }),
   ]);
 
   const byStatus: Record<string, number> = {};
@@ -32,7 +38,23 @@ router.get('/dashboard', asyncHandler(async (req, res) => {
     byStatus[group.status] = group._count._all;
   }
 
-  res.json({ byStatus, todayDeliveries, upcomingDeliveries });
+  const monthlyIncome = monthFinances.filter((f: { type: string }) => f.type === 'ingreso').reduce((sum: number, f: { amount: number }) => sum + f.amount, 0);
+  const monthlyExpenses = monthFinances.filter((f: { type: string }) => f.type === 'gasto').reduce((sum: number, f: { amount: number }) => sum + f.amount, 0);
+
+  res.json({ byStatus, todayDeliveries, upcomingDeliveries, monthlyIncome, monthlyExpenses });
+}));
+
+// Z25: Garments with status 'listo' and deliveryDate > 7 days ago (not picked up)
+router.get('/dashboard/stale-garments', asyncHandler(async (req, res) => {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+  const garments = await prisma.order.findMany({
+    where: {
+      status: 'listo',
+      deliveryDate: { lt: sevenDaysAgo },
+    },
+    orderBy: { deliveryDate: 'asc' },
+  });
+  res.json(garments);
 }));
 
 // --- PRENDAS (ORDERS) ---

@@ -4,6 +4,7 @@ import { BUSINESS } from '../config';
 import { useToast } from '../components/ToastContext';
 import TodayAppointmentsWidget from '../components/TodayAppointmentsWidget';
 import StalePatientWidget from '../components/StalePatientWidget';
+import MonthlyIncomeWidget from '../components/MonthlyIncomeWidget';
 import UpcomingAppointmentsWidget from '../components/UpcomingAppointmentsWidget';
 
 export default function Dashboard() {
@@ -45,8 +46,9 @@ export default function Dashboard() {
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nueva Cita</button>
       </div>
 
-      <div className="grid grid-cols-2" style={{ marginBottom: '24px' }}>
+      <div className="grid grid-cols-3" style={{ marginBottom: '24px' }}>
         <TodayAppointmentsWidget />
+        <MonthlyIncomeWidget />
         <StalePatientWidget />
       </div>
 

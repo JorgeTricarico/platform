@@ -393,6 +393,72 @@ describe('GET /api/zenco/dashboard', () => {
   });
 });
 
+// --- DASHBOARD: MONTHLY INCOME (Z22) ---
+
+describe('GET /api/zenco/dashboard — monthlyIncome', () => {
+  it('returns monthlyIncome summing current month ingreso finances', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const currentMonth = today.slice(0, 7); // YYYY-MM
+
+    mockPrisma.order.groupBy.mockResolvedValue([]);
+    mockPrisma.order.findMany.mockResolvedValue([]);
+    mockPrisma.zencoFinance.findMany.mockResolvedValue([
+      { id: 'FIN-Z-1', date: `${currentMonth}-05`, type: 'ingreso', category: 'entrega_prenda', amount: 5000, description: 'Entrega A' },
+      { id: 'FIN-Z-2', date: `${currentMonth}-10`, type: 'ingreso', category: 'entrega_prenda', amount: 3000, description: 'Entrega B' },
+      { id: 'FIN-Z-3', date: `${currentMonth}-12`, type: 'gasto', category: 'insumos', amount: 1000, description: 'Hilos' },
+    ]);
+
+    const res = await request(app).get('/api/zenco/dashboard').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body.monthlyIncome).toBe(8000);
+    expect(res.body.monthlyExpenses).toBe(1000);
+  });
+
+  it('returns 0 when no finances exist this month', async () => {
+    mockPrisma.order.groupBy.mockResolvedValue([]);
+    mockPrisma.order.findMany.mockResolvedValue([]);
+    mockPrisma.zencoFinance.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/api/zenco/dashboard').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body.monthlyIncome).toBe(0);
+    expect(res.body.monthlyExpenses).toBe(0);
+  });
+});
+
+// --- DASHBOARD: STALE GARMENTS (Z25) ---
+
+describe('GET /api/zenco/dashboard/stale-garments', () => {
+  it('returns garments with status listo and deliveryDate >7 days ago', async () => {
+    const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
+    const staleGarments = [
+      { id: '0001', clientName: 'María', clientPhone: '111', garmentName: 'Campera', repairType: 'cierre', description: 'Cambiar cierre', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, price: 5000 },
+    ];
+    mockPrisma.order.findMany.mockResolvedValue(staleGarments);
+
+    const res = await request(app).get('/api/zenco/dashboard/stale-garments').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].clientName).toBe('María');
+  });
+
+  it('excludes garments with recent deliveryDate or non-listo status', async () => {
+    mockPrisma.order.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/api/zenco/dashboard/stale-garments').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('returns 500 on DB error', async () => {
+    mockPrisma.order.findMany.mockRejectedValue(new Error('DB error'));
+
+    const res = await request(app).get('/api/zenco/dashboard/stale-garments').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBeDefined();
+  });
+});
+
 // --- VALIDATION ---
 
 describe('Zenco validation', () => {

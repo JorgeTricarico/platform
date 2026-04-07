@@ -281,6 +281,22 @@ router.get('/dashboard/appointments', asyncHandler(async (req, res) => {
   res.json(appointments);
 }));
 
+// D28: Monthly income summary
+router.get('/dashboard/monthly-income', asyncHandler(async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  const currentMonth = today.slice(0, 7);
+  const range = getMonthRange(currentMonth);
+
+  const finances = await prisma.damianFinance.findMany({
+    where: { date: { gte: range.start, lte: range.end } },
+  });
+
+  const monthlyIncome = finances.filter(f => f.type === 'income').reduce((sum, f) => sum + f.amount, 0);
+  const monthlyExpenses = finances.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
+
+  res.json({ monthlyIncome, monthlyExpenses });
+}));
+
 router.get('/dashboard/stale-patients', asyncHandler(async (req, res) => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

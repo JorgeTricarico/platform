@@ -64,6 +64,18 @@ export interface DBFinance {
   description: string;
 }
 
+export interface DashboardData {
+  byStatus: Record<string, number>;
+  todayDeliveries: DBGarment[];
+  upcomingDeliveries: DBGarment[];
+  monthlyIncome: number;
+  monthlyExpenses: number;
+}
+
+export const fetchDashboard = async (): Promise<DashboardData> => {
+  return cachedFetch<DashboardData>(`${API_URL}/dashboard`);
+};
+
 export const fetchGarments = async (): Promise<DBGarment[]> => {
   return cachedFetch<DBGarment[]>(`${API_URL}/garments`);
 };
@@ -71,6 +83,12 @@ export const fetchGarments = async (): Promise<DBGarment[]> => {
 export const fetchFinances = async (month?: string): Promise<DBFinance[]> => {
   const params = month ? `?month=${month}` : '';
   return cachedFetch<DBFinance[]>(`${API_URL}/finances${params}`);
+};
+
+export interface StaleGarment extends DBGarment {}
+
+export const fetchStaleGarments = async (): Promise<StaleGarment[]> => {
+  return cachedFetch<StaleGarment[]>(`${API_URL}/dashboard/stale-garments`);
 };
 
 export const createGarment = async (data: Partial<DBGarment>): Promise<DBGarment> => {

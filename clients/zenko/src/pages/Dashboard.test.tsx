@@ -18,23 +18,28 @@ const mockGarments = [
   }
 ];
 
-const mockFinances = [
-  { id: 'FIN-1', date: '2026-04-01', type: 'income', category: 'Arreglos', amount: 4500, description: 'Camisa' },
-  { id: 'FIN-2', date: '2026-04-02', type: 'expense', category: 'Insumos', amount: 1500, description: 'Hilos' },
-];
+const mockDashboard = {
+  byStatus: { en_proceso: 1, entregado: 1 },
+  todayDeliveries: [],
+  upcomingDeliveries: [],
+  monthlyIncome: 4500,
+  monthlyExpenses: 1500,
+};
 
 vi.mock('../services/api', () => ({
   fetchGarments: vi.fn(),
-  fetchFinances: vi.fn(),
+  fetchDashboard: vi.fn(),
+  fetchStaleGarments: vi.fn(),
   createGarment: vi.fn(),
 }));
 
-import { fetchGarments, fetchFinances } from '../services/api';
+import { fetchGarments, fetchDashboard, fetchStaleGarments } from '../services/api';
 
 beforeEach(() => {
   vi.clearAllMocks();
   (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
-  (fetchFinances as ReturnType<typeof vi.fn>).mockResolvedValue(mockFinances);
+  (fetchDashboard as ReturnType<typeof vi.fn>).mockResolvedValue(mockDashboard);
+  (fetchStaleGarments as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 });
 
 describe('Dashboard view', () => {
@@ -45,12 +50,16 @@ describe('Dashboard view', () => {
     });
   });
 
-  it('calculates the balance correctly based on data', async () => {
+  it('shows monthly income from dashboard data', async () => {
     render(<ToastProvider><Dashboard /></ToastProvider>);
-    const totalIncome = mockFinances.filter(f => f.type === 'income').reduce((a, b) => a + b.amount, 0);
-    const totalExpenses = mockFinances.filter(f => f.type === 'expense').reduce((a, b) => a + b.amount, 0);
-    const expectedBalance = totalIncome - totalExpenses;
+    await waitFor(() => {
+      expect(screen.getByText('$4,500')).toBeInTheDocument();
+    });
+  });
 
+  it('calculates the balance correctly from dashboard data', async () => {
+    render(<ToastProvider><Dashboard /></ToastProvider>);
+    const expectedBalance = mockDashboard.monthlyIncome - mockDashboard.monthlyExpenses;
     await waitFor(() => {
       expect(screen.getByText(`$${expectedBalance.toLocaleString()}`)).toBeInTheDocument();
     });

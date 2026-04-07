@@ -207,6 +207,15 @@ export const fetchDashboardStalePatients = async (): Promise<DashboardStalePatie
   return cachedFetch<DashboardStalePatient[]>(`${API_URL}/dashboard/stale-patients`);
 };
 
+export interface MonthlyIncomeData {
+  monthlyIncome: number;
+  monthlyExpenses: number;
+}
+
+export const fetchDashboardMonthlyIncome = async (): Promise<MonthlyIncomeData> => {
+  return cachedFetch<MonthlyIncomeData>(`${API_URL}/dashboard/monthly-income`);
+};
+
 // --- AGENTE IA ---
 
 export interface AgentAction {

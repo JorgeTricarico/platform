@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { fetchGarments, fetchFinances, createGarment } from '../services/api';
-import type { DBGarment, DBFinance } from '../services/api';
+import { fetchGarments, fetchDashboard, createGarment } from '../services/api';
+import type { DBGarment, DashboardData } from '../services/api';
 import { useToast } from '../components/ToastContext';
 import GarmentModal, { EMPTY_FORM } from '../components/GarmentModal';
+import StaleGarmentsWidget from '../components/StaleGarmentsWidget';
 import type { GarmentFormState } from '../components/GarmentModal';
 
 export default function Dashboard() {
   const toast = useToast();
   const [garments, setGarments] = useState<DBGarment[]>([]);
-  const [finances, setFinances] = useState<DBFinance[]>([]);
+  const [dashData, setDashData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Modal State
@@ -17,10 +18,10 @@ export default function Dashboard() {
 
   const loadData = () => {
     setLoading(true);
-    Promise.all([fetchGarments(), fetchFinances()])
-      .then(([gData, fData]) => {
+    Promise.all([fetchGarments(), fetchDashboard()])
+      .then(([gData, dData]) => {
         setGarments(gData);
-        setFinances(fData);
+        setDashData(dData);
         setLoading(false);
       })
       .catch(err => {
@@ -51,9 +52,9 @@ export default function Dashboard() {
   tomorrow.setDate(tomorrow.getDate() + 1);
   const urgentGarments = pendingGarments.filter(g => new Date(g.deliveryDate + 'T23:59:59') <= tomorrow).sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
 
-  const totalIncome = finances.filter(f => f.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpenses = finances.filter(f => f.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
-  const balance = totalIncome - totalExpenses;
+  const monthlyIncome = dashData?.monthlyIncome ?? 0;
+  const monthlyExpenses = dashData?.monthlyExpenses ?? 0;
+  const balance = monthlyIncome - monthlyExpenses;
 
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', timeZone: 'UTC' };
@@ -85,12 +86,12 @@ export default function Dashboard() {
           <div className="stat-value">{pendingGarments.length}</div>
         </div>
         <div className="card">
-          <div className="stat-title">Balance Mensual</div>
-          <div className="stat-value">${balance.toLocaleString()}</div>
+          <div className="stat-title">Ingresos del Mes</div>
+          <div className="stat-value" style={{ color: 'var(--success-color, #22c55e)' }}>${monthlyIncome.toLocaleString()}</div>
         </div>
         <div className="card">
-          <div className="stat-title">Proximos a Vencer</div>
-          <div className="stat-value" style={{ color: 'var(--urgent-color)'}}>{urgentGarments.length}</div>
+          <div className="stat-title">Balance Mensual</div>
+          <div className="stat-value">${balance.toLocaleString()}</div>
         </div>
       </div>
 
@@ -130,6 +131,10 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div style={{ marginTop: '24px' }}>
+        <StaleGarmentsWidget />
       </div>
 
       {isModalOpen && (
