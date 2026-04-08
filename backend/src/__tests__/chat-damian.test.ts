@@ -114,7 +114,7 @@ describe('POST /api/damian/chat — Conversación con contexto pre-cargado', () 
     await request(app).post('/api/damian/chat').set('Authorization', authHeader('damian')).send({ message: 'turnos de hoy?' });
 
     expect(mockPrisma.appointment.findMany).toHaveBeenCalled();
-    expect(mockChat.mock.calls[0][0].systemPrompt).toContain('AGENDA DE HOY');
+    expect(mockChat.mock.calls[0][0].systemPrompt).toContain('AGENDA PROXIMOS 7 DIAS');
   });
 
   it('Respeta history', async () => {

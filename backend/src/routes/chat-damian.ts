@@ -29,8 +29,9 @@ Turnos de 1 hora, ultimo turno a las 19hs (o 14hs sabados).
 
 REGLAS:
 - cuando te saludan, menciona que sos masajista y pregunta si necesitan un turno
-- si mencionan un tipo de masaje o quieren turno, SIEMPRE mostrales los horarios libres del [CONTEXTO]
-- cuando el cliente confirma horario y da su nombre, usa book_appointment para agendarlo
+- si mencionan un tipo de masaje o quieren turno, SIEMPRE ofrece los proximos dias con horarios libres del [CONTEXTO]. Ejemplo: "tengo libre mañana a las 10, 14 y 16, o el jueves a las 11. que te queda mejor?"
+- cuando el cliente confirma dia, horario y da su nombre, usa book_appointment para agendarlo
+- si el cliente pide una fecha especifica, fijate en el [CONTEXTO] si hay horarios libres ese dia y decile cuales hay
 - si quieren cancelar, busca en [CONTEXTO] el turno del cliente y usa cancel_appointment con su ID
 - NUNCA inventes datos de citas. Usa SOLO la info del [CONTEXTO].
 - si preguntan algo que no es de masajes, redirigí amablemente`;
@@ -178,43 +179,47 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
       }
     }
 
-    // 3. Today's schedule (always useful)
-    const todayAppts = await prisma.appointment.findMany({
-      where: { date: today, status: { not: 'cancelado' } },
-      orderBy: { time: 'asc' },
-    });
-    parts.push(`\nAGENDA DE HOY (${today}):`);
-    if (todayAppts.length > 0) {
-      for (const a of todayAppts) {
-        parts.push(`  - ${a.time} → ${a.clientName} — ${a.service} (${a.status})`);
-      }
-      const allSlots = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
-      const occupied = todayAppts.map(a => a.time);
-      const free = allSlots.filter(s => !occupied.includes(s));
-      if (free.length > 0) {
-        parts.push(`  Horarios libres hoy: ${free.join(', ')}`);
-      } else {
-        parts.push('  Hoy esta completo.');
-      }
-    } else {
-      parts.push('  Sin turnos agendados. Todos los horarios estan libres.');
-    }
+    // 3. Schedule for next 7 days with free slots
+    const dayNames = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+    const weekdaySlots = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
+    const saturdaySlots = ['10:00','11:00','12:00','13:00','14:00'];
 
-    // 4. Tomorrow's schedule
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
-    const tomorrowAppts = await prisma.appointment.findMany({
-      where: { date: tomorrowStr, status: { not: 'cancelado' } },
-      orderBy: { time: 'asc' },
-    });
-    parts.push(`\nAGENDA DE MAÑANA (${tomorrowStr}):`);
-    if (tomorrowAppts.length > 0) {
-      for (const a of tomorrowAppts) {
-        parts.push(`  - ${a.time} → ${a.clientName} — ${a.service}`);
+    parts.push('\nAGENDA PROXIMOS 7 DIAS:');
+    for (let i = 0; i < 7; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toISOString().slice(0, 10);
+      const dayOfWeek = d.getDay(); // 0=domingo
+      const dayName = dayNames[dayOfWeek];
+
+      // Skip sundays
+      if (dayOfWeek === 0) {
+        parts.push(`  ${dayName} ${dateStr}: CERRADO`);
+        continue;
       }
-    } else {
-      parts.push('  Sin turnos agendados.');
+
+      const allSlots = dayOfWeek === 6 ? saturdaySlots : weekdaySlots;
+      const dayAppts = await prisma.appointment.findMany({
+        where: { date: dateStr, status: { not: 'cancelado' } },
+        orderBy: { time: 'asc' },
+      });
+
+      const occupied = dayAppts.map(a => a.time);
+      const free = allSlots.filter(s => !occupied.includes(s));
+
+      const label = i === 0 ? 'HOY' : i === 1 ? 'MAÑANA' : dayName;
+      if (free.length === allSlots.length) {
+        parts.push(`  ${label} ${dateStr}: todo libre (${free.join(', ')})`);
+      } else if (free.length === 0) {
+        parts.push(`  ${label} ${dateStr}: COMPLETO`);
+      } else {
+        parts.push(`  ${label} ${dateStr}: libres ${free.join(', ')}`);
+        if (dayAppts.length > 0) {
+          for (const a of dayAppts) {
+            parts.push(`    ocupado ${a.time} → ${a.clientName} — ${a.service}`);
+          }
+        }
+      }
     }
 
     // 5. If no client identified, show recent clients for awareness
