@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { prisma } from '../db.js';
+import { chatWithFallback } from '../services/ai-chat.js';
 
 const router = Router();
 
@@ -126,21 +126,14 @@ router.post('/', async (req, res) => {
     const { message, history, senderPhone, sessionId } = req.body;
     if (!message) return res.status(400).json({ error: 'Mensaje requerido' });
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.json({ reply: 'El bot no esta configurado todavia. Contactanos directamente!' });
-
-    // Pre-fetch ALL context before calling Gemini
+    // Pre-fetch ALL context before calling AI
     const context = await buildContext(senderPhone, message);
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: SYSTEM_PROMPT + context,
+    const { reply } = await chatWithFallback({
+      systemPrompt: SYSTEM_PROMPT + context,
+      message,
+      history: history || [],
     });
-
-    const chat = model.startChat({ history: history || [] });
-    const response = await chat.sendMessage(message);
-    const reply = response.response.text();
 
     // Auto-register client if phone provided and not found
     if (senderPhone) {

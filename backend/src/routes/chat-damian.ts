@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { SchemaType } from '@google/generative-ai';
 import { prisma } from '../db.js';
+import { chatWithFallback } from '../services/ai-chat.js';
 
 const router = Router();
 
@@ -241,42 +242,16 @@ router.post('/', async (req, res) => {
     const { message, history, senderPhone, sessionId } = req.body;
     if (!message) return res.status(400).json({ error: 'Mensaje requerido' });
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.json({ reply: 'el bot no esta configurado todavia, escribime directo!' });
-
-    // Pre-fetch ALL context before calling Gemini
+    // Pre-fetch ALL context before calling AI
     const context = await buildContext(senderPhone, message);
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: SYSTEM_PROMPT + context,
+    const { reply } = await chatWithFallback({
+      systemPrompt: SYSTEM_PROMPT + context,
+      message,
+      history: history || [],
       tools,
+      onFunctionCall: executeFunction,
     });
-
-    const chat = model.startChat({ history: history || [] });
-    let response = await chat.sendMessage(message);
-    let result = response.response;
-
-    // Handle function calls (only for book/cancel actions)
-    let maxRounds = 3;
-    while (maxRounds-- > 0) {
-      const functionCalls = result.functionCalls();
-      if (!functionCalls || functionCalls.length === 0) break;
-
-      const functionResponses = [];
-      for (const fc of functionCalls) {
-        const fnResult = await executeFunction(fc.name, fc.args as Record<string, string>);
-        functionResponses.push({
-          functionResponse: { name: fc.name, response: fnResult },
-        });
-      }
-
-      response = await chat.sendMessage(functionResponses);
-      result = response.response;
-    }
-
-    const reply = result.text();
 
     // Auto-register client if phone provided
     if (senderPhone) {
