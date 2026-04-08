@@ -44,9 +44,8 @@ interface Provider {
 }
 
 const PROVIDERS: Provider[] = [
-  { name: 'cerebras', envKey: 'CEREBRAS_API_KEY', baseUrl: 'https://api.cerebras.ai/v1', model: 'llama3.1-8b', supportsTools: true },
   { name: 'mistral', envKey: 'MISTRAL_API_KEY', baseUrl: 'https://api.mistral.ai/v1', model: 'mistral-small-latest', supportsTools: true },
-  { name: 'sambanova', envKey: 'SAMBANOVA_API_KEY', baseUrl: 'https://api.sambanova.ai/v1', model: 'Meta-Llama-3.3-70B-Instruct', supportsTools: false },
+  { name: 'cerebras', envKey: 'CEREBRAS_API_KEY', baseUrl: 'https://api.cerebras.ai/v1', model: 'llama3.1-8b', supportsTools: true },
 ];
 
 /** Convert Gemini history to OpenAI messages */
