@@ -2,6 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { API_URL } from '../services/api';
 import { BUSINESS } from '../config';
 
+function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...extra };
+  const token = localStorage.getItem('auth_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 interface Message {
   role: 'user' | 'bot';
   text: string;
@@ -35,7 +42,7 @@ export default function ChatDemo() {
 
   // Load chat history from DB on mount
   useEffect(() => {
-    fetch(`${API_URL}/chat/history?sessionId=${sessionId.current}`)
+    fetch(`${API_URL}/chat/history?sessionId=${sessionId.current}`, { headers: getAuthHeaders() })
       .then(r => r.json())
       .then(data => {
         if (data.messages?.length > 0) {
@@ -68,7 +75,7 @@ export default function ChatDemo() {
     try {
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ message: userMsg, history, sessionId: sessionId.current })
       });
       const data = await res.json();

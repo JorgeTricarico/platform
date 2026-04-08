@@ -19,10 +19,24 @@ async function main() {
     },
     {
       email: "damian@damian.com",
-      password: "damian2024",
-      name: "Damian",
+      password: "asdasd",
+      name: "damian",
       role: "admin",
       business: "damian",
+    },
+    {
+      email: "ana2@zenco.com",
+      password: "asdasd",
+      name: "ana",
+      role: "admin",
+      business: "zenco",
+    },
+    {
+      email: "ariel@zenco.com",
+      password: "asdasd",
+      name: "ariel",
+      role: "admin",
+      business: "zenco",
     },
     {
       email: "jorge@platform.com",
@@ -38,7 +52,7 @@ async function main() {
 
     const user = await prisma.user.upsert({
       where: { email: u.email },
-      update: {},
+      update: { passwordHash, name: u.name },
       create: {
         email: u.email,
         passwordHash,
