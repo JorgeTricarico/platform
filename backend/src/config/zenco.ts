@@ -7,7 +7,7 @@ const PRICE_LIST = [
   { service: 'Diseño nuevo / A medida', price: 'Desde $15.000', time: 'A coordinar' },
 ];
 
-const ADDRESS = '[PONER_DIRECCION_AQUI]';
+const ADDRESS = 'Independencia 243, Morón';
 const SCHEDULE = 'lunes a sábado de 10:00 a 18:30hs';
 
 export const ZENCO_CONFIG = {
