@@ -2,39 +2,13 @@ import { Router } from 'express';
 import { SchemaType } from '@google/generative-ai';
 import { prisma } from '../db.js';
 import { chatWithFallback } from '../services/ai-chat.js';
+import { DAMIAN_CONFIG } from '../config/damian.js';
 
 const router = Router();
 
-const SERVICE_PRICES: Record<string, { price: number; duration: number }> = {
-  'Masaje Descontracturante': { price: 8000, duration: 60 },
-  'Masaje Relajante': { price: 7000, duration: 60 },
-  'Masaje Deportivo': { price: 7500, duration: 45 },
-  'Drenaje Linfatico': { price: 9000, duration: 60 },
-};
+const SERVICE_PRICES = DAMIAN_CONFIG.services;
 
-const SYSTEM_PROMPT = `Tu nombre es Damian, sos masajista profesional con consultorio propio en Argentina.
-Hablas como un pibe argentino comun, relajado y amable. Sin tanta formalidad.
-NO uses mayusculas innecesarias, ni tildes perfectos, como si escribieras por whatsapp de verdad.
-Respuestas cortas y naturales, como un mensaje de whatsapp real (1-3 oraciones max).
-Cuando alguien te saluda, SIEMPRE menciona que sos masajista o pregunta si necesitan un turno.
-
-Tu servicio principal son masajes:
-- Descontracturante (60 min, $8000)
-- Relajante (60 min, $7000)
-- Deportivo (45 min, $7500)
-- Drenaje linfatico (60 min, $9000)
-
-Horarios disponibles: lunes a viernes de 9 a 20hs, sabados de 10 a 15hs.
-Turnos de 1 hora, ultimo turno a las 19hs (o 14hs sabados).
-
-REGLAS:
-- cuando te saludan, menciona que sos masajista y pregunta si necesitan un turno
-- si mencionan un tipo de masaje o quieren turno, SIEMPRE ofrece los proximos dias con horarios libres del [CONTEXTO]. Ejemplo: "tengo libre mañana a las 10, 14 y 16, o el jueves a las 11. que te queda mejor?"
-- cuando el cliente confirma dia, horario y da su nombre, usa book_appointment para agendarlo
-- si el cliente pide una fecha especifica, fijate en el [CONTEXTO] si hay horarios libres ese dia y decile cuales hay
-- si quieren cancelar, busca en [CONTEXTO] el turno del cliente y usa cancel_appointment con su ID
-- NUNCA inventes datos de citas. Usa SOLO la info del [CONTEXTO].
-- si preguntan algo que no es de masajes, redirigí amablemente`;
+const SYSTEM_PROMPT = DAMIAN_CONFIG.publicChat.systemPrompt;
 
 // Function calling SOLO para acciones que modifican la DB
 const tools: any[] = [
@@ -153,9 +127,9 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
 
     // 2. Try to find client by name in the message
     if (parts.length === 0 && message) {
-      const nameMatch = message.match(/(?:soy|me llamo|mi nombre es)\s+(\w+)/i);
+      const nameMatch = message.match(/(?:soy|me llamo|mi nombre es)\s+([a-záéíóúñ\s]+)/i);
       if (nameMatch) {
-        const name = nameMatch[1];
+        const name = nameMatch[1].trim();
         const clients = await prisma.client.findMany({
           where: { name: { contains: name, mode: 'insensitive' }, business: 'damian' },
           take: 3,
@@ -181,8 +155,8 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
 
     // 3. Schedule for next 7 days with free slots
     const dayNames = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-    const weekdaySlots = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
-    const saturdaySlots = ['10:00','11:00','12:00','13:00','14:00'];
+    const weekdaySlots = DAMIAN_CONFIG.schedule.weekdaySlots;
+    const saturdaySlots = DAMIAN_CONFIG.schedule.saturdaySlots;
 
     parts.push('\nAGENDA PROXIMOS 7 DIAS:');
     for (let i = 0; i < 7; i++) {

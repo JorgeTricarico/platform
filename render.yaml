@@ -14,7 +14,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install && npx prisma generate && npx tsc --outDir dist
-    startCommand: node dist/src/index.js
+    startCommand: npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV

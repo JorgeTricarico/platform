@@ -18,6 +18,16 @@ import { authRoutes } from './routes/auth.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Health check de variables de entorno críticas
+const criticalEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'GEMINI_API_KEY'];
+const missingVars = criticalEnvVars.filter(v => !process.env[v]);
+if (missingVars.length > 0) {
+  console.error(`[CRITICO] Faltan variables de entorno: ${missingVars.join(', ')}`);
+  if (process.env.NODE_ENV === 'production') {
+    console.error('El servidor podria fallar al procesar requests.');
+  }
+}
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
