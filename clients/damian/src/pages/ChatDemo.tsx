@@ -30,10 +30,8 @@ function getSessionId(): string {
   return sessionId;
 }
 
-const WELCOME_MSG: Message = { role: 'bot', text: `Hola! Soy ${BUSINESS.ownerName} de ${BUSINESS.name}. Puedo ayudarte con consultas sobre masajes, disponibilidad de turnos, o estado de tus citas. Escribime!` };
-
 export default function ChatDemo() {
-  const [messages, setMessages] = useState<Message[]>([WELCOME_MSG]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [history, setHistory] = useState<GeminiMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,7 +52,7 @@ export default function ChatDemo() {
             role: m.role === 'user' ? 'user' : 'model',
             parts: [{ text: m.content }],
           }));
-          setMessages([WELCOME_MSG, ...restored]);
+          setMessages(restored);
           setHistory(restoredHistory);
         }
       })
