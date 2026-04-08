@@ -62,6 +62,7 @@ model Order {
 
   @@index([status])
   @@index([deliveryDate])
+  @@map("orders")
 }
 
 model GarmentPhoto {
@@ -106,6 +107,7 @@ model Appointment {
   createdAt   DateTime @default(now())
 
   @@index([date])
+  @@map("appointments")
 }
 
 model DamianFinance {
