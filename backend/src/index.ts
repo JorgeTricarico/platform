@@ -72,34 +72,6 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', services: ['zenco', 'damian'], timestamp: new Date().toISOString() });
 });
 
-// DEBUG: Endpoint temporal para diagnosticar la DB en produccion
-app.get('/api/debug/db', async (_req, res) => {
-  try {
-    const { prisma } = await import('./db.js');
-    const tables: any[] = await prisma.$queryRaw`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-    `;
-    
-    const columns: any[] = await prisma.$queryRaw`
-      SELECT table_name, column_name, data_type 
-      FROM information_schema.columns 
-      WHERE table_schema = 'public'
-      ORDER BY table_name, ordinal_position
-    `;
-
-    res.json({
-      database_url_exists: !!process.env.DATABASE_URL,
-      database_url_protocol: process.env.DATABASE_URL?.split(':')[0],
-      tables: tables.map(t => t.table_name),
-      details: columns
-    });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message, stack: err.stack });
-  }
-});
-
 // Backwards compatibility: redirect old routes
 app.get('/api/garments', (_req, res) => res.redirect(301, '/api/zenco/garments'));
 app.get('/api/appointments', (_req, res) => res.redirect(301, '/api/damian/appointments'));
