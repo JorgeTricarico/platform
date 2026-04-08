@@ -23,6 +23,7 @@ REGLAS:
 - si preguntan por masajes, contales brevemente que ofrecés y preguntá que les interesa
 - si quieren un turno, usa la funcion book_appointment para agendarlo
 - si quieren ver disponibilidad, usa check_appointments para ver que hay agendado ese dia
+- si quieren cancelar un turno, pedile nombre y fecha, usa lookup_client para encontrar su turno, y despues cancel_appointment con el id del turno
 - NUNCA inventes datos de citas. Si no sabes, preguntá.
 - si preguntan algo que no es de masajes, redirigí amablemente`;
 
@@ -66,6 +67,17 @@ const tools: any[] = [
           required: ['date'],
         },
       },
+      {
+        name: 'cancel_appointment',
+        description: 'Cancela un turno existente por su ID. Usar despues de confirmar con el cliente cual turno quiere cancelar.',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            appointmentId: { type: SchemaType.STRING, description: 'ID del turno a cancelar' },
+          },
+          required: ['appointmentId'],
+        },
+      },
     ],
   },
 ];
@@ -98,7 +110,7 @@ async function executeFunction(name: string, args: Record<string, string>) {
         orderBy: { date: 'desc' },
         take: 5,
       });
-      return { found: true, name: client.name, phone: client.phone, notes: client.notes, appointments: appointments.map(a => ({ service: a.service, date: a.date, time: a.time, status: a.status })) };
+      return { found: true, name: client.name, phone: client.phone, notes: client.notes, appointments: appointments.map(a => ({ id: a.id, service: a.service, date: a.date, time: a.time, status: a.status })) };
     }
     return { found: false };
   }
@@ -130,6 +142,24 @@ async function executeFunction(name: string, args: Record<string, string>) {
     });
     const occupied = appointments.map(a => a.time);
     return { date: args.date, occupied_slots: occupied, total_booked: appointments.length };
+  }
+
+  if (name === 'cancel_appointment') {
+    try {
+      const appointment = await prisma.appointment.findUnique({
+        where: { id: args.appointmentId },
+      });
+      if (!appointment) return { success: false, message: 'No encontre ese turno' };
+      if (appointment.status === 'cancelado') return { success: false, message: 'Ese turno ya estaba cancelado' };
+
+      await prisma.appointment.update({
+        where: { id: args.appointmentId },
+        data: { status: 'cancelado' },
+      });
+      return { success: true, cancelled: { id: appointment.id, service: appointment.service, date: appointment.date, time: appointment.time } };
+    } catch {
+      return { success: false, message: 'Error al cancelar el turno' };
+    }
   }
 
   return { error: 'Funcion no encontrada' };

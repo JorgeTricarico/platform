@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { API_URL } from '../services/api';
 
 function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
@@ -13,60 +13,31 @@ interface Message {
   text: string;
 }
 
-// Gemini history format
 interface GeminiMessage {
   role: 'user' | 'model';
   parts: { text: string }[];
 }
 
-function getSessionId(): string {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const key = `zenco-chat-session-${today}`;
-  let sessionId = localStorage.getItem(key);
-  if (!sessionId) {
-    sessionId = `${today}-${crypto.randomUUID().slice(0, 8)}`;
-    localStorage.setItem(key, sessionId);
-  }
-  return sessionId;
-}
+const SCENARIOS = [
+  { id: 'libre', label: 'Chat libre', firstMessage: '' },
+  { id: 'estado', label: 'Estado de prenda', firstMessage: 'Hola, quiero saber como va mi arreglo' },
+  { id: 'presupuesto', label: 'Presupuesto', firstMessage: 'Hola, cuanto me sale hacer un dobladillo de pantalon?' },
+];
 
 export default function ChatDemo() {
+  const [activeScenario, setActiveScenario] = useState(SCENARIOS[0].id);
   const [messages, setMessages] = useState<Message[]>([]);
   const [history, setHistory] = useState<GeminiMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const sessionId = useRef(getSessionId());
-
-  // Load chat history from DB on mount
-  useEffect(() => {
-    fetch(`${API_URL}/chat/history?sessionId=${sessionId.current}`, { headers: getAuthHeaders() })
-      .then(r => r.json())
-      .then(data => {
-        if (data.messages?.length > 0) {
-          const restored: Message[] = data.messages.map((m: { role: string; content: string }) => ({
-            role: m.role === 'user' ? 'user' : 'bot',
-            text: m.content,
-          }));
-          const restoredHistory: GeminiMessage[] = data.messages.map((m: { role: string; content: string }) => ({
-            role: m.role === 'user' ? 'user' : 'model',
-            parts: [{ text: m.content }],
-          }));
-          setMessages(restored);
-          setHistory(restoredHistory);
-        }
-      })
-      .catch(() => { /* ignore — first visit or offline */ });
-  }, []);
+  const sessionIdRef = useRef(`${activeScenario}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
-    setInput('');
+  const sendMessageText = useCallback(async (userMsg: string, currentHistory: GeminiMessage[], currentSessionId: string) => {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setLoading(true);
 
@@ -74,12 +45,11 @@ export default function ChatDemo() {
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ message: userMsg, history, sessionId: sessionId.current })
+        body: JSON.stringify({ message: userMsg, history: currentHistory, sessionId: currentSessionId })
       });
       const data = await res.json();
       const botReply = data.reply || 'No pude procesar tu mensaje.';
       setMessages(prev => [...prev, { role: 'bot', text: botReply }]);
-      // Update history for next turn
       setHistory(prev => [
         ...prev,
         { role: 'user', parts: [{ text: userMsg }] },
@@ -89,6 +59,27 @@ export default function ChatDemo() {
       setMessages(prev => [...prev, { role: 'bot', text: 'Ups, tuve un problema. Intenta de nuevo en un momento.' }]);
     }
     setLoading(false);
+  }, []);
+
+  const switchScenario = useCallback((scenarioId: string) => {
+    const scenario = SCENARIOS.find(s => s.id === scenarioId)!;
+    setActiveScenario(scenarioId);
+    setMessages([]);
+    setHistory([]);
+    setInput('');
+    const newSessionId = `${scenarioId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+    sessionIdRef.current = newSessionId;
+
+    if (scenario.firstMessage) {
+      setTimeout(() => sendMessageText(scenario.firstMessage, [], newSessionId), 300);
+    }
+  }, [sendMessageText]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = input.trim();
+    setInput('');
+    await sendMessageText(userMsg, history, sessionIdRef.current);
   };
 
   return (
@@ -99,6 +90,29 @@ export default function ChatDemo() {
           <p className="subtitle">Simula como responderia Ana (IA) a los mensajes de tus clientes.</p>
         </div>
         <span className="badge completed" style={{ padding: '8px 16px', fontSize: '14px' }}>Modo Demo</span>
+      </div>
+
+      {/* Scenario Tabs */}
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
+        {SCENARIOS.map(s => (
+          <button
+            key={s.id}
+            onClick={() => switchScenario(s.id)}
+            disabled={loading}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: activeScenario === s.id ? '2px solid #25D366' : '1px solid #ccc',
+              background: activeScenario === s.id ? '#25D366' : 'white',
+              color: activeScenario === s.id ? 'white' : '#333',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '13px',
+              fontWeight: activeScenario === s.id ? 600 : 400,
+            }}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
 
       <div className="card" style={{ maxWidth: '600px', margin: '0 auto', padding: 0, overflow: 'hidden' }}>
@@ -113,6 +127,11 @@ export default function ChatDemo() {
 
         {/* Messages */}
         <div style={{ height: '400px', overflowY: 'auto', padding: '16px', background: '#ECE5DD', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {messages.length === 0 && !loading && (
+            <div style={{ textAlign: 'center', color: '#999', fontSize: '13px', marginTop: '160px' }}>
+              Escribi un mensaje para empezar la conversacion
+            </div>
+          )}
           {messages.map((m, i) => (
             <div key={i} style={{
               alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',

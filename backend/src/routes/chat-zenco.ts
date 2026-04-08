@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { prisma } from '../db.js';
 
 const router = Router();
@@ -13,10 +13,99 @@ Tu funcion es atender consultas de clientes sobre:
 - Tiempos de entrega
 
 REGLAS ESTRICTAS:
-- NUNCA inventes datos de pedidos. Si no tenes info, decile que te pase su nombre o telefono.
+- NUNCA inventes datos de pedidos. Usa lookup_order para buscar en la base de datos.
+- Si el cliente pregunta por su pedido, pedile nombre o telefono y usa lookup_order.
+- Si preguntan precios, usa check_prices para dar info actualizada.
 - Responde en español argentino casual pero profesional.
 - Respuestas cortas (maximo 3 oraciones).
 - Si preguntan algo que no es sobre ropa/arreglos, redirigí amablemente.`;
+
+const tools: any[] = [
+  {
+    functionDeclarations: [
+      {
+        name: 'lookup_order',
+        description: 'Busca pedidos/arreglos de un cliente por nombre o telefono. Usar cuando el cliente pregunta por el estado de su prenda.',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            clientName: { type: SchemaType.STRING, description: 'Nombre del cliente (parcial o completo)' },
+            clientPhone: { type: SchemaType.STRING, description: 'Telefono del cliente' },
+          },
+        },
+      },
+      {
+        name: 'check_prices',
+        description: 'Consulta los precios y tiempos estimados de los servicios de arreglos de ropa.',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            service: { type: SchemaType.STRING, description: 'Tipo de arreglo que busca (dobladillo, cierre, entalle, etc). Dejar vacio para ver todos.' },
+          },
+        },
+      },
+    ],
+  },
+];
+
+const PRICE_LIST = [
+  { service: 'Dobladillo de pantalon', price: '$3.000 - $5.000', time: '2-3 dias' },
+  { service: 'Cambio de cierre', price: '$4.000 - $7.000', time: '3-5 dias' },
+  { service: 'Entalle / Achicar', price: '$5.000 - $10.000', time: '4-7 dias' },
+  { service: 'Arreglo de ruedo', price: '$2.500 - $4.000', time: '2-3 dias' },
+  { service: 'Parche / Remiendo', price: '$3.000 - $6.000', time: '2-4 dias' },
+  { service: 'Diseño nuevo / A medida', price: 'Desde $15.000', time: 'A coordinar' },
+];
+
+async function executeFunction(name: string, args: Record<string, string>) {
+  if (name === 'lookup_order') {
+    const conditions: any[] = [];
+    if (args.clientName) {
+      conditions.push({ clientName: { contains: args.clientName, mode: 'insensitive' } });
+    }
+    if (args.clientPhone) {
+      conditions.push({ clientPhone: args.clientPhone });
+    }
+
+    if (conditions.length === 0) {
+      return { found: false, message: 'Necesito el nombre o telefono del cliente para buscar' };
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { OR: conditions },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+
+    if (orders.length === 0) {
+      return { found: false, message: 'No encontre pedidos con esos datos' };
+    }
+
+    return {
+      found: true,
+      total: orders.length,
+      orders: orders.map(o => ({
+        clientName: o.clientName,
+        garment: o.garmentName,
+        repair: o.repairType,
+        status: o.status,
+        deliveryDate: o.deliveryDate,
+        price: o.price,
+      })),
+    };
+  }
+
+  if (name === 'check_prices') {
+    if (args.service) {
+      const lower = args.service.toLowerCase();
+      const matched = PRICE_LIST.filter(p => p.service.toLowerCase().includes(lower));
+      if (matched.length > 0) return { prices: matched };
+    }
+    return { prices: PRICE_LIST };
+  }
+
+  return { error: 'Funcion no encontrada' };
+}
 
 router.post('/', async (req, res) => {
   try {
@@ -26,56 +115,53 @@ router.post('/', async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.json({ reply: 'El bot no esta configurado todavia. Contactanos directamente!' });
 
-    // Look up client by phone if provided
-    let clientContext = '';
+    // Pre-lookup client by phone for context hint
+    let clientHint = '';
     try {
       if (senderPhone) {
         const client = await prisma.client.findUnique({
           where: { phone_business: { phone: senderPhone, business: 'zenco' } }
         });
         if (client) {
-          clientContext = `\n\nCliente identificado: ${client.name} (tel: ${client.phone})${client.notes ? ` - Notas: ${client.notes}` : ''}`;
-          // Fetch their orders
-          const clientOrders = await prisma.order.findMany({
-            where: { clientPhone: senderPhone },
-            orderBy: { createdAt: 'desc' },
-            take: 5,
-          });
-          if (clientOrders.length > 0) {
-            clientContext += '\nSus pedidos:\n' + clientOrders.map(o =>
-              `- ${o.garmentName} (${o.repairType}) - Estado: ${o.status} - Entrega: ${o.deliveryDate} - $${o.price}`
-            ).join('\n');
-          }
+          clientHint = `\n\n[INFO INTERNA - el cliente que escribe es: ${client.name} (tel: ${client.phone})${client.notes ? `, notas: ${client.notes}` : ''}. Podés saludarlo por nombre y usar lookup_order con su nombre para buscar sus pedidos.]`;
         }
       }
     } catch { /* DB not available */ }
 
-    // General recent orders for context (only if no specific client found)
-    let dbContext = '';
-    if (!clientContext) {
-      try {
-        const orders = await prisma.order.findMany({ take: 5, orderBy: { createdAt: 'desc' } });
-        if (orders.length > 0) {
-          dbContext = '\n\nPedidos recientes en la base de datos:\n' + orders.map(o =>
-            `- ${o.clientName} (${o.clientPhone}): ${o.garmentName} - ${o.repairType} - Estado: ${o.status} - Entrega: ${o.deliveryDate} - $${o.price}`
-          ).join('\n');
-        }
-      } catch { /* DB not available */ }
-    }
-
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.0-flash',
-      systemInstruction: `${SYSTEM_PROMPT}${clientContext}${dbContext}`,
+      systemInstruction: SYSTEM_PROMPT + clientHint,
+      tools,
     });
+
     const chat = model.startChat({ history: history || [] });
-    const result = await chat.sendMessage(message);
-    const reply = result.response.text();
+    let response = await chat.sendMessage(message);
+    let result = response.response;
+
+    // Handle function calls (up to 3 rounds)
+    let maxRounds = 3;
+    while (maxRounds-- > 0) {
+      const functionCalls = result.functionCalls();
+      if (!functionCalls || functionCalls.length === 0) break;
+
+      const functionResponses = [];
+      for (const fc of functionCalls) {
+        const fnResult = await executeFunction(fc.name, fc.args as Record<string, string>);
+        functionResponses.push({
+          functionResponse: { name: fc.name, response: fnResult },
+        });
+      }
+
+      response = await chat.sendMessage(functionResponses);
+      result = response.response;
+    }
+
+    const reply = result.text();
 
     // Auto-register client if phone provided and not found
-    if (senderPhone && !clientContext) {
+    if (senderPhone && !clientHint) {
       try {
-        // Extract name from message or use placeholder
         await prisma.client.upsert({
           where: { phone_business: { phone: senderPhone, business: 'zenco' } },
           update: {},
