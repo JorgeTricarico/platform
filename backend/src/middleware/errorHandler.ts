@@ -63,9 +63,12 @@ export function errorHandler(
     return;
   }
 
-  // Production: expose message only for operational errors
+  // DEBUG: Expose all error details in production temporarily to debug the 500 error
   res.status(statusCode).json({
-    error: isOperational ? err.message : 'Internal server error',
+    error: err.message,
+    statusCode,
+    stack: err.stack,
+    isOperational
   });
 }
 
