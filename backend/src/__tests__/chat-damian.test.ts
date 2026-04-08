@@ -5,8 +5,8 @@ import { app } from '../index.js';
 import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
-  client: { findUnique: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
-  appointment: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
+  client: { findUnique: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
+  appointment: { findMany: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
 };
 
 // Mock Gemini SDK with tool-calling support
@@ -28,7 +28,6 @@ vi.mock('@google/generative-ai', () => {
   };
 });
 
-// Helper to create a simple text response (no function calls)
 function textResponse(text: string) {
   return {
     response: {
@@ -38,7 +37,6 @@ function textResponse(text: string) {
   };
 }
 
-// Helper to create a function call response
 function functionCallResponse(name: string, args: Record<string, string>) {
   return {
     response: {
@@ -54,9 +52,7 @@ beforeEach(() => {
   mockSendMessage.mockResolvedValue(textResponse('hola! como andas?'));
 });
 
-// --- CONVERSATION TESTS ---
-
-describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
+describe('POST /api/damian/chat — Conversación con contexto pre-cargado', () => {
   it('returns 400 when message is empty', async () => {
     const res = await request(app).post('/api/damian/chat').set('Authorization', authHeader('damian')).send({});
     expect(res.status).toBe(400);
@@ -79,24 +75,7 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
     expect(mockSendMessage).toHaveBeenCalledWith('Buenas!');
   });
 
-  it('Consulta servicios: cliente pregunta qué masajes ofrece', async () => {
-    mockSendMessage.mockResolvedValue(textResponse(
-      'hago descontracturante, relajante, deportivo y drenaje linfatico. cual te interesa?'
-    ));
-
-    const res = await request(app)
-      .post('/api/damian/chat')
-      .set('Authorization', authHeader('damian'))
-      .send({
-        message: '¿Qué tipos de masaje hacés?',
-      });
-
-    expect(res.status).toBe(200);
-    expect(res.body.reply).toBeTruthy();
-  });
-
   it('Agendar turno: bot usa book_appointment tool', async () => {
-    // First call: AI decides to call book_appointment
     mockSendMessage
       .mockResolvedValueOnce(functionCallResponse('book_appointment', {
         clientName: 'Laura',
@@ -104,7 +83,6 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
         date: '2026-04-07',
         time: '15:00',
       }))
-      // Second call: after function result, AI responds with confirmation
       .mockResolvedValueOnce(textResponse(
         'listo laura! te agendé un descontracturante el lunes 7 a las 15hs. te espero!'
       ));
@@ -123,7 +101,6 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('laura');
-    // Verify appointment was created
     expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
     const createData = mockPrisma.appointment.create.mock.calls[0][0].data;
     expect(createData.service).toBe('Masaje Descontracturante');
@@ -132,87 +109,71 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
     expect(createData.status).toBe('pendiente');
   });
 
-  it('Consultar disponibilidad: bot usa check_appointments tool', async () => {
-    mockSendMessage
-      .mockResolvedValueOnce(functionCallResponse('check_appointments', {
-        date: '2026-04-07',
-      }))
-      .mockResolvedValueOnce(textResponse(
-        'el lunes 7 tengo ocupados los turnos de 10 y 14hs. el resto esta libre, que horario te queda bien?'
-      ));
-
+  it('Disponibilidad pre-cargada: buildContext trae agenda de hoy y mañana', async () => {
     mockPrisma.appointment.findMany.mockResolvedValue([
-      { time: '10:00', status: 'pendiente' },
-      { time: '14:00', status: 'pendiente' },
+      { time: '10:00', clientName: 'Ana', service: 'Masaje Relajante', status: 'pendiente' },
+      { time: '14:00', clientName: 'Juan', service: 'Masaje Deportivo', status: 'pendiente' },
     ]);
+    mockSendMessage.mockResolvedValue(textResponse(
+      'hoy tengo ocupados las 10 y las 14. el resto esta libre, que horario te queda bien?'
+    ));
 
     const res = await request(app)
       .post('/api/damian/chat')
       .set('Authorization', authHeader('damian'))
-      .send({
-        message: '¿Qué turnos tenés libres el lunes 7?',
-      });
+      .send({ message: '¿Qué turnos tenés libres hoy?' });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toBeTruthy();
-    // Verify appointments were checked
-    expect(mockPrisma.appointment.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { date: '2026-04-07', status: { not: 'cancelado' } },
-      })
-    );
+    // buildContext fetches today + tomorrow appointments
+    expect(mockPrisma.appointment.findMany).toHaveBeenCalled();
   });
 
-  it('Buscar cliente: bot usa lookup_client tool', async () => {
-    mockSendMessage
-      .mockResolvedValueOnce(functionCallResponse('lookup_client', {
-        phone: '1111',
-      }))
-      .mockResolvedValueOnce(textResponse(
-        'encontre a carlos! tiene 2 turnos anteriores. queres agendar otro?'
-      ));
-
-    mockPrisma.client.findUnique
-      .mockResolvedValueOnce(null)  // pre-lookup for senderPhone (not provided)
-      .mockResolvedValueOnce({     // lookup_client tool call
-        id: 'c1', name: 'Carlos', phone: '1111', business: 'damian', notes: 'le gusta descontracturante',
-      });
-    mockPrisma.appointment.findMany.mockResolvedValue([
-      { service: 'Masaje Descontracturante', date: '2026-03-20', time: '16:00', status: 'completado' },
-      { service: 'Masaje Relajante', date: '2026-03-27', time: '10:00', status: 'completado' },
-    ]);
-
-    const res = await request(app)
-      .post('/api/damian/chat')
-      .set('Authorization', authHeader('damian'))
-      .send({
-        message: 'Buscame el historial del 1111',
-      });
-
-    expect(res.status).toBe(200);
-    expect(res.body.reply).toContain('carlos');
-  });
-
-  it('Cliente identificado por senderPhone: bot lo saluda por nombre', async () => {
+  it('Cliente identificado por senderPhone: pre-carga su info y turnos', async () => {
     mockPrisma.client.findUnique.mockResolvedValue({
       id: 'c2', name: 'Pedro', phone: '5555', business: 'damian', notes: 'dolor de espalda',
     });
+    mockPrisma.appointment.findMany.mockResolvedValue([
+      { id: 'APT-1', service: 'Masaje Descontracturante', date: '2026-03-20', time: '16:00', status: 'completado' },
+    ]);
     mockSendMessage.mockResolvedValue(textResponse('pedro! como andas? necesitas otro turno?'));
 
     const res = await request(app)
       .post('/api/damian/chat')
       .set('Authorization', authHeader('damian'))
-      .send({
-        message: 'Hola Damian!',
-        senderPhone: '5555',
-      });
+      .send({ message: 'Hola Damian!', senderPhone: '5555' });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('pedro');
-    // Verify system instruction included client hint
-    expect(mockStartChat).toHaveBeenCalledWith(expect.objectContaining({
-      history: [],
-    }));
+    expect(mockPrisma.client.findUnique).toHaveBeenCalled();
+    // Appointments pre-fetched for client context
+    expect(mockPrisma.appointment.findMany).toHaveBeenCalled();
+  });
+
+  it('Cancelar turno: bot usa cancel_appointment tool', async () => {
+    mockSendMessage
+      .mockResolvedValueOnce(functionCallResponse('cancel_appointment', {
+        appointmentId: 'APT-456',
+      }))
+      .mockResolvedValueOnce(textResponse('listo, te cancele el turno del viernes'));
+
+    mockPrisma.appointment.findUnique.mockResolvedValue({
+      id: 'APT-456', service: 'Masaje Relajante', date: '2026-04-11', time: '10:00', status: 'pendiente', clientName: 'Carlos',
+    });
+    mockPrisma.appointment.update.mockResolvedValue({});
+
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({ message: 'Cancelame el turno APT-456' });
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.appointment.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'APT-456' },
+        data: { status: 'cancelado' },
+      })
+    );
   });
 
   it('Respeta history para conversaciones multi-turno', async () => {
@@ -225,15 +186,10 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
     const res = await request(app)
       .post('/api/damian/chat')
       .set('Authorization', authHeader('damian'))
-      .send({
-        message: 'Quiero un turno',
-        history,
-      });
+      .send({ message: 'Quiero un turno', history });
 
     expect(res.status).toBe(200);
-    expect(mockStartChat).toHaveBeenCalledWith(expect.objectContaining({
-      history,
-    }));
+    expect(mockStartChat).toHaveBeenCalledWith(expect.objectContaining({ history }));
   });
 
   it('Auto-registra cliente nuevo con senderPhone desconocido', async () => {
@@ -243,10 +199,7 @@ describe('POST /api/damian/chat — Conversación ida y vuelta', () => {
     await request(app)
       .post('/api/damian/chat')
       .set('Authorization', authHeader('damian'))
-      .send({
-        message: 'Hola',
-        senderPhone: '8888',
-      });
+      .send({ message: 'Hola', senderPhone: '8888' });
 
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(
       expect.objectContaining({

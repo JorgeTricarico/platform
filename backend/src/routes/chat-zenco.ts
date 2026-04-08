@@ -4,50 +4,6 @@ import { prisma } from '../db.js';
 
 const router = Router();
 
-const SYSTEM_PROMPT = `Eres Ana, dueña de Zenco (taller de arreglos de ropa e indumentaria en Argentina).
-Eres amable, profesional y servicial.
-Tu funcion es atender consultas de clientes sobre:
-- Estado de sus arreglos/pedidos (si preguntan, usa la informacion de la base de datos)
-- Tipos de arreglos que haces: dobladillo, cambio de cierre, entalle/achicar, diseño nuevo
-- Presupuestos aproximados
-- Tiempos de entrega
-
-REGLAS ESTRICTAS:
-- NUNCA inventes datos de pedidos. Usa lookup_order para buscar en la base de datos.
-- Si el cliente pregunta por su pedido, pedile nombre o telefono y usa lookup_order.
-- Si preguntan precios, usa check_prices para dar info actualizada.
-- Responde en español argentino casual pero profesional.
-- Respuestas cortas (maximo 3 oraciones).
-- Si preguntan algo que no es sobre ropa/arreglos, redirigí amablemente.`;
-
-const tools: any[] = [
-  {
-    functionDeclarations: [
-      {
-        name: 'lookup_order',
-        description: 'Busca pedidos/arreglos de un cliente por nombre o telefono. Usar cuando el cliente pregunta por el estado de su prenda.',
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {
-            clientName: { type: SchemaType.STRING, description: 'Nombre del cliente (parcial o completo)' },
-            clientPhone: { type: SchemaType.STRING, description: 'Telefono del cliente' },
-          },
-        },
-      },
-      {
-        name: 'check_prices',
-        description: 'Consulta los precios y tiempos estimados de los servicios de arreglos de ropa.',
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {
-            service: { type: SchemaType.STRING, description: 'Tipo de arreglo que busca (dobladillo, cierre, entalle, etc). Dejar vacio para ver todos.' },
-          },
-        },
-      },
-    ],
-  },
-];
-
 const PRICE_LIST = [
   { service: 'Dobladillo de pantalon', price: '$3.000 - $5.000', time: '2-3 dias' },
   { service: 'Cambio de cierre', price: '$4.000 - $7.000', time: '3-5 dias' },
@@ -57,54 +13,112 @@ const PRICE_LIST = [
   { service: 'Diseño nuevo / A medida', price: 'Desde $15.000', time: 'A coordinar' },
 ];
 
-async function executeFunction(name: string, args: Record<string, string>) {
-  if (name === 'lookup_order') {
-    const conditions: any[] = [];
-    if (args.clientName) {
-      conditions.push({ clientName: { contains: args.clientName, mode: 'insensitive' } });
-    }
-    if (args.clientPhone) {
-      conditions.push({ clientPhone: args.clientPhone });
+const SYSTEM_PROMPT = `Eres Ana, dueña de Zenco (taller de arreglos de ropa e indumentaria en Argentina).
+Eres amable, profesional y servicial.
+Tu funcion es atender consultas de clientes sobre:
+- Estado de sus arreglos/pedidos
+- Tipos de arreglos que haces: dobladillo, cambio de cierre, entalle/achicar, diseño nuevo
+- Presupuestos aproximados
+- Tiempos de entrega
+
+LISTA DE PRECIOS:
+${PRICE_LIST.map(p => `- ${p.service}: ${p.price} (${p.time})`).join('\n')}
+
+REGLAS ESTRICTAS:
+- NUNCA inventes datos de pedidos. Usa SOLO la info que te llega en [CONTEXTO].
+- Si el cliente pregunta por su pedido y no hay datos en el contexto, pedile nombre o telefono.
+- Responde en español argentino casual pero profesional.
+- Respuestas cortas (maximo 3 oraciones).
+- Si preguntan algo que no es sobre ropa/arreglos, redirigí amablemente.`;
+
+// No function calling needed — all data is pre-fetched and injected as context
+
+/** Pre-fetch all relevant context before calling Gemini */
+async function buildContext(senderPhone?: string, message?: string): Promise<string> {
+  const parts: string[] = [];
+
+  try {
+    // 1. If we have a phone, look up the client + their orders
+    if (senderPhone) {
+      const client = await prisma.client.findUnique({
+        where: { phone_business: { phone: senderPhone, business: 'zenco' } }
+      });
+      if (client) {
+        parts.push(`CLIENTE IDENTIFICADO: ${client.name} (tel: ${client.phone})${client.notes ? ` — Notas: ${client.notes}` : ''}`);
+        parts.push('Podes saludarlo por nombre.');
+
+        const orders = await prisma.order.findMany({
+          where: { clientPhone: senderPhone },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        });
+        if (orders.length > 0) {
+          parts.push(`SUS PEDIDOS (${orders.length}):`);
+          for (const o of orders) {
+            parts.push(`  - "${o.garmentName}" (${o.repairType}) → Estado: ${o.status} | Entrega: ${o.deliveryDate || 'sin fecha'} | $${o.price}`);
+          }
+        } else {
+          parts.push('Este cliente no tiene pedidos registrados.');
+        }
+      }
     }
 
-    if (conditions.length === 0) {
-      return { found: false, message: 'Necesito el nombre o telefono del cliente para buscar' };
+    // 2. Try to find the client by name mentioned in the message
+    if (parts.length === 0 && message) {
+      // Extract potential name (first word that's capitalized or after "soy")
+      const nameMatch = message.match(/(?:soy|me llamo|mi nombre es)\s+(\w+)/i);
+      if (nameMatch) {
+        const name = nameMatch[1];
+        const clients = await prisma.client.findMany({
+          where: { name: { contains: name, mode: 'insensitive' }, business: 'zenco' },
+          take: 3,
+        });
+        if (clients.length > 0) {
+          for (const client of clients) {
+            parts.push(`CLIENTE ENCONTRADO POR NOMBRE: ${client.name} (tel: ${client.phone})`);
+            const orders = await prisma.order.findMany({
+              where: { clientPhone: client.phone },
+              orderBy: { createdAt: 'desc' },
+              take: 5,
+            });
+            if (orders.length > 0) {
+              parts.push(`  Pedidos:`);
+              for (const o of orders) {
+                parts.push(`  - "${o.garmentName}" (${o.repairType}) → Estado: ${o.status} | Entrega: ${o.deliveryDate || 'sin fecha'} | $${o.price}`);
+              }
+            }
+          }
+        }
+      }
     }
 
-    const orders = await prisma.order.findMany({
-      where: { OR: conditions },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    });
-
-    if (orders.length === 0) {
-      return { found: false, message: 'No encontre pedidos con esos datos' };
+    // 3. If still no client context, show recent orders as general awareness
+    if (parts.length === 0) {
+      const recentOrders = await prisma.order.findMany({
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+      });
+      if (recentOrders.length > 0) {
+        parts.push('CLIENTE NO IDENTIFICADO. Pedidos recientes del taller:');
+        for (const o of recentOrders) {
+          parts.push(`  - ${o.clientName} (${o.clientPhone}): "${o.garmentName}" (${o.repairType}) → ${o.status} | $${o.price}`);
+        }
+        parts.push('Si el cliente dice su nombre o telefono, fijate si coincide con alguno de estos.');
+      } else {
+        parts.push('CLIENTE NO IDENTIFICADO. No hay pedidos cargados en el sistema.');
+      }
     }
 
-    return {
-      found: true,
-      total: orders.length,
-      orders: orders.map(o => ({
-        clientName: o.clientName,
-        garment: o.garmentName,
-        repair: o.repairType,
-        status: o.status,
-        deliveryDate: o.deliveryDate,
-        price: o.price,
-      })),
-    };
+    // 4. Stats summary
+    const totalPending = await prisma.order.count({ where: { status: { in: ['pendiente', 'en_proceso'] } } });
+    const totalReady = await prisma.order.count({ where: { status: 'listo' } });
+    parts.push(`\nREPORTE RAPIDO: ${totalPending} pedidos en proceso, ${totalReady} listos para retirar.`);
+
+  } catch {
+    parts.push('(No se pudo acceder a la base de datos)');
   }
 
-  if (name === 'check_prices') {
-    if (args.service) {
-      const lower = args.service.toLowerCase();
-      const matched = PRICE_LIST.filter(p => p.service.toLowerCase().includes(lower));
-      if (matched.length > 0) return { prices: matched };
-    }
-    return { prices: PRICE_LIST };
-  }
-
-  return { error: 'Funcion no encontrada' };
+  return '\n\n[CONTEXTO DEL SISTEMA]\n' + parts.join('\n');
 }
 
 router.post('/', async (req, res) => {
@@ -115,62 +129,31 @@ router.post('/', async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.json({ reply: 'El bot no esta configurado todavia. Contactanos directamente!' });
 
-    // Pre-lookup client by phone for context hint
-    let clientHint = '';
-    try {
-      if (senderPhone) {
-        const client = await prisma.client.findUnique({
-          where: { phone_business: { phone: senderPhone, business: 'zenco' } }
-        });
-        if (client) {
-          clientHint = `\n\n[INFO INTERNA - el cliente que escribe es: ${client.name} (tel: ${client.phone})${client.notes ? `, notas: ${client.notes}` : ''}. Podés saludarlo por nombre y usar lookup_order con su nombre para buscar sus pedidos.]`;
-        }
-      }
-    } catch { /* DB not available */ }
+    // Pre-fetch ALL context before calling Gemini
+    const context = await buildContext(senderPhone, message);
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.0-flash',
-      systemInstruction: SYSTEM_PROMPT + clientHint,
-      tools,
+      systemInstruction: SYSTEM_PROMPT + context,
     });
 
     const chat = model.startChat({ history: history || [] });
-    let response = await chat.sendMessage(message);
-    let result = response.response;
-
-    // Handle function calls (up to 3 rounds)
-    let maxRounds = 3;
-    while (maxRounds-- > 0) {
-      const functionCalls = result.functionCalls();
-      if (!functionCalls || functionCalls.length === 0) break;
-
-      const functionResponses = [];
-      for (const fc of functionCalls) {
-        const fnResult = await executeFunction(fc.name, fc.args as Record<string, string>);
-        functionResponses.push({
-          functionResponse: { name: fc.name, response: fnResult },
-        });
-      }
-
-      response = await chat.sendMessage(functionResponses);
-      result = response.response;
-    }
-
-    const reply = result.text();
+    const response = await chat.sendMessage(message);
+    const reply = response.response.text();
 
     // Auto-register client if phone provided and not found
-    if (senderPhone && !clientHint) {
+    if (senderPhone) {
       try {
         await prisma.client.upsert({
           where: { phone_business: { phone: senderPhone, business: 'zenco' } },
           update: {},
           create: { name: 'Cliente nuevo', phone: senderPhone, business: 'zenco', notes: 'Registrado automaticamente via chat' },
         });
-      } catch { /* ignore registration errors */ }
+      } catch { /* ignore */ }
     }
 
-    // Persist messages if sessionId provided
+    // Persist messages
     if (sessionId) {
       try {
         await prisma.chatMessage.createMany({
@@ -179,7 +162,7 @@ router.post('/', async (req, res) => {
             { business: 'zenco', role: 'assistant', content: reply, sessionId },
           ],
         });
-      } catch { /* persistence failure should not break chat */ }
+      } catch { /* ignore */ }
     }
 
     res.json({ reply });

@@ -5,11 +5,11 @@ import { app } from '../index.js';
 import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
-  client: { findUnique: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
-  order: { findMany: ReturnType<typeof vi.fn> };
+  client: { findUnique: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
+  order: { findMany: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
 };
 
-// Mock Gemini SDK — Zenco now uses startChat + sendMessage (same as Damian)
+// Mock Gemini SDK — Zenco uses startChat + sendMessage (no function calling)
 const mockSendMessage = vi.fn();
 const mockStartChat = vi.fn(() => ({ sendMessage: mockSendMessage }));
 vi.mock('@google/generative-ai', () => {
@@ -30,17 +30,16 @@ vi.mock('@google/generative-ai', () => {
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.GEMINI_API_KEY = 'test-key';
+  // Default: order.count returns 0 (used by buildContext stats)
+  mockPrisma.order.count.mockResolvedValue(0);
   mockSendMessage.mockResolvedValue({
     response: {
       text: () => 'Hola! Bienvenido a Zenco, ¿en qué te puedo ayudar?',
-      functionCalls: () => null,
     },
   });
 });
 
-// --- CONVERSATION TESTS ---
-
-describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
+describe('POST /api/zenco/chat — Conversación con contexto pre-cargado', () => {
   it('returns 400 when message is empty', async () => {
     const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({});
     expect(res.status).toBe(400);
@@ -54,91 +53,64 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
     expect(res.body.reply).toContain('no esta configurado');
   });
 
-  it('Saludo: cliente saluda, Ana responde amablemente', async () => {
-    mockSendMessage.mockResolvedValue({
-      response: { text: () => 'Hola! Bienvenida a Zenco, ¿en qué te puedo ayudar?', functionCalls: () => null },
-    });
-
+  it('Saludo: cliente saluda, Ana responde', async () => {
     const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola buenas tardes' });
     expect(res.status).toBe(200);
     expect(res.body.reply).toBeTruthy();
-    expect(typeof res.body.reply).toBe('string');
-    // Verify sendMessage was called with the user message
     expect(mockSendMessage).toHaveBeenCalledOnce();
     expect(mockSendMessage).toHaveBeenCalledWith('Hola buenas tardes');
   });
 
-  it('Consulta estado: cliente pregunta por su pedido con teléfono', async () => {
+  it('Pre-carga datos del cliente cuando envía senderPhone', async () => {
     mockPrisma.client.findUnique.mockResolvedValue({
       id: 'c1', name: 'María', phone: '1111', business: 'zenco', notes: 'clienta frecuente',
     });
     mockPrisma.order.findMany.mockResolvedValue([
-      { garmentName: 'Pantalón', repairType: 'dobladillo', status: 'en_proceso', deliveryDate: '2026-04-10', price: 3000 },
+      { garmentName: 'Pantalón', repairType: 'dobladillo', status: 'en_proceso', deliveryDate: '2026-04-10', price: 3000, clientPhone: '1111' },
     ]);
     mockSendMessage.mockResolvedValue({
-      response: { text: () => 'Hola María! Tu pantalón con dobladillo está en proceso, lo tenemos listo para el 10 de abril.', functionCalls: () => null },
+      response: { text: () => 'Hola María! Tu pantalón con dobladillo está en proceso.' },
     });
 
     const res = await request(app)
       .post('/api/zenco/chat')
       .set('Authorization', authHeader('zenco'))
-      .send({
-        message: 'Hola, quiero saber cómo va mi pedido',
-        senderPhone: '1111',
-      });
+      .send({ message: 'Hola, quiero saber cómo va mi pedido', senderPhone: '1111' });
 
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('María');
-    // Verify client was looked up and message sent
     expect(mockPrisma.client.findUnique).toHaveBeenCalled();
-    expect(mockSendMessage).toHaveBeenCalledWith('Hola, quiero saber cómo va mi pedido');
+    expect(mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
-  it('Consulta precios: cliente pregunta presupuesto', async () => {
+  it('Busca cliente por nombre en el mensaje cuando no hay senderPhone', async () => {
+    mockPrisma.client.findMany.mockResolvedValue([
+      { name: 'Juan', phone: '2222', business: 'zenco' },
+    ]);
+    mockPrisma.order.findMany.mockResolvedValue([
+      { garmentName: 'Campera', repairType: 'cierre', status: 'listo', deliveryDate: '2026-04-08', price: 5000, clientPhone: '2222' },
+    ]);
     mockSendMessage.mockResolvedValue({
-      response: { text: () => 'Un dobladillo de pantalón sale aproximadamente $3000-5000 dependiendo de la tela. ¿Querés traerlo para que lo vea?', functionCalls: () => null },
+      response: { text: () => 'Hola Juan! Tu campera ya esta lista para retirar.' },
     });
 
-    const res = await request(app)
-      .post('/api/zenco/chat')
-      .set('Authorization', authHeader('zenco'))
-      .send({
-        message: '¿Cuánto sale hacer un dobladillo?',
-      });
-
+    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola soy Juan, como va mi arreglo?' });
     expect(res.status).toBe(200);
-    expect(res.body.reply).toBeTruthy();
-    expect(mockSendMessage).toHaveBeenCalledWith('¿Cuánto sale hacer un dobladillo?');
+    // buildContext should have searched by name "Juan"
+    expect(mockPrisma.client.findMany).toHaveBeenCalled();
   });
 
-  it('Sin pedidos: Gemini puede llamar lookup_order via function calling', async () => {
-    // Gemini calls lookup_order, then responds with text
-    mockSendMessage
-      .mockResolvedValueOnce({
-        response: {
-          text: () => '',
-          functionCalls: () => [{ name: 'lookup_order', args: { clientName: 'Juan' } }],
-        },
-      })
-      .mockResolvedValueOnce({
-        response: {
-          text: () => 'No encontré pedidos con ese nombre, ¿me pasás tu teléfono?',
-          functionCalls: () => null,
-        },
-      });
-    mockPrisma.order.findMany.mockResolvedValue([]);
+  it('Sin cliente identificado: muestra pedidos recientes como contexto', async () => {
+    mockPrisma.order.findMany.mockResolvedValue([
+      { clientName: 'Ana', clientPhone: '3333', garmentName: 'Vestido', repairType: 'entalle', status: 'pendiente', price: 8000 },
+    ]);
 
-    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Quiero saber mi pedido, soy Juan' });
+    const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
-    expect(res.body.reply).toContain('No encontré');
     expect(mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('Pasa history al backend para memoria multi-turno', async () => {
-    mockSendMessage.mockResolvedValue({
-      response: { text: () => 'Dale, el pantalón está en proceso todavía.', functionCalls: () => null },
-    });
-
     const history = [
       { role: 'user', parts: [{ text: 'Hola' }] },
       { role: 'model', parts: [{ text: 'Hola! Bienvenida a Zenco' }] },
@@ -147,16 +119,13 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
     const res = await request(app)
       .post('/api/zenco/chat')
       .set('Authorization', authHeader('zenco'))
-      .send({
-        message: 'Y mi pedido?',
-        history,
-      });
+      .send({ message: 'Y mi pedido?', history });
 
     expect(res.status).toBe(200);
     expect(mockStartChat).toHaveBeenCalledWith(expect.objectContaining({ history }));
   });
 
-  it('Auto-registra cliente nuevo cuando envía senderPhone desconocido', async () => {
+  it('Auto-registra cliente nuevo cuando envía senderPhone', async () => {
     mockPrisma.client.findUnique.mockResolvedValue(null);
     mockPrisma.order.findMany.mockResolvedValue([]);
     mockPrisma.client.upsert.mockResolvedValue({});
@@ -164,10 +133,7 @@ describe('POST /api/zenco/chat — Conversación ida y vuelta', () => {
     await request(app)
       .post('/api/zenco/chat')
       .set('Authorization', authHeader('zenco'))
-      .send({
-        message: 'Hola',
-        senderPhone: '9999',
-      });
+      .send({ message: 'Hola', senderPhone: '9999' });
 
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
