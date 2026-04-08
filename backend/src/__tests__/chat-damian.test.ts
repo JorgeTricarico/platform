@@ -213,6 +213,6 @@ describe('POST /api/damian/chat — Conversación con contexto pre-cargado', () 
     mockSendMessage.mockRejectedValue(new Error('Gemini down'));
     const res = await request(app).post('/api/damian/chat').set('Authorization', authHeader('damian')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
-    expect(res.body.reply).toContain('sesion');
+    expect(res.body.reply).toContain('error');
   });
 });

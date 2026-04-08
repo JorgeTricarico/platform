@@ -168,7 +168,7 @@ router.post('/', async (req, res) => {
     res.json({ reply });
   } catch (error) {
     console.error('Chat Zenco error:', error);
-    res.json({ reply: 'Perdon, estoy un poco ocupada en el taller. Escribime en un ratito!' });
+    res.json({ reply: 'Perdon, hubo un error. Intenta de nuevo en un momento!' });
   }
 });
 

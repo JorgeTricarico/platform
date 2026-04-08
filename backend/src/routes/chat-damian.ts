@@ -304,7 +304,7 @@ router.post('/', async (req, res) => {
     res.json({ reply });
   } catch (error) {
     console.error('Chat Damian error:', error);
-    res.json({ reply: 'perdon, estoy en una sesion ahora. te respondo en un rato!' });
+    res.json({ reply: 'perdon, hubo un error. intenta de nuevo en un momento!' });
   }
 });
 

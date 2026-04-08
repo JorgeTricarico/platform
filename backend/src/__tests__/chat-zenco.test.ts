@@ -147,6 +147,6 @@ describe('POST /api/zenco/chat — Conversación con contexto pre-cargado', () =
     mockSendMessage.mockRejectedValue(new Error('Gemini down'));
     const res = await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola' });
     expect(res.status).toBe(200);
-    expect(res.body.reply).toContain('ocupada');
+    expect(res.body.reply).toContain('error');
   });
 });
