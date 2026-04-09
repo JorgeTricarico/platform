@@ -37,18 +37,6 @@ export default function ChatDemo() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Auto-inquiry if order param exists
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const orderId = params.get('order');
-    if (orderId && messages.length === 0) {
-      setActiveScenario('estado');
-      // Delay slightly to allow the component to settle
-      setTimeout(() => {
-        sendMessageText(`Hola, quiero saber el estado de mi orden #${orderId.toUpperCase()}`, [], sessionIdRef.current);
-      }, 500);
-    }
-  }, [messages.length, sendMessageText]);
 
   const sendMessageText = useCallback(async (userMsg: string, currentHistory: GeminiMessage[], currentSessionId: string) => {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
@@ -73,6 +61,19 @@ export default function ChatDemo() {
     }
     setLoading(false);
   }, []);
+
+  // Auto-inquiry if order param exists
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('order');
+    if (orderId && messages.length === 0) {
+      setActiveScenario('estado');
+      // Delay slightly to allow the component to settle
+      setTimeout(() => {
+        sendMessageText(`Hola, quiero saber el estado de mi orden #${orderId.toUpperCase()}`, [], sessionIdRef.current);
+      }, 500);
+    }
+  }, [messages.length, sendMessageText]);
 
   const switchScenario = useCallback((scenarioId: string) => {
     const scenario = SCENARIOS.find(s => s.id === scenarioId)!;
