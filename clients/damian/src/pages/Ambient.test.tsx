@@ -50,13 +50,13 @@ vi.mock('./Ambient', async (importOriginal) => {
 });
 
 describe('Ambient Page', () => {
-  it('renders "Musica Ambiente" header', async () => {
+  it('renders "Música Ambiente" header', async () => {
     render(
       <MusicProvider>
         <Ambient />
       </MusicProvider>
     );
-    expect(screen.getByText('Musica Ambiente')).toBeDefined();
+    expect(screen.getByText('Música Ambiente')).toBeDefined();
   });
 
   it('renders "Agregar Audio" button', async () => {
