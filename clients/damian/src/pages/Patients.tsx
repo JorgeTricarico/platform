@@ -183,15 +183,15 @@ export default function Patients() {
 
   // List view
   return (
-    <div>
-      <div className="flex-between">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Fichas de Pacientes</h1>
-          <p className="subtitle">Historia clinica y seguimiento de cada paciente.</p>
+          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Historia clinica y seguimiento de cada paciente.</p>
         </div>
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px' }}>
           <input
             type="text"

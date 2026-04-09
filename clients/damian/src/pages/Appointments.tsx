@@ -130,8 +130,7 @@ export default function Appointments() {
   const filtered = appointments.filter(a => {
     const matchesSearch =
       a.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.id.toLowerCase().includes(searchTerm.toLowerCase());
+      a.service.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     if (dateFilter === 'hoy') return a.date === todayStr;
     if (dateFilter === 'semana') return a.date >= weekStartStr && a.date <= weekEndStr;
@@ -152,16 +151,16 @@ export default function Appointments() {
   };
 
   return (
-    <div>
-      <div className="flex-between">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Gestion de Citas</h1>
-          <p className="subtitle">Administra los turnos de tus clientes.</p>
+          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Administra los turnos de tus clientes.</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setIsModalOpen(true); setConflictError(''); }}>+ Nueva Cita</button>
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }} >
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
             type="text"
@@ -189,7 +188,6 @@ export default function Appointments() {
           <table>
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Cliente</th>
                 <th>Servicio</th>
                 <th>Fecha / Hora</th>
@@ -201,7 +199,6 @@ export default function Appointments() {
             <tbody>
               {filtered.map(a => (
                 <tr key={a.id}>
-                  <td style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>#{a.id}</td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{a.clientName}</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{a.clientPhone}</div>

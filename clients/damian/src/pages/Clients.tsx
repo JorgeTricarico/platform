@@ -62,16 +62,16 @@ export default function Clients() {
   if (loading && clients.length === 0) return <div>Cargando clientes...</div>;
 
   return (
-    <div>
-      <div className="flex-between">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Clientes</h1>
-          <p className="subtitle">Base de datos de clientes de Damian.</p>
+          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Base de datos de clientes de Damian.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)}>+ Nuevo Cliente</button>
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px' }}>
           <input
             type="text"
