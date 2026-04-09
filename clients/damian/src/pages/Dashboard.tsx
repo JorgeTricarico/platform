@@ -36,23 +36,24 @@ export default function Dashboard() {
     }
   };
 
-  return (
-    <div>
-      <div className="flex-between">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>{BUSINESS.greeting}</h1>
-          <p className="subtitle">{BUSINESS.subtitle}</p>
+          <p className="subtitle" style={{ margin: 0 }}>{BUSINESS.subtitle}</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nueva Cita</button>
       </div>
 
-      <div className="grid grid-cols-3" style={{ marginBottom: '24px' }}>
+      <div className="grid grid-cols-3" style={{ marginBottom: '24px', flexShrink: 0 }}>
         <TodayAppointmentsWidget />
         <MonthlyIncomeWidget />
         <StalePatientWidget />
       </div>
 
-      <UpcomingAppointmentsWidget />
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <UpcomingAppointmentsWidget />
+      </div>
 
       {isModalOpen && (
         <div className="modal-overlay">

@@ -81,8 +81,14 @@ export default function Patients() {
           </button>
           <div className="flex-between">
             <div>
-              <h1 style={{ marginBottom: '4px' }}>{selectedPatient.name}</h1>
-              <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Tel: {selectedPatient.phone} {selectedPatient.email ? `| Email: ${selectedPatient.email}` : ''}</p>
+              <h1 style={{ marginBottom: '4px', textTransform: 'uppercase' }}>{selectedPatient.name}</h1>
+              <p className="subtitle" style={{ margin: 0, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                  {selectedPatient.phone}
+                </span>
+                {selectedPatient.email ? `| Email: ${selectedPatient.email}` : ''}
+              </p>
               {selectedPatient.notes && <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Notas: {selectedPatient.notes}</p>}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -92,7 +98,7 @@ export default function Patients() {
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }} className="custom-scrollbar">
+        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }}>
           {/* D29: Próxima Cita widget */}
           <div className="card" style={{ padding: '20px 24px', marginBottom: '16px' }}>
             <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Próxima Cita</h3>
@@ -220,8 +226,13 @@ export default function Patients() {
             <tbody>
               {filtered.map(p => (
                 <tr key={p.id}>
-                  <td style={{ fontWeight: 600 }}>{p.name}</td>
-                  <td>{p.phone}</td>
+                  <td style={{ fontWeight: 600, textTransform: 'uppercase' }}>{p.name}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                      {p.phone}
+                    </div>
+                  </td>
                   <td>
                     <span className={`badge ${p.totalRecords > 0 ? 'completed' : 'pending'}`}>
                       {p.totalRecords} ficha{p.totalRecords !== 1 ? 's' : ''}

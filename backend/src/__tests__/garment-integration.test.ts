@@ -71,7 +71,9 @@ describe('Garment registration end-to-end (bug regression)', () => {
 
     await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
-    expect(callData.intakeDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(callData.intakeDate).toBeTruthy();
+    // Support either YYYY-MM-DD or ISOString
+    expect(callData.intakeDate).toMatch(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/);
   });
 
   it('full CRUD cycle: create → update status → update full → delete', async () => {

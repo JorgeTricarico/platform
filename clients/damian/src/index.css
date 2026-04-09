@@ -47,12 +47,11 @@ body {
   display: flex;
   height: 100vh;
   overflow: hidden;
-
-
+  width: 100vw;
 }
 
 .sidebar {
-  width: 280px;
+  width: 250px;
   height: 100vh;
   background-color: var(--surface-color);
   border-right: 1px solid var(--border-color);
@@ -61,6 +60,13 @@ body {
   padding: 32px 24px;
   flex-shrink: 0;
   overflow-y: auto;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+  padding: 32px 12px;
 }
 
 .sidebar-logo {
@@ -84,6 +90,21 @@ body {
   gap: 8px;
 }
 
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-link span:not(.music-pulse) {
+  display: none;
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 14px 0;
+}
+
+.sidebar.collapsed .sidebar-logo {
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
 .nav-link {
   display: flex;
   align-items: center;
@@ -95,6 +116,12 @@ body {
   text-decoration: none;
   transition: all 0.2s ease;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav-link svg {
+  flex-shrink: 0;
 }
 
 .nav-link:hover {
@@ -146,7 +173,7 @@ body {
 
 .page-content {
   flex: 1;
-  padding: 0 40px 24px 40px;
+  padding: 0 32px 24px 32px;
   overflow: hidden;
   display: flex;
   flex-direction: column;

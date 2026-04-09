@@ -18,22 +18,26 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   doc.line(5, 18, 75, 18);
 
   // Order info
+  const shortId = order.id.slice(-6).toUpperCase();
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Orden: #${order.id}`, 5, 24);
+  doc.text(`Orden: #${shortId}`, 5, 24);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Cliente: ${order.clientName}`, 5, 30);
+  doc.text(`Cliente: ${order.clientName.toUpperCase()}`, 5, 30);
   doc.text(`Tel: ${order.clientPhone}`, 5, 35);
   doc.text(`Prenda: ${order.garmentName}`, 5, 40);
   doc.text(`Arreglo: ${order.repairType}`, 5, 45);
   doc.text(`Detalle: ${order.description.slice(0, 40)}`, 5, 50);
-  if (order.location) {
-    doc.text(`Ubicación: ${order.location}`, 5, 55);
-  }
-  let y = order.location ? 60 : 55;
-  const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+  
+  let y = 55;
+  const fmtDate = (d: string) => {
+    if (!d) return '-';
+    const date = new Date(d);
+    if (d.length <= 10) return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+    return date.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
   doc.text(`Ingreso: ${fmtDate(order.intakeDate)}`, 5, y); y += 5;
-  doc.text(`Entrega: ${fmtDate(order.deliveryDate)}`, 5, y); y += 5;
+  doc.text(`Entrega: ${new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('es-AR')}`, 5, y); y += 5;
   
   doc.setFont('helvetica', 'bold');
   doc.text(`Precio: $${order.price.toLocaleString()}`, 5, y); y += 5;
@@ -43,15 +47,16 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   }
 
   // QR Code
+  // Future URL: https://zenko.ar/orden/[shortId]
   const qrY = y + 5;
-  const qrData = `Orden: #${order.id}\nFecha de Entrega: ${fmtDate(order.deliveryDate)}`;
-  const qrDataUrl = await QRCode.toDataURL(qrData, { width: 200, margin: 1 });
+  const trackingUrl = `https://zenko-app.onrender.com/estado/${shortId}`;
+  const qrDataUrl = await QRCode.toDataURL(trackingUrl, { width: 200, margin: 1 });
   doc.addImage(qrDataUrl, 'PNG', 20, qrY, 40, 40);
 
   // Footer
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.text('Escanear para ubicar prenda', 40, qrY + 43, { align: 'center' });
+  doc.text('Escanear para ver estado del pedido', 40, qrY + 43, { align: 'center' });
 
   doc.setFontSize(6);
   doc.text('Pasados los 90 dias sin retirar el local dispone de las prendas.', 40, qrY + 48, { align: 'center' });

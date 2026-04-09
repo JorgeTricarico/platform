@@ -90,7 +90,8 @@ describe('POST /api/zenco/garments', () => {
     await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
     expect(callData.intakeDate).toBeTruthy();
-    expect(callData.intakeDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // Support either YYYY-MM-DD or ISOString
+    expect(callData.intakeDate).toMatch(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/);
   });
 
   it('converts string price to number', async () => {

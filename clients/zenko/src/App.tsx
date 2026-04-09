@@ -30,6 +30,7 @@ function AuthGate() {
 function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'clients' | 'chat'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const toast = useToast();
   const { user, authRequired, logout } = useAuth();
 
@@ -45,16 +46,24 @@ function AppContent() {
     setSidebarOpen(false);
   };
 
+  const toggleSidebar = () => {
+    if (window.innerWidth > 768) {
+      setIsCollapsed(!isCollapsed);
+    } else {
+      setSidebarOpen(!sidebarOpen);
+    }
+  };
+
   return (
     <div className="app-container">
       <OfflineIndicator />
       {/* Sidebar overlay for mobile */}
       <div className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-logo">
           <img src={logoUrl} alt="Zenko Logo" style={{ width: 48, height: 48, borderRadius: '12px', objectFit: 'cover' }} />
-          Zenko<span>.arg</span>
+          <span className="logo-text">Zenko<span>.arg</span></span>
         </div>
         
         <nav className="nav-menu">
@@ -99,7 +108,7 @@ function AppContent() {
       {/* Main Area */}
       <main className="main-content">
         <header className="topbar">
-          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>
+          <button className="hamburger-btn" onClick={toggleSidebar}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
           <NotificationBell clientId="all" />
