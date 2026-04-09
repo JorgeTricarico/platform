@@ -15,7 +15,7 @@ export const BUSINESS = {
     { key: 'listo',      label: 'Listo',      order: 0 },
     { key: 'entregado',  label: 'Entregado',  order: 3 },
   ] as const,
-  whatsappReadyMsg: (clientName: string, _garmentName: string) =>
+  whatsappReadyMsg: (_clientName: string, _garmentName: string) =>
     `Hola 👋🏻\n` +
     `Te escribimos desde Zenko – Taller de arreglos de ropa 🦊 para avisarte que tus arreglos ya se encuentran finalizados y disponibles para retirar ✨\n\n` +
     `Horario de atención:\n` +

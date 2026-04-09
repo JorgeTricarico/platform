@@ -71,7 +71,7 @@ export default function Garments() {
       clientName: g.clientName, clientPhone: g.clientPhone,
       garmentName: g.garmentName, repairType: g.repairType,
       description: g.description, intakeDate: g.intakeDate || '', deliveryDate: g.deliveryDate,
-      price: g.price, deposit: g.deposit || 0, status: g.status,
+      price: g.price, deposit: g.deposit || 0, status: g.status, location: g.location || ''
     });
   };
 

@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-07 (sesion 20)
+> Ultima actualizacion: 2026-04-09 (sesion 21)
 
 ## Completado
 
@@ -80,18 +80,21 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z7 | Conectar notificacion prenda lista con WhatsApp | [Z7](docs/roadmap/Z7-whatsapp-prenda-lista.md) | **completado** | alta |
 | Z8 | Galeria de fotos en vista detalle de orden | [Z8](docs/roadmap/Z8-galeria-fotos-orden.md) | **completado** | media |
 | Z9 | WhatsApp quick-send — botón "Avisar" con link wa.me pre-armado por prenda | — | **completado** (botón verde en tabla, mensaje usa config.ts) | alta |
-| Z10 | Workflow "Entregar" — auto-crear ingreso financiero al marcar entregado | — | pendiente | media |
-| Z11 | Tracking sena/saldo por orden (depositAmount, paid, balance) | — | pendiente | media |
+| Z10 | Workflow "Entregar" — auto-crear ingreso financiero al marcar entregado | — | **completado** | media |
+| Z11 | Tracking sena/saldo por orden (depositAmount, paid, balance) | — | **completado** (Ticket PDF + UI balance) | media |
 | Z12 | Export CSV/PDF mensual de ordenes y finanzas | — | pendiente | baja |
 | Z13 | Ranking de tipos de arreglo (chart en Dashboard) | — | pendiente | baja |
 | Z14 | Filtro por status en tabla Garments | — | **completado** (chips Todos/Recibido/En Proceso/Listo/Entregado con contadores) | media |
 | Z15 | Highlight visual filas vencidas en Garments (deliveryDate < hoy) | — | **completado** (badge "Vencido" rojo en columna Estado) | media |
 | Z16 | Editar/eliminar registros financieros | — | **completado** (PUT+DELETE /finances/:id + UI edit/delete) | media |
 | Z17 | config.ts para Zenko — centralizar repairTypes, businessName, currency, whatsappReadyMsg | — | **completado** (clients/zenko/src/config.ts, GarmentModal importa desde config) | alta |
-| Z18 | Mostrar deliveryDate e intakeDate en tabla Garments | — | pendiente | media |
+| Z18 | Mostrar deliveryDate e intakeDate en tabla Garments | — | **completado** (Columnas Ingreso y Entrega añadidas) | media |
 | Z19 | Revenue widget en Dashboard (income/expense cards del reports/summary) | — | pendiente | media |
-| Z20 | DELETE /clients/:id endpoint + botón eliminar cliente | — | pendiente | media |
+| Z20 | DELETE /clients/:id endpoint + botón eliminar cliente | — | **completado** (UI botón rojo + confirmación) | media |
 | Z22 | Botón "Avisar" solo visible/destacado cuando status === 'listo' | — | **completado** (condicional `g.status === 'listo'` en Garments.tsx) | media |
+| Z23 | QR Ticket — direccionar a fecha de entrega | — | **completado** (QR contiene ID y Fecha de Entrega) | media |
+| Z24 | WhatsApp Template — mensaje formal multiline con horarios | — | **completado** (Avisar usa nuevo template) | alta |
+| Z25 | Quitar "Ubicación" de Gestión de Prendas | — | **completado** (Ubicación removida de tabla y modal) | baja |
 
 ---
 
