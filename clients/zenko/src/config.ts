@@ -8,6 +8,10 @@ export const BUSINESS = {
   greeting: 'Hola, Ana & Ariel',
   subtitle: 'Aqui tienes el resumen de tus pedidos al dia de hoy.',
   currency: '$',
+  schedule: {
+    weekdays: '9:30 a 12:30 / 15:00 a 18:30',
+    saturdays: '9:30 a 15:00'
+  },
   repairTypes: ['dobladillo', 'cierre', 'entalle', 'tela', 'diseño'],
   statuses: [
     { key: 'recibido',   label: 'Recibido',   order: 2 },
@@ -19,8 +23,8 @@ export const BUSINESS = {
     `Hola 👋🏻\n` +
     `Te escribimos desde Zenko – Taller de arreglos de ropa 🦊 para avisarte que tus arreglos ya se encuentran finalizados y disponibles para retirar ✨\n\n` +
     `Horario de atención:\n` +
-    `🕘Lunes a viernes: 9:30 a 12:30 / 15:00 a 18:30\n` +
-    `🕘Sábados: 9:30 a 15:00\n\n` +
+    `🕘Lunes a viernes: ${BUSINESS.schedule.weekdays}\n` +
+    `🕘Sábados: ${BUSINESS.schedule.saturdays}\n\n` +
     `¡Muchas gracias!`,
   whatsappReminderMsg: (clientName: string, garmentName: string) =>
     `Hola ${clientName}, te recordamos que tu prenda "${garmentName}" está lista para retirar. ¡Te esperamos! 🧵`,

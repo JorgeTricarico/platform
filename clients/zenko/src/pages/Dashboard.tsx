@@ -48,9 +48,14 @@ export default function Dashboard() {
   if (loading && garments.length === 0) return <div>Cargando dashboard...</div>;
 
   const pendingGarments = garments.filter(g => g.status !== 'entregado');
+  const itemsToRepair = garments.filter(g => g.status === 'recibido' || g.status === 'en_proceso').length;
+  const itemsToDeliver = garments.filter(g => g.status === 'listo').length;
+  
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const urgentGarments = pendingGarments.filter(g => new Date(g.deliveryDate + 'T23:59:59') <= tomorrow).sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
+  const urgentGarments = pendingGarments
+    .filter(g => (g.status === 'recibido' || g.status === 'en_proceso') && new Date(g.deliveryDate + 'T23:59:59') <= tomorrow)
+    .sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
 
   const monthlyIncome = dashData?.monthlyIncome ?? 0;
   const monthlyExpenses = dashData?.monthlyExpenses ?? 0;
@@ -70,7 +75,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Hola, Ana 👋</h1>
@@ -79,23 +84,27 @@ export default function Dashboard() {
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nueva Orden</button>
       </div>
 
-      <div className="grid grid-cols-3" style={{ marginBottom: '24px', flexShrink: 0 }}>
+      <div className="grid grid-cols-4" style={{ marginBottom: '24px', flexShrink: 0 }}>
         <div className="card">
-          <div className="stat-title">Prendas Pendientes</div>
-          <div className="stat-value">{pendingGarments.length}</div>
+          <div className="stat-title">Para Arreglar</div>
+          <div className="stat-value">{itemsToRepair}</div>
         </div>
         <div className="card">
-          <div className="stat-title">Ingresos del Mes</div>
+          <div className="stat-title">Para Entregar</div>
+          <div className="stat-value">{itemsToDeliver}</div>
+        </div>
+        <div className="card">
+          <div className="stat-title">Ingresos Mes</div>
           <div className="stat-value" style={{ color: 'var(--success-color, #22c55e)' }}>${monthlyIncome.toLocaleString()}</div>
         </div>
         <div className="card">
-          <div className="stat-title">Balance Mensual</div>
+          <div className="stat-title">Balance</div>
           <div className="stat-value">${balance.toLocaleString()}</div>
         </div>
       </div>
 
-      <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Prioritarios: Proximas Entregas</h2>
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Prioritarios: Arreglos Pendientes</h2>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="table-container">
           <table>
             <thead>

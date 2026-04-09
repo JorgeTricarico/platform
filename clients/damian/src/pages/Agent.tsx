@@ -46,15 +46,15 @@ export default function Agent() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div>
         <h1>Asistente IA</h1>
         <p className="subtitle">Tu agente personal — gestiona fichas, busca pacientes, consulta turnos.</p>
       </div>
 
-      <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', marginTop: '16px' }}>
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', marginTop: '16px' }}>
         {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ height: 'max(400px, 60vh)', overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {messages.map((msg, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
               <div style={{

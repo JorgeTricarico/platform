@@ -130,28 +130,30 @@ export default function Clients() {
                   <td style={{ color: c.email ? 'inherit' : 'var(--text-secondary)' }}>{c.email || '-'}</td>
                   <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: c.notes ? 'inherit' : 'var(--text-secondary)' }}>{c.notes || '-'}</td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                  <td style={{ display: 'flex', gap: '6px' }}>
-                    <button
-                      className="btn btn-small"
-                      style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
-                      onClick={() => openEdit(c)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="btn btn-small"
-                      style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
-                      onClick={() => openHistorial(c)}
-                    >
-                      Ver historial
-                    </button>
-                    <button
-                      className="btn btn-small"
-                      style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
-                      onClick={() => handleDelete(c)}
-                    >
-                      Eliminar
-                    </button>
+                  <td>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        className="btn btn-small"
+                        style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                        onClick={() => openEdit(c)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="btn btn-small"
+                        style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
+                        onClick={() => openHistorial(c)}
+                      >
+                        Ver historial
+                      </button>
+                      <button
+                        className="btn btn-small"
+                        style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                        onClick={() => handleDelete(c)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

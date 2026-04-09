@@ -36,7 +36,7 @@ export default function Dashboard() {
     }
   };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>{BUSINESS.greeting}</h1>

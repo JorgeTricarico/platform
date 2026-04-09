@@ -74,7 +74,7 @@ export default function Patients() {
   // Detail view
   if (selectedPatient) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         <div style={{ flexShrink: 0, marginBottom: '16px' }}>
           <button className="btn btn-small" style={{ marginBottom: '12px' }} onClick={() => { setSelectedPatient(null); setRecords([]); }}>
             &larr; Volver a lista
@@ -98,7 +98,7 @@ export default function Patients() {
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }}>
+        <div style={{ paddingRight: '8px' }}>
           {/* D29: Próxima Cita widget */}
           <div className="card" style={{ padding: '20px 24px', marginBottom: '16px' }}>
             <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Próxima Cita</h3>
@@ -193,7 +193,7 @@ export default function Patients() {
 
   // List view
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Fichas de Pacientes</h1>
@@ -201,7 +201,7 @@ export default function Patients() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px' }}>
           <input
             type="text"

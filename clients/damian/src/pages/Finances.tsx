@@ -105,7 +105,7 @@ export default function Finances() {
   if (loading && finances.length === 0) return <div>Cargando registros financieros...</div>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Control Financiero</h1>
@@ -147,7 +147,7 @@ export default function Finances() {
       </div>
 
       <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Últimos Movimientos</h2>
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="table-container">
           <table>
             <thead>
@@ -175,21 +175,23 @@ export default function Finances() {
                   <td style={{ fontWeight: 800, color: f.type === 'income' ? 'var(--success-color)' : 'var(--urgent-color)' }}>
                     {f.type === 'income' ? '+' : '-'}{BUSINESS.currency}{f.amount.toLocaleString()}
                   </td>
-                  <td style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      className="btn btn-small"
-                      style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
-                      onClick={() => openEdit(f)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="btn btn-small"
-                      style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
-                      onClick={() => handleDelete(f.id)}
-                    >
-                      Eliminar
-                    </button>
+                  <td>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        className="btn btn-small"
+                        style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                        onClick={() => openEdit(f)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="btn btn-small"
+                        style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                        onClick={() => handleDelete(f.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -174,7 +174,8 @@ body {
 .page-content {
   flex: 1;
   padding: 0 32px 24px 32px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -200,6 +201,7 @@ h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-botto
 
 .grid { display: grid; gap: 24px; }
 .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
 .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
 
 .stat-title { 

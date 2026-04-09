@@ -116,7 +116,7 @@ export default function ChatDemo() {
         ))}
       </div>
 
-      <div className="card" style={{ maxWidth: '600px', margin: '0 auto', padding: 0, overflow: 'hidden' }}>
+      <div className="card" style={{ maxWidth: '600px', margin: '0 auto', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {/* Chat Header */}
         <div style={{ background: '#25D366', color: 'white', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px' }}>D</div>
@@ -127,7 +127,7 @@ export default function ChatDemo() {
         </div>
 
         {/* Messages */}
-        <div style={{ height: '400px', overflowY: 'auto', padding: '16px', background: '#ECE5DD', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ height: 'max(400px, 50vh)', overflowY: 'auto', padding: '16px', background: '#ECE5DD', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {messages.length === 0 && !loading && (
             <div style={{ textAlign: 'center', color: '#999', fontSize: '13px', marginTop: '160px' }}>
               Escribi un mensaje para empezar la conversacion

@@ -351,7 +351,7 @@ export default function Ambient() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
       <div className="flex-between" style={{ marginBottom: '16px', flexShrink: 0 }}>
         <div>
           <h1 style={{ marginBottom: '0px', fontSize: '24px' }}>Música Ambiente</h1>
@@ -363,7 +363,7 @@ export default function Ambient() {
         <input ref={fileInputRef} type="file" accept="audio/*" multiple hidden onChange={handleFileSelect} />
       </div>
 
-      <div className="ambient-split-container" style={{ flex: 1, minHeight: 0 }}>
+      <div className="ambient-split-container">
         {/* Panel Izquierdo: Reproductor Compacto */}
         <div className="ambient-player-panel">
           <div className="card glass-card" style={{ 
@@ -500,7 +500,7 @@ export default function Ambient() {
         </div>
 
         {/* Panel Derecho: Lista de Temas */}
-        <div className="ambient-tracks-panel custom-scrollbar" style={{ overflowY: 'auto', paddingRight: '8px' }}>
+        <div className="ambient-tracks-panel custom-scrollbar" style={{ height: 'max(400px, 60vh)', overflowY: 'auto', paddingRight: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', position: 'sticky', top: 0, background: 'var(--bg-color, #F6F1EA)', zIndex: 1, paddingBottom: '8px' }}>
             <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800 }}>Biblioteca ({tracks.length})</h3>
             <button 
