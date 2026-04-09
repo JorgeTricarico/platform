@@ -22,7 +22,7 @@ if (typeof indexedDB === 'undefined') {
       }
     })
   };
-  global.indexedDB = mockIDB as any;
+  (globalThis as any).indexedDB = mockIDB as any;
 }
 
 // Mock MusicCommand to provide default state

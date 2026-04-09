@@ -98,7 +98,7 @@ const NextIcon = ({ size = 20 }) => (
   </svg>
 );
 
-const LoopIcon = ({ active, size = 18 }) => (
+const LoopIcon = ({ active, size = 18 }: { active: boolean; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: active ? 'var(--primary-color)' : 'currentColor', opacity: active ? 1 : 0.5 }}>
     <polyline points="17 1 21 5 17 9"></polyline>
     <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
@@ -107,7 +107,7 @@ const LoopIcon = ({ active, size = 18 }) => (
   </svg>
 );
 
-const ShuffleIcon = ({ active, size = 18 }) => (
+const ShuffleIcon = ({ active, size = 18 }: { active: boolean; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: active ? 'var(--primary-color)' : 'currentColor', opacity: active ? 1 : 0.5 }}>
     <polyline points="16 3 21 3 21 8"></polyline>
     <line x1="4" y1="20" x2="21" y2="3"></line>
@@ -148,17 +148,13 @@ export default function Ambient() {
     setPlaybackState(isPlaying, activeTrack?.title ?? null);
   }, [isPlaying, activeTrack, setPlaybackState]);
 
-  const [loadingDemos, setLoadingDemos] = useState(false);
-
   // Load cached tracks on mount, download demos if first time
   useEffect(() => {
     (async () => {
       let cached = await loadAllFromDB();
       if (cached.length === 0) {
-        setLoadingDemos(true);
         const demos = await loadDemoTracksIfNeeded();
         cached = demos;
-        setLoadingDemos(false);
       }
       const loaded = cached.map(t => ({
         id: t.id,
@@ -333,6 +329,25 @@ export default function Ambient() {
         </button>
         <input ref={fileInputRef} type="file" accept="audio/*" multiple hidden onChange={handleFileSelect} />
       </div>
+
+      {/* Command feedback from agent */}
+      {commandFeedback && (
+        <div className="card glass-card" style={{ 
+          marginBottom: '16px', 
+          padding: '12px 20px', 
+          backgroundColor: 'rgba(99, 102, 241, 0.1)', 
+          color: 'var(--primary-color)', 
+          fontWeight: 700, 
+          fontSize: '14px',
+          borderRadius: '16px',
+          border: '1px solid rgba(99, 102, 241, 0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <span style={{ fontSize: '18px' }}>💬</span> {commandFeedback}
+        </div>
+      )}
 
       {/* Player Premium */}
       <div className={`card glass-card ${activeTrack ? '' : 'disabled'}`} style={{ 
