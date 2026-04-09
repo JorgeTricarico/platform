@@ -51,29 +51,52 @@ authRoutes.post(
   asyncHandler(async (req, res) => {
     const { name, password } = req.body;
 
-    const users = await prisma.user.findMany({ where: { name: { equals: name, mode: 'insensitive' } } });
-    const user = users[0] || null;
-    if (!user) {
+    // Search by name OR email (case-insensitive)
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { equals: name, mode: 'insensitive' } },
+          { email: { equals: name, mode: 'insensitive' } },
+        ],
+      },
+    });
+
+    if (users.length === 0) {
       res.status(401).json({ error: 'Credenciales invalidas' });
       return;
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) {
+    // Attempt to verify password against all matching users (handles name collisions)
+    let authenticatedUser = null;
+    for (const user of users) {
+      const valid = await bcrypt.compare(password, user.passwordHash);
+      if (valid) {
+        authenticatedUser = user;
+        break;
+      }
+    }
+
+    if (!authenticatedUser) {
       res.status(401).json({ error: 'Credenciales invalidas' });
       return;
     }
 
     const token = signToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      business: user.business,
+      userId: authenticatedUser.id,
+      email: authenticatedUser.email,
+      role: authenticatedUser.role,
+      business: authenticatedUser.business,
     });
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, business: user.business },
+      user: {
+        id: authenticatedUser.id,
+        email: authenticatedUser.email,
+        name: authenticatedUser.name,
+        role: authenticatedUser.role,
+        business: authenticatedUser.business,
+      },
     });
   }),
 );
