@@ -21,7 +21,7 @@ const mockWA = whatsappService as unknown as {
 };
 
 const mockPrisma = prisma as unknown as {
-  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
+  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
   zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
   client: { findMany: ReturnType<typeof vi.fn>; findFirst: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
   notification: { create: ReturnType<typeof vi.fn> };
@@ -116,8 +116,12 @@ describe('PUT /api/zenco/garments/:id/status', () => {
   const fullOrder = {
     id: 'ORD-1', clientName: 'Ana', clientPhone: '5491112345678',
     garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar',
-    status: 'listo', intakeDate: '2026-04-01', deliveryDate: '2026-04-10', price: 3000,
+    status: 'listo', intakeDate: '2026-04-01', deliveryDate: '2026-04-10', price: 3000, deposit: 0,
   };
+
+  beforeEach(() => {
+    mockPrisma.order.findUnique.mockResolvedValue(fullOrder);
+  });
 
   it('updates garment status', async () => {
     mockPrisma.order.update.mockResolvedValue(fullOrder);
@@ -222,6 +226,10 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 });
 
 describe('PUT /api/zenco/garments/:id', () => {
+  beforeEach(() => {
+    mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-1', status: 'recibido' });
+  });
+
   it('updates garment fully', async () => {
     const update = {
       clientName: 'Ana Updated', clientPhone: '1234', garmentName: 'Pantalon',
@@ -579,6 +587,7 @@ describe('Zenco validation', () => {
   });
 
   it('PUT /garments/:id/status returns 400 for invalid status value', async () => {
+    mockPrisma.order.findUnique.mockResolvedValue({ id: '0001', status: 'recibido' });
     const res = await request(app).put('/api/zenco/garments/0001/status').set('Authorization', authHeader('zenco')).send({ status: 'inexistente' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Datos invalidos');

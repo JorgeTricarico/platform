@@ -39,6 +39,7 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   doc.text(`Precio: $${order.price.toLocaleString()}`, 5, y); y += 5;
   if (order.deposit) {
     doc.text(`Seña: $${order.deposit.toLocaleString()}`, 5, y); y += 5;
+    doc.text(`RESTA ABONAR: $${(order.price - order.deposit).toLocaleString()}`, 5, y); y += 5;
   }
 
   // QR Code

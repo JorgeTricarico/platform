@@ -27,6 +27,7 @@ export const createGarmentSchema = z.object({
   price: positivePrice,
   intakeDate: z.string().optional(),
   status: z.enum(GARMENT_STATUSES).optional(),
+  deposit: positivePrice.optional(),
   location: z.string().nullish(),
 });
 

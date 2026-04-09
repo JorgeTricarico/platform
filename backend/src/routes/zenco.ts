@@ -83,15 +83,35 @@ router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req,
       intakeDate: data.intakeDate || new Date().toISOString().split('T')[0],
       deliveryDate: data.deliveryDate,
       price: Number(data.price),
+      deposit: Number(data.deposit || 0),
       location: data.location || null
     }
   });
+
+  if (newGarment.deposit > 0) {
+    try {
+      await prisma.zencoFinance.create({
+        data: {
+          id: `FIN-Z-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          type: 'income',
+          category: 'seña_arreglo',
+          amount: newGarment.deposit,
+          description: `Seña: ${newGarment.garmentName} — ${newGarment.clientName}`,
+        },
+      });
+    } catch {}
+  }
+
   res.json(newGarment);
 }));
 
 router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   const { status } = req.body;
+  const prev = await prisma.order.findUnique({ where: { id } });
+  if (!prev) throw new NotFoundError('Orden no encontrada');
+
   const updated = await prisma.order.update({
     where: { id },
     data: { status, statusChangedAt: new Date().toISOString() }
@@ -124,21 +144,24 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     }
   }
 
-  // Z10: Auto-create income when garment is delivered
-  if (status === 'entregado') {
-    try {
-      await prisma.zencoFinance.create({
-        data: {
-          id: `FIN-Z-${Date.now()}`,
-          date: new Date().toISOString().split('T')[0],
-          type: 'income',
-          category: 'entrega_prenda',
-          amount: updated.price,
-          description: `Entrega: ${updated.garmentName} — ${updated.clientName}`,
-        },
-      });
-    } catch {
-      // Finance failure must not block status update
+  // Z10 & Z11: Auto-create income when garment is delivered for the remaining balance
+  if (status === 'entregado' && prev.status !== 'entregado') {
+    const balance = updated.price - updated.deposit;
+    if (balance > 0) {
+      try {
+        await prisma.zencoFinance.create({
+          data: {
+            id: `FIN-Z-${Date.now()}`,
+            date: new Date().toISOString().split('T')[0],
+            type: 'income',
+            category: 'entrega_prenda',
+            amount: balance,
+            description: `Saldo: ${updated.garmentName} — ${updated.clientName}`,
+          },
+        });
+      } catch {
+        // Finance failure must not block status update
+      }
     }
   }
 
@@ -148,6 +171,9 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
 router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   const data = req.body;
+  const prev = await prisma.order.findUnique({ where: { id } });
+  if (!prev) throw new NotFoundError('Orden no encontrada');
+
   const updated = await prisma.order.update({
     where: { id },
     data: {
@@ -160,9 +186,29 @@ router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (r
       intakeDate: data.intakeDate,
       deliveryDate: data.deliveryDate,
       price: Number(data.price),
+      deposit: Number(data.deposit || 0),
       location: data.location ?? undefined
     }
   });
+
+  if (data.status === 'entregado' && prev.status !== 'entregado') {
+    const balance = updated.price - updated.deposit;
+    if (balance > 0) {
+      try {
+        await prisma.zencoFinance.create({
+          data: {
+            id: `FIN-Z-${Date.now()}`,
+            date: new Date().toISOString().split('T')[0],
+            type: 'income',
+            category: 'entrega_prenda',
+            amount: balance,
+            description: `Saldo: ${updated.garmentName} — ${updated.clientName}`,
+          },
+        });
+      } catch {}
+    }
+  }
+
   res.json(updated);
 }));
 

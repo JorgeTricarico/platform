@@ -162,7 +162,9 @@ export default function Garments() {
                 <th>ID Orden</th>
                 <th>Cliente</th>
                 <th>Prenda & Detalle</th>
-                <th>Costo</th>
+                <th>Ingreso</th>
+                <th>Entrega</th>
+                <th>Costo / Saldo</th>
                 <th>Ubicación</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -182,7 +184,13 @@ export default function Garments() {
                       {g.description}
                     </div>
                   </td>
-                  <td style={{ fontWeight: 600 }}>${g.price.toLocaleString()}</td>
+                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(g.intakeDate + 'T00:00:00').toLocaleDateString('es-AR')}</td>
+                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(g.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR')}</td>
+                  <td>
+                    <div style={{ fontWeight: 600 }}>Total: ${g.price.toLocaleString()}</div>
+                    {g.deposit !== undefined && g.deposit > 0 && <div style={{ fontSize: '12px', color: '#689f38' }}>Seña: ${g.deposit.toLocaleString()}</div>}
+                    {g.deposit !== undefined && g.deposit > 0 && <div style={{ fontSize: '12px', color: '#d32f2f', fontWeight: 600 }}>Saldo: ${(g.price - g.deposit).toLocaleString()}</div>}
+                  </td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{g.location || '—'}</td>
                   <td>
                     {getStatusBadge(g.status)}
@@ -230,7 +238,7 @@ export default function Garments() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
                     No se encontraron órdenes.
                   </td>
                 </tr>

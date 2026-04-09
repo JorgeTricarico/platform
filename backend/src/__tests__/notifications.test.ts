@@ -5,7 +5,7 @@ import { app } from '../index.js';
 import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
-  order: { update: ReturnType<typeof vi.fn> };
+  order: { update: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
   client: { findFirst: ReturnType<typeof vi.fn> };
   notification: {
     findMany: ReturnType<typeof vi.fn>;
@@ -17,6 +17,8 @@ const mockPrisma = prisma as unknown as {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Route now does findUnique before update — default to a non-entregado prev state
+  mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-1', status: 'recibido', deposit: 0, price: 1000 });
 });
 
 // -------------------------------------------------------

@@ -5,7 +5,7 @@ import { app } from '../index.js';
 import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
-  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
+  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
 };
 
 beforeEach(() => {
@@ -87,12 +87,14 @@ describe('Garment registration end-to-end (bug regression)', () => {
     expect(r1.status).toBe(200);
 
     // Update status
+    mockPrisma.order.findUnique.mockResolvedValue(garment);
     mockPrisma.order.update.mockResolvedValue({ ...garment, status: 'listo' });
     const r2 = await request(app).put('/api/zenco/garments/0003/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
     expect(r2.status).toBe(200);
     expect(r2.body.status).toBe('listo');
 
     // Full update
+    mockPrisma.order.findUnique.mockResolvedValue({ ...garment, status: 'listo' });
     mockPrisma.order.update.mockResolvedValue({ ...garment, price: 3500, status: 'entregado' });
     const r3 = await request(app).put('/api/zenco/garments/0003').set('Authorization', authHeader('zenco')).send({ ...garment, price: 3500, status: 'entregado' });
     expect(r3.status).toBe(200);

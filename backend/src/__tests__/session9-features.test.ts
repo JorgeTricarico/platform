@@ -14,7 +14,7 @@ vi.mock('../services/whatsapp.js', () => ({
 }));
 
 const mockPrisma = prisma as unknown as {
-  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
+  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
   zencoFinance: { findMany: ReturnType<typeof vi.fn> };
   damianFinance: { findMany: ReturnType<typeof vi.fn> };
 };
@@ -64,6 +64,7 @@ describe('Location field on Order', () => {
       intakeDate: '2026-04-05', status: 'en_proceso', location: 'Perchero B',
     };
     mockPrisma.order.update.mockResolvedValue({ id: 'ORD-LOC-1', ...input });
+    mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-LOC-1', status: 'recibido', deposit: 0, price: 3000 });
 
     const res = await request(app).put('/api/zenco/garments/ORD-LOC-1').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
