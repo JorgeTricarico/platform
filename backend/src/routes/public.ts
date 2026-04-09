@@ -9,7 +9,7 @@ const router = Router();
  * @desc Consulta publica de estado de pedido sin autenticacion
  */
 router.get('/zenco/order/:id', asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   
   let order;
   if (id.length > 10) {
