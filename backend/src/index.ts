@@ -54,11 +54,11 @@ app.use('/uploads', express.static(path.resolve('uploads')));
 
 // Public routes — no auth required
 app.use('/api/auth', authRoutes);
+app.use('/api/zenco/chat', chatZencoRoutes);
 
 // Protected routes — JWT required + business check
 app.use('/api/zenco', authenticate, requireBusiness('zenco'), zencoRoutes);
 app.use('/api/zenco/chat/history', authenticate, requireBusiness('zenco'), chatHistoryRoutes);
-app.use('/api/zenco/chat', authenticate, requireBusiness('zenco'), chatZencoRoutes);
 app.use('/api/zenco/notifications', authenticate, requireBusiness('zenco'), notificationRoutes);
 app.use('/api/zenco/garments/:id/photos', authenticate, requireBusiness('zenco'), garmentPhotosRoutes);
 app.use('/api/damian', authenticate, requireBusiness('damian'), damianRoutes);

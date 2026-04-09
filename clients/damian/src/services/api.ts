@@ -153,6 +153,17 @@ export const updateClient = async (id: string, data: Partial<DBClient>): Promise
   return res.json();
 };
 
+export interface ClientHistoryResponse {
+  client: DBClient;
+  appointments: DBAppointment[];
+  records: DBPatientRecord[];
+  summary: { totalAppointments: number; totalRecords: number };
+}
+
+export const fetchClientHistory = async (clientId: string): Promise<ClientHistoryResponse> => {
+  return cachedFetch<ClientHistoryResponse>(`${API_URL}/clients/${clientId}/history`);
+};
+
 // --- PACIENTES (con info de fichas) ---
 
 export interface DBPatient extends DBClient {

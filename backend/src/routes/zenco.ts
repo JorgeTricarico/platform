@@ -354,7 +354,12 @@ router.get('/clients/:id/orders', asyncHandler(async (req, res, next) => {
     return next(new NotFoundError('Cliente no encontrado'));
   }
 
-  const where: Record<string, unknown> = { clientPhone: client.phone };
+  const where: any = {
+    OR: [
+      { clientPhone: client.phone },
+      { clientName: { contains: client.name, mode: 'insensitive' } }
+    ]
+  };
 
   if (status) {
     where.status = status;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fetchClients, searchClients, createClient, updateClient } from '../services/api';
-import type { DBClient } from '../services/api';
+import { fetchClients, searchClients, createClient, updateClient, fetchClientHistory } from '../services/api';
+import type { DBClient, ClientHistoryResponse } from '../services/api';
 import { useToast } from '../components/ToastContext';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
@@ -14,6 +14,8 @@ export default function Clients() {
   const [createForm, setCreateForm] = useState({ ...EMPTY_FORM });
   const [editTarget, setEditTarget] = useState<DBClient | null>(null);
   const [editForm, setEditForm] = useState({ ...EMPTY_FORM });
+  const [historyTarget, setHistoryTarget] = useState<DBClient | null>(null);
+  const [history, setHistory] = useState<ClientHistoryResponse | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -57,6 +59,17 @@ export default function Clients() {
       toast.success('Cliente actualizado correctamente');
       load();
     } catch { toast.error('Error al actualizar cliente'); }
+  };
+
+  const openHistory = async (c: DBClient) => {
+    setHistoryTarget(c);
+    setHistory(null);
+    try {
+      const data = await fetchClientHistory(c.id);
+      setHistory(data);
+    } catch {
+      toast.error('Error al cargar historial');
+    }
   };
 
   if (loading && clients.length === 0) return <div>Cargando clientes...</div>;
@@ -105,12 +118,21 @@ export default function Clients() {
                   <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: c.notes ? 'inherit' : 'var(--text-secondary)' }}>{c.notes || '-'}</td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td>
-                    <button
-                      className="btn btn-small"
-                      onClick={() => openEdit(c)}
-                    >
-                      Editar
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        className="btn btn-small"
+                        onClick={() => openEdit(c)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="btn btn-small"
+                        style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                        onClick={() => openHistory(c)}
+                      >
+                        Ver Historial
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -132,6 +154,82 @@ export default function Clients() {
 
       {editTarget && (
         <ClientModal title={`Editar: ${editTarget.name}`} form={editForm} setForm={setEditForm} onSubmit={handleEdit} onClose={() => setEditTarget(null)} phoneDisabled />
+      )}
+
+      {historyTarget && (
+        <div className="modal-overlay">
+          <div className="card modal-card modal-lg" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', position: 'sticky', top: 0, backgroundColor: 'var(--surface-color)', zIndex: 1, paddingBottom: '12px' }}>
+              <h2 style={{ margin: 0 }}>Historial de {historyTarget.name}</h2>
+              <button className="btn-secondary" onClick={() => setHistoryTarget(null)}>Cerrar</button>
+            </div>
+
+            {!history ? (
+              <p>Cargando historial...</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div className="card glass-card" style={{ flex: 1, padding: '16px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '24px', fontWeight: 800 }}>{history.summary.totalAppointments}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Citas Totales</div>
+                  </div>
+                  <div className="card glass-card" style={{ flex: 1, padding: '16px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '24px', fontWeight: 800 }}>{history.summary.totalRecords}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Fichas Clínicas</div>
+                  </div>
+                </div>
+
+                <section>
+                  <h3 style={{ marginBottom: '12px', fontSize: '16px' }}>Citas y Turnos</h3>
+                  {history.appointments.length === 0 ? (
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>No hay citas registradas.</p>
+                  ) : (
+                    <div className="table-container" style={{ border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                      <table style={{ fontSize: '14px' }}>
+                        <thead>
+                          <tr>
+                            <th>Fecha</th>
+                            <th>Servicio</th>
+                            <th>Precio</th>
+                            <th>Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {history.appointments.map(a => (
+                            <tr key={a.id}>
+                              <td>{new Date(a.date + 'T00:00:00').toLocaleDateString('es-AR')} {a.time}</td>
+                              <td>{a.service}</td>
+                              <td>${a.price.toLocaleString()}</td>
+                              <td><span className={`badge ${a.status === 'completado' ? 'completed' : a.status === 'cancelado' ? 'urgent' : 'pending'}`}>{a.status}</span></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </section>
+
+                <section>
+                  <h3 style={{ marginBottom: '12px', fontSize: '16px' }}>Fichas Clínicas</h3>
+                  {history.records.length === 0 ? (
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>No hay fichas registradas.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {history.records.map(r => (
+                        <div key={r.id} className="card" style={{ padding: '16px', border: '1px solid var(--border-color)' }}>
+                          <div style={{ fontWeight: 700, marginBottom: '4px' }}>{new Date(r.date + 'T00:00:00').toLocaleDateString('es-AR')}</div>
+                          <div style={{ fontWeight: 600, color: 'var(--primary-color)', fontSize: '14px' }}>{r.reason}</div>
+                          {r.treatment && <div style={{ fontSize: '13px', marginTop: '8px' }}><strong>Tratamiento:</strong> {r.treatment}</div>}
+                          {r.observations && <div style={{ fontSize: '13px', marginTop: '4px', fontStyle: 'italic' }}>"{r.observations}"</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

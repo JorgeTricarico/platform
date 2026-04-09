@@ -14,6 +14,7 @@ import logoUrl from './assets/logo.png';
 
 function AuthGate() {
   const { isAuthenticated, loading } = useAuth();
+  const isPublicView = window.location.search.includes('view=status');
 
   if (loading) {
     return (
@@ -23,12 +24,12 @@ function AuthGate() {
     );
   }
 
-  if (!isAuthenticated) return <Login />;
-  return <AppContent />;
+  if (!isAuthenticated && !isPublicView) return <Login />;
+  return <AppContent isPublic={isPublicView && !isAuthenticated} />;
 }
 
-function AppContent() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'clients' | 'chat'>('dashboard');
+function AppContent({ isPublic }: { isPublic?: boolean }) {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'clients' | 'chat'>(isPublic ? 'chat' : 'dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toast = useToast();
@@ -67,40 +68,44 @@ function AppContent() {
         </div>
         
         <nav className="nav-menu">
-          <div 
-            className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => navigate('dashboard')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            Dashboard
-          </div>
-          <div 
-            className={`nav-link ${activeTab === 'garments' ? 'active' : ''}`}
-            onClick={() => navigate('garments')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"></path></svg>
-            Prendas y Órdenes
-          </div>
-          <div 
-            className={`nav-link ${activeTab === 'finances' ? 'active' : ''}`}
-            onClick={() => navigate('finances')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            Finanzas
-          </div>
+          {!isPublic ? (
+            <>
+              <div 
+                className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => navigate('dashboard')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Dashboard</span>
+              </div>
+              <div 
+                className={`nav-link ${activeTab === 'garments' ? 'active' : ''}`}
+                onClick={() => navigate('garments')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"></path></svg>
+                <span>Prendas y Órdenes</span>
+              </div>
+              <div 
+                className={`nav-link ${activeTab === 'finances' ? 'active' : ''}`}
+                onClick={() => navigate('finances')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                <span>Finanzas</span>
+              </div>
+              <div
+                className={`nav-link ${activeTab === 'clients' ? 'active' : ''}`}
+                onClick={() => navigate('clients')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Clientes</span>
+              </div>
+            </>
+          ) : null}
           <div
             className={`nav-link ${activeTab === 'chat' ? 'active' : ''}`}
             onClick={() => navigate('chat')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            Chat Bot Demo
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'clients' ? 'active' : ''}`}
-            onClick={() => navigate('clients')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            Clientes
+            <span>{isPublic ? 'Consultar mi Pedido' : 'Estado del Pedido (AI)'}</span>
           </div>
         </nav>
       </aside>
@@ -113,9 +118,9 @@ function AppContent() {
           </button>
           <NotificationBell clientId="all" />
           <div className="user-profile">
-            {user?.name || 'Ana & Ariel'}
-            <div className="user-avatar">Z</div>
-            {authRequired && (
+            {isPublic ? 'Portal del Cliente' : (user?.name || 'Ana & Ariel')}
+            <div className="user-avatar" style={{ backgroundColor: isPublic ? 'var(--text-secondary)' : 'var(--primary-color)' }}>{isPublic ? '?' : 'Z'}</div>
+            {authRequired && user && (
               <button className="btn" onClick={logout} style={{ marginLeft: 8, padding: '4px 8px', fontSize: '0.75rem' }}>Salir</button>
             )}
           </div>

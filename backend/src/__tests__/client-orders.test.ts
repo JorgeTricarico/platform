@@ -207,6 +207,6 @@ describe('GET /api/zenco/clients/:id/orders', () => {
     await request(app).get(`/api/zenco/clients/${clientId}/orders`).set('Authorization', authHeader('zenco'));
 
     const call = mockPrisma.order.findMany.mock.calls[0][0];
-    expect(call.where.clientPhone).toBe(clientPhone);
+    expect(call.where.OR).toContainEqual({ clientPhone: clientPhone });
   });
 });

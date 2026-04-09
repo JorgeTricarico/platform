@@ -224,6 +224,46 @@ router.get('/clients/search', asyncHandler(async (req, res) => {
   res.json(clients);
 }));
 
+// --- HISTORIAL DE CLIENTE ---
+
+router.get('/clients/:id/history', asyncHandler(async (req, res, next) => {
+  const id = req.params.id as string;
+  const client = await prisma.client.findUnique({ where: { id } });
+  if (!client) {
+    res.status(404).json({ error: 'Cliente no encontrado' });
+    return;
+  }
+
+  // Normalizamos el teléfono para la búsqueda (solo dígitos)
+  const cleanPhone = client.phone.replace(/\D/g, '');
+
+  const [allAppointments, records] = await Promise.all([
+    prisma.appointment.findMany({
+      orderBy: { date: 'desc' },
+    }),
+    prisma.patientRecord.findMany({
+      where: { clientId: id },
+      orderBy: { date: 'desc' },
+    }),
+  ]);
+
+  // Filtramos appointments por teléfono o nombre
+  const appointments = allAppointments.filter(a => {
+    const apptPhone = a.clientPhone.replace(/\D/g, '');
+    return apptPhone === cleanPhone || a.clientName.toLowerCase() === client.name.toLowerCase();
+  });
+
+  res.json({
+    client,
+    appointments,
+    records,
+    summary: {
+      totalAppointments: appointments.length,
+      totalRecords: records.length,
+    },
+  });
+}));
+
 // --- FICHAS CLINICAS ---
 
 router.get('/patients/:clientId/records', asyncHandler(async (req, res) => {
