@@ -44,11 +44,12 @@ export default function Garments() {
     .filter(g => {
       if (statusFilter !== 'all' && g.status !== statusFilter) return false;
       const q = searchTerm.toLowerCase();
+      const shortId = g.id.slice(-6).toLowerCase();
       return g.clientName.toLowerCase().includes(q) ||
         g.garmentName.toLowerCase().includes(q) ||
         g.repairType.toLowerCase().includes(q) ||
         g.description.toLowerCase().includes(q) ||
-        g.id.toLowerCase().includes(q);
+        shortId.includes(q);
     })
     .sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99));
 
@@ -159,7 +160,7 @@ export default function Garments() {
           <table>
             <thead>
               <tr>
-                <th>ID Orden</th>
+                
                 <th>Cliente</th>
                 <th>Prenda & Detalle</th>
                 <th>Ingreso</th>
@@ -172,10 +173,10 @@ export default function Garments() {
             <tbody>
               {filtered.map(g => (
                 <tr key={g.id} style={isOverdue(g) ? { backgroundColor: '#fff8f0' } : undefined}>
-                  <td style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>#{g.id}</td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{g.clientName}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{g.clientPhone}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{g.clientPhone}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '2px', fontFamily: 'monospace' }}>#{g.id.slice(-6).toUpperCase()}</div>
                   </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{g.garmentName} ({g.repairType})</div>
@@ -198,45 +199,47 @@ export default function Garments() {
                       </span>
                     )}
                   </td>
-                  <td style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      className="btn btn-small"
-                      style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
-                      onClick={() => openEdit(g)}
-                    >
-                      Editar
-                    </button>
-                    {g.status === 'listo' && (
-                      <a
+                  <td>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
                         className="btn btn-small"
-                        href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReadyMsg(g.clientName, g.garmentName))}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ backgroundColor: '#f0fff4', border: '1px solid #9ae6b4', color: '#276749', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                        style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                        onClick={() => openEdit(g)}
                       >
-                        Avisar
-                      </a>
-                    )}
-                    <button
-                      className="btn btn-small"
-                      style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
-                      onClick={() => generateTicket(g)}
-                    >
-                      Ticket
-                    </button>
-                    <button
-                      className="btn btn-small"
-                      style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
-                      onClick={() => handleDelete(g.id)}
-                    >
-                      Eliminar
-                    </button>
+                        Editar
+                      </button>
+                      {g.status === 'listo' && (
+                        <a
+                          className="btn btn-small"
+                          href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReadyMsg(g.clientName, g.garmentName))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ backgroundColor: '#f0fff4', border: '1px solid #9ae6b4', color: '#276749', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          Avisar
+                        </a>
+                      )}
+                      <button
+                        className="btn btn-small"
+                        style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
+                        onClick={() => generateTicket(g)}
+                      >
+                        Ticket
+                      </button>
+                      <button
+                        className="btn btn-small"
+                        style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                        onClick={() => handleDelete(g.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
                     No se encontraron órdenes.
                   </td>
                 </tr>
