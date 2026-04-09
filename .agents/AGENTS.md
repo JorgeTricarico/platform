@@ -101,6 +101,7 @@ Para CUALQUIER cambio en archivos de produccion (`backend/src/routes/`, `clients
 1. **RED** — Escribir/actualizar el test que describe el comportamiento esperado. El test DEBE fallar.
 2. **GREEN** — Implementar el codigo minimo para que el test pase.
 3. **VERIFY** — Correr `npx vitest run` completo (no solo el archivo afectado).
+4. **TYPE CHECK** — Correr `npm run build` o `tsc -b` localmente para asegurar que no hay errores de TypeScript que bloqueen el despliegue a producción.
 
 ### Reglas de mocks
 - Si un route usa un metodo Prisma nuevo (ej: `findFirst`, `groupBy`): AGREGAR al mock en `backend/src/__tests__/setup.ts`
@@ -109,6 +110,7 @@ Para CUALQUIER cambio en archivos de produccion (`backend/src/routes/`, `clients
 
 ### Antes de commit
 - `npx vitest run` debe pasar al 100% (310+ tests)
+- `npm run build` debe completar sin errores de TypeScript (tsc)
 - Verificar que tests nuevos cubren happy path + error cases
 - Si hay tests failing pre-existentes: arreglarlos ANTES de implementar features nuevas
 
