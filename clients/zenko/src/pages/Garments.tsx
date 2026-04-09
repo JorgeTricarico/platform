@@ -117,16 +117,16 @@ export default function Garments() {
   if (loading && garments.length === 0) return <div>Cargando lista de prendas...</div>;
 
   return (
-    <div>
-      <div className="flex-between">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Gestión de Prendas</h1>
-          <p className="subtitle">Administra los arreglos de tus clientes detalladamente.</p>
+          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Administra los arreglos de tus clientes detalladamente.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)}>+ Registrar Ingreso</button>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap', flexShrink: 0 }}>
         {[
           { key: 'all', label: 'Todos', count: garments.length },
           { key: 'recibido', label: 'Recibido', count: statusCounts['recibido'] || 0 },
@@ -146,8 +146,8 @@ export default function Garments() {
         ))}
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px' }}>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', flexShrink: 0 }}>
           <input
             type="text"
             placeholder="Buscar por cliente, prenda o nro orden..."

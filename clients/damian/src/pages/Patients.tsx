@@ -74,59 +74,63 @@ export default function Patients() {
   // Detail view
   if (selectedPatient) {
     return (
-      <div>
-        <button className="btn btn-small" style={{ marginBottom: '16px' }} onClick={() => { setSelectedPatient(null); setRecords([]); }}>
-          &larr; Volver a lista
-        </button>
-        <div className="flex-between">
-          <div>
-            <h1>{selectedPatient.name}</h1>
-            <p className="subtitle">Tel: {selectedPatient.phone} {selectedPatient.email ? `| Email: ${selectedPatient.email}` : ''}</p>
-            {selectedPatient.notes && <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Notas: {selectedPatient.notes}</p>}
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn btn-small" onClick={() => downloadPatientPdf({ patient: selectedPatient, records })}>Exportar PDF</button>
-            <button className="btn btn-primary" onClick={() => setIsNewRecord(true)}>+ Nueva Ficha</button>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        <div style={{ flexShrink: 0, marginBottom: '16px' }}>
+          <button className="btn btn-small" style={{ marginBottom: '12px' }} onClick={() => { setSelectedPatient(null); setRecords([]); }}>
+            &larr; Volver a lista
+          </button>
+          <div className="flex-between">
+            <div>
+              <h1 style={{ marginBottom: '4px' }}>{selectedPatient.name}</h1>
+              <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Tel: {selectedPatient.phone} {selectedPatient.email ? `| Email: ${selectedPatient.email}` : ''}</p>
+              {selectedPatient.notes && <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Notas: {selectedPatient.notes}</p>}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="btn btn-small" onClick={() => downloadPatientPdf({ patient: selectedPatient, records })}>Exportar PDF</button>
+              <button className="btn btn-primary" onClick={() => setIsNewRecord(true)}>+ Nueva Ficha</button>
+            </div>
           </div>
         </div>
 
-        {/* D29: Próxima Cita widget */}
-        <div className="card" style={{ padding: '20px 24px', marginTop: '16px' }}>
-          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Próxima Cita</h3>
-          {loadingNextAppointment ? (
-            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Cargando...</div>
-          ) : nextAppointment ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '14px' }}>
-              <span>{new Date(nextAppointment.date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-              <span style={{ color: 'var(--text-secondary)' }}>{nextAppointment.time}</span>
-              <span style={{ fontWeight: 600 }}>{nextAppointment.service}</span>
-              <span className={`badge ${nextAppointment.status}`}>{nextAppointment.status}</span>
+        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }} className="custom-scrollbar">
+          {/* D29: Próxima Cita widget */}
+          <div className="card" style={{ padding: '20px 24px', marginBottom: '16px' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Próxima Cita</h3>
+            {loadingNextAppointment ? (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Cargando...</div>
+            ) : nextAppointment ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '14px' }}>
+                <span>{new Date(nextAppointment.date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{nextAppointment.time}</span>
+                <span style={{ fontWeight: 600 }}>{nextAppointment.service}</span>
+                <span className={`badge ${nextAppointment.status}`}>{nextAppointment.status}</span>
+              </div>
+            ) : (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Sin citas programadas</div>
+            )}
+          </div>
+
+          {loadingRecords ? <div>Cargando historial...</div> : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {records.length === 0 && <div className="card" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>Sin fichas clinicas registradas.</div>}
+              {records.map(r => (
+                <div key={r.id} className="card" style={{ padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <h3 style={{ margin: 0 }}>{r.reason}</h3>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{new Date(r.date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '14px' }}>
+                    {r.symptoms && <div><strong>Sintomas:</strong> {r.symptoms}</div>}
+                    {r.areas && <div><strong>Zonas trabajadas:</strong> {r.areas}</div>}
+                    {r.treatment && <div><strong>Tratamiento:</strong> {r.treatment}</div>}
+                    {r.nextSession && <div><strong>Proxima sesion:</strong> {r.nextSession}</div>}
+                  </div>
+                  {r.observations && <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--surface-secondary)', borderRadius: '8px', fontSize: '14px' }}><strong>Observaciones:</strong> {r.observations}</div>}
+                </div>
+              ))}
             </div>
-          ) : (
-            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Sin citas programadas</div>
           )}
         </div>
-
-        {loadingRecords ? <div>Cargando historial...</div> : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            {records.length === 0 && <div className="card" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>Sin fichas clinicas registradas.</div>}
-            {records.map(r => (
-              <div key={r.id} className="card" style={{ padding: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <h3 style={{ margin: 0 }}>{r.reason}</h3>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{new Date(r.date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '14px' }}>
-                  {r.symptoms && <div><strong>Sintomas:</strong> {r.symptoms}</div>}
-                  {r.areas && <div><strong>Zonas trabajadas:</strong> {r.areas}</div>}
-                  {r.treatment && <div><strong>Tratamiento:</strong> {r.treatment}</div>}
-                  {r.nextSession && <div><strong>Proxima sesion:</strong> {r.nextSession}</div>}
-                </div>
-                {r.observations && <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--surface-secondary)', borderRadius: '8px', fontSize: '14px' }}><strong>Observaciones:</strong> {r.observations}</div>}
-              </div>
-            ))}
-          </div>
-        )}
 
         {isNewRecord && (
           <div className="modal-overlay">

@@ -70,16 +70,16 @@ export default function Dashboard() {
   };
 
   return (
-    <div>
-      <div className="flex-between">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Hola, Ana 👋</h1>
-          <p className="subtitle">Aquí tienes el resumen de tu taller al día de hoy.</p>
+          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Aquí tienes el resumen de tu taller al día de hoy.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nueva Orden</button>
       </div>
 
-      <div className="grid grid-cols-3" style={{ marginBottom: '40px' }}>
+      <div className="grid grid-cols-3" style={{ marginBottom: '24px', flexShrink: 0 }}>
         <div className="card">
           <div className="stat-title">Prendas Pendientes</div>
           <div className="stat-value">{pendingGarments.length}</div>
@@ -94,8 +94,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <h2>Prioritarios: Proximas Entregas</h2>
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Prioritarios: Proximas Entregas</h2>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <div className="table-container">
           <table>
             <thead>

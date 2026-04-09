@@ -104,16 +104,16 @@ export default function Finances() {
   if (loading && finances.length === 0) return <div>Cargando registros financieros...</div>;
 
   return (
-    <div>
-      <div className="flex-between" style={{ marginBottom: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Control Financiero</h1>
-          <p className="subtitle">Lleva el registro de todo el capital ingresado y los gastos del taller.</p>
+          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Registro de ingresos y gastos del taller.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nuevo Registro</button>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
         <input
           type="month"
           value={filterMonth}
@@ -130,7 +130,7 @@ export default function Finances() {
         )}
       </div>
 
-      <div className="grid grid-cols-3" style={{ marginBottom: '40px' }}>
+      <div className="grid grid-cols-3" style={{ marginBottom: '16px', flexShrink: 0 }}>
         <div className="card" style={{ borderTop: '4px solid var(--success-color)' }}>
           <div className="stat-title">Ingresos Totales</div>
           <div className="stat-value" style={{ color: 'var(--success-color)' }}>${totalIncome.toLocaleString()}</div>
@@ -145,8 +145,8 @@ export default function Finances() {
         </div>
       </div>
 
-      <h2>Últimos Movimientos</h2>
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Últimos Movimientos</h2>
+      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <div className="table-container">
           <table>
             <thead>
