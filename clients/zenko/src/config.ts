@@ -15,8 +15,13 @@ export const BUSINESS = {
     { key: 'listo',      label: 'Listo',      order: 0 },
     { key: 'entregado',  label: 'Entregado',  order: 3 },
   ] as const,
-  whatsappReadyMsg: (clientName: string, garmentName: string) =>
-    `Hola ${clientName}, tu prenda (${garmentName}) está lista para retirar. 🧵`,
+  whatsappReadyMsg: (clientName: string, _garmentName: string) =>
+    `Hola 👋🏻\n` +
+    `Te escribimos desde Zenko – Taller de arreglos de ropa 🦊 para avisarte que tus arreglos ya se encuentran finalizados y disponibles para retirar ✨\n\n` +
+    `Horario de atención:\n` +
+    `🕘Lunes a viernes: 9:30 a 12:30 / 15:00 a 18:30\n` +
+    `🕘Sábados: 9:30 a 15:00\n\n` +
+    `¡Muchas gracias!`,
   whatsappReminderMsg: (clientName: string, garmentName: string) =>
     `Hola ${clientName}, te recordamos que tu prenda "${garmentName}" está lista para retirar. ¡Te esperamos! 🧵`,
 };

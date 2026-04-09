@@ -71,7 +71,7 @@ export default function Garments() {
       clientName: g.clientName, clientPhone: g.clientPhone,
       garmentName: g.garmentName, repairType: g.repairType,
       description: g.description, intakeDate: g.intakeDate || '', deliveryDate: g.deliveryDate,
-      price: g.price, deposit: g.deposit || 0, status: g.status, location: g.location || ''
+      price: g.price, deposit: g.deposit || 0, status: g.status,
     });
   };
 
@@ -165,7 +165,6 @@ export default function Garments() {
                 <th>Ingreso</th>
                 <th>Entrega</th>
                 <th>Costo / Saldo</th>
-                <th>Ubicación</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -191,7 +190,6 @@ export default function Garments() {
                     {g.deposit !== undefined && g.deposit > 0 && <div style={{ fontSize: '12px', color: '#689f38' }}>Seña: ${g.deposit.toLocaleString()}</div>}
                     {g.deposit !== undefined && g.deposit > 0 && <div style={{ fontSize: '12px', color: '#d32f2f', fontWeight: 600 }}>Saldo: ${(g.price - g.deposit).toLocaleString()}</div>}
                   </td>
-                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{g.location || '—'}</td>
                   <td>
                     {getStatusBadge(g.status)}
                     {isOverdue(g) && (
@@ -238,7 +236,7 @@ export default function Garments() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
                     No se encontraron órdenes.
                   </td>
                 </tr>

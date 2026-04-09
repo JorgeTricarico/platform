@@ -177,7 +177,6 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
             <input name="deposit" type="number" placeholder="Seña ($)" value={form.deposit || ''} onChange={handle} className="input" style={{ width: '100px' }} />
           </div>
           <input required name="description" placeholder="Detalle exacto del trabajo a realizar..." value={form.description} onChange={handle} className="input" />
-          <input name="location" placeholder="Ubicación en local (ej: Estante 3, Perchero B)" value={form.location} onChange={handle} className="input" />
           <div className="form-row">
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Ingreso</label>

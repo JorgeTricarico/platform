@@ -24,25 +24,25 @@ const mockGarments = [
     id: 'ORD-001', clientName: 'María G.', clientPhone: '11-4567-8901',
     garmentName: 'Campera de Cuero', repairType: 'cierre',
     description: 'Cambiar cierre', status: 'en_proceso',
-    intakeDate: '2026-04-01', deliveryDate: '2026-04-05', price: 15000, location: 'Estante A'
+    intakeDate: '2026-04-01', deliveryDate: '2026-04-05', price: 15000
   },
   {
     id: 'ORD-002', clientName: 'Juan P.', clientPhone: '11-1234-5678',
     garmentName: 'Pantalón', repairType: 'dobladillo',
     description: 'Dobladillo', status: 'recibido',
-    intakeDate: '2026-04-02', deliveryDate: '2026-04-06', price: 5000, location: ''
+    intakeDate: '2026-04-02', deliveryDate: '2026-04-06', price: 5000
   },
   {
     id: 'ORD-003', clientName: 'Sofía L.', clientPhone: '11-9999-0000',
     garmentName: 'Vestido', repairType: 'diseño',
     description: 'Ajustar cintura', status: 'listo',
-    intakeDate: '2026-04-01', deliveryDate: '2026-04-04', price: 35000, location: 'Perchero B'
+    intakeDate: '2026-04-01', deliveryDate: '2026-04-04', price: 35000
   },
   {
     id: 'ORD-004', clientName: 'Carlos M.', clientPhone: '11-5555-5555',
     garmentName: 'Camisa', repairType: 'tela',
     description: 'Zurcir manga', status: 'entregado',
-    intakeDate: '2026-04-01', deliveryDate: '2026-04-01', price: 4500, location: ''
+    intakeDate: '2026-04-01', deliveryDate: '2026-04-01', price: 4500
   }
 ];
 
@@ -60,13 +60,7 @@ describe('Garments page', () => {
     });
   });
 
-  it('displays location column', async () => {
-    render(<ToastProvider><Garments /></ToastProvider>);
-    await waitFor(() => {
-      expect(screen.getByText('Ubicación')).toBeInTheDocument();
-      expect(screen.getByText('Estante A')).toBeInTheDocument();
-    });
-  });
+
 
   it('shows Ticket button for each garment', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
@@ -256,7 +250,7 @@ describe('Garments page', () => {
         garmentName: 'Overdue Garment', repairType: 'cierre',
         description: 'Test', status: 'recibido',
         intakeDate: '2026-01-01', deliveryDate: yesterday.toISOString().split('T')[0],
-        price: 1000, location: ''
+        price: 1000
       },
     ];
     (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(overdueGarments);

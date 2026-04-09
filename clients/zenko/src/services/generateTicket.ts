@@ -44,7 +44,7 @@ export async function generateTicket(order: DBGarment): Promise<void> {
 
   // QR Code
   const qrY = y + 5;
-  const qrData = JSON.stringify({ id: order.id, client: order.clientName, garment: order.garmentName });
+  const qrData = `Orden: #${order.id}\nFecha de Entrega: ${fmtDate(order.deliveryDate)}`;
   const qrDataUrl = await QRCode.toDataURL(qrData, { width: 200, margin: 1 });
   doc.addImage(qrDataUrl, 'PNG', 20, qrY, 40, 40);
 
