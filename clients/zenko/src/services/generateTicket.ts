@@ -6,34 +6,34 @@ import { LOGO_BASE64 } from '../constants/assets';
 export async function generateTicket(order: DBGarment): Promise<void> {
   const doc = new jsPDF({ unit: 'mm', format: [80, 180] });
 
-  // Header Logo
-  doc.addImage(LOGO_BASE64, 'PNG', 27.5, 10, 25, 25);
+  // Header Logo - Relocated to the right of data
+  doc.addImage(LOGO_BASE64, 'PNG', 52, 36, 22, 22);
 
   // Header Text
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('ZENKO', 40, 40, { align: 'center' });
+  doc.text('ZENKO', 40, 25, { align: 'center' });
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('Arreglos de Ropa — Ana & Ariel', 40, 45, { align: 'center' });
+  doc.text('Arreglos de Ropa — Ana & Ariel', 40, 30, { align: 'center' });
 
   // Separator
   doc.setDrawColor(200);
-  doc.line(5, 48, 75, 48);
+  doc.line(5, 33, 75, 33);
 
   // Order info
   const shortId = order.id.slice(-6).toUpperCase();
-  doc.setFontSize(9);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Orden: #${shortId}`, 5, 54);
+  doc.text(`Orden: #${shortId}`, 5, 39);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Cliente: ${order.clientName.toUpperCase()}`, 5, 60);
-  doc.text(`Tel: ${order.clientPhone}`, 5, 65);
-  doc.text(`Prenda: ${order.garmentName}`, 5, 70);
-  doc.text(`Arreglo: ${order.repairType}`, 5, 75);
-  doc.text(`Detalle: ${order.description.slice(0, 40)}`, 5, 80);
+  doc.text(`Cliente: ${order.clientName.toUpperCase()}`, 5, 45);
+  doc.text(`Tel: ${order.clientPhone}`, 5, 50);
+  doc.text(`Prenda: ${order.garmentName}`, 5, 55);
+  doc.text(`Arreglo: ${order.repairType}`, 5, 60);
+  doc.text(`Detalle: ${order.description.slice(0, 40)}`, 5, 65);
   
-  let y = 85;
+  let y = 70;
   const fmtDate = (d: string) => {
     if (!d) return '-';
     const date = new Date(d);
