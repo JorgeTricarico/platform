@@ -305,12 +305,12 @@ describe('D20 — Conflict display', () => {
     });
 
     // Fill in required fields and submit
-    fireEvent.change(screen.getByPlaceholderText('Nombre Cliente'), { target: { name: 'clientName', value: 'Test User' } });
-    fireEvent.change(screen.getByPlaceholderText('Telefono'), { target: { name: 'clientPhone', value: '11-1111-1111' } });
+    fireEvent.change(screen.getByPlaceholderText('Nombre completo'), { target: { name: 'clientName', value: 'Test User' } });
+    fireEvent.change(screen.getByPlaceholderText('Teléfono'), { target: { name: 'clientPhone', value: '11-1111-1111' } });
     // Select a service to pass HTML required validation
     const serviceSelect = document.querySelector('select[name="service"]') as HTMLSelectElement;
     fireEvent.change(serviceSelect, { target: { name: 'service', value: 'Masaje Relajante' } });
-    fireEvent.change(screen.getByPlaceholderText('Duracion (min)'), { target: { name: 'duration', value: '60' } });
+    fireEvent.change(screen.getByPlaceholderText('Duración (min)'), { target: { name: 'duration', value: '60' } });
     fireEvent.change(screen.getByPlaceholderText('Precio ($)'), { target: { name: 'price', value: '5000' } });
     // Set a date and time
     const dateInput = document.querySelector('input[name="date"]') as HTMLInputElement;

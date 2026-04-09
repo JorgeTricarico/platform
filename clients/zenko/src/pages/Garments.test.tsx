@@ -94,7 +94,7 @@ describe('Garments page', () => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
-    expect(document.querySelector('.modal-card')).toBeInTheDocument();
+    expect(document.querySelector('.modal-card.modal-lg')).toBeInTheDocument();
   });
 
   it('form uses CSS utility classes', async () => {
@@ -177,7 +177,7 @@ describe('Garments page', () => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
-    const input = screen.getByPlaceholderText('Tipo de Arreglo (ej: Dobladillo)');
+    const input = screen.getByPlaceholderText('Arreglo (ej: Dobladillo)');
     expect(input).toBeInTheDocument();
   });
 
@@ -187,7 +187,7 @@ describe('Garments page', () => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
-    const input = screen.getByPlaceholderText('Seña ($)');
+    const input = screen.getByPlaceholderText('Ej: 500');
     expect(input).toBeInTheDocument();
   });
 

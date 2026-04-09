@@ -64,6 +64,8 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M23 | Cache TTL en cachedFetch — no servir datos stale indefinidamente | — | pendiente | media |
 | M24 | Extraer helpers compartidos backend (getMonthRange, timeToMinutes) a utils/ | — | pendiente | baja |
 | M25 | Gemini API key — renovar free tier o habilitar billing | [M25](docs/roadmap/M25-gemini-key.md) | pendiente | alta |
+| M26 | Localización completa en español — validaciones, fechas y mensajes de navegador | — | pendiente | alta |
+| M27 | Input de Fecha personalizado — resolver formato DD/MM/YYYY forzado en todos los navegadores | — | pendiente | media |
 
 ---
 

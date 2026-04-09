@@ -15,7 +15,7 @@ export default function Appointments() {
   const [submitting, setSubmitting] = useState(false);
   const [dateFilter, setDateFilter] = useState<'todos' | 'hoy' | 'semana' | 'mes' | 'proximas' | 'historial'>('todos');
   const [formData, setFormData] = useState({
-    clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
+    clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: new Date().toISOString().split('T')[0], time: '', price: 0, notes: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -211,7 +211,7 @@ export default function Appointments() {
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{a.duration} min</div>
                   </td>
                   <td style={{ fontWeight: 600 }}>
-                    {new Date(a.date + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })} {a.time}
+                    {new Date(a.date + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })} {a.time}
                   </td>
                   <td style={{ fontWeight: 600 }}>{BUSINESS.currency}{a.price.toLocaleString()}</td>
                   <td>{getStatusBadge(a.status)}</td>
@@ -253,29 +253,52 @@ export default function Appointments() {
           <div className="card modal-card modal-md">
             <h2 style={{ marginTop: 0 }}>Agendar Nueva Cita</h2>
             <form onSubmit={handleSubmit} className="form-group">
-              <div className="form-row">
-                <input required name="clientName" placeholder="Nombre Cliente" value={formData.clientName} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="clientPhone" placeholder="Telefono" value={formData.clientPhone} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+              {/* Patient Group */}
+              <div style={{ padding: '16px', backgroundColor: 'var(--surface-secondary)', borderRadius: '12px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Información del Paciente</label>
+                <div className="form-row">
+                  <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                  <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                </div>
               </div>
 
-              <select required name="service" value={formData.service} onChange={handleInputChange} className="input">
-                <option value="">Tipo de Masaje...</option>
-                {BUSINESS.services.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-
-              <div className="form-row">
-                <input required name="duration" type="number" placeholder="Duracion (min)" value={formData.duration} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+              {/* Service Details */}
+              <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Detalles del Servicio</label>
+                <select required name="service" value={formData.service} onChange={handleInputChange} className="input" style={{ marginBottom: '12px' }}>
+                  <option value="">Tipo de Masaje...</option>
+                  {BUSINESS.services.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <div className="form-row">
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Duración (min)</label>
+                    <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className="input" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Precio ($)</label>
+                    <input required name="price" type="number" value={formData.price || ''} onChange={handleInputChange} className="input" placeholder="Precio ($)" />
+                  </div>
+                </div>
               </div>
 
-              <div className="form-row">
-                <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+              {/* Date/Time Group */}
+              <div style={{ padding: '16px', backgroundColor: '#f0f7ff', borderRadius: '12px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#0055cc', marginBottom: '8px', display: 'block' }}>Programación</label>
+                <div className="form-row">
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha</label>
+                    <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Hora</label>
+                    <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input" />
+                  </div>
+                </div>
               </div>
 
-              <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
+              <input name="notes" placeholder="Notas adicionales (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
 
               {conflictError && (
                 <p style={{ color: 'var(--danger, #e53e3e)', margin: '4px 0', fontSize: '14px' }}>{conflictError}</p>
@@ -298,8 +321,8 @@ export default function Appointments() {
             <h2 style={{ marginTop: 0 }}>Editar Cita</h2>
             <form onSubmit={handleEditSubmit} className="form-group">
               <div className="form-row">
-                <input required name="clientName" placeholder="Nombre Cliente" value={formData.clientName} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="clientPhone" placeholder="Telefono" value={formData.clientPhone} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
               </div>
 
               <select required name="service" value={formData.service} onChange={handleInputChange} className="input">
@@ -310,7 +333,7 @@ export default function Appointments() {
               </select>
 
               <div className="form-row">
-                <input required name="duration" type="number" placeholder="Duracion (min)" value={formData.duration} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
                 <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
               </div>
 

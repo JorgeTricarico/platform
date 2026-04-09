@@ -85,7 +85,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
 
   return (
     <div className="modal-overlay">
-      <div className="card modal-card">
+      <div className="card modal-card modal-lg">
         <h2 style={{ marginTop: 0 }}>{title}</h2>
         <form onSubmit={handleSubmit} className="form-group">
           {/* Client selector */}
@@ -170,13 +170,12 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
               <input required name="clientPhone" placeholder="Teléfono" value={form.clientPhone} onChange={handle} className="input" style={{ flex: 1 }} />
             </div>
           )}
-          <input required name="garmentName" placeholder="Ej: Pantalón de Vestir" value={form.garmentName} onChange={handle} className="input" />
           <div className="form-row">
-            <input required name="repairType" placeholder="Tipo de Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="input" style={{ flex: 1 }} />
-            <input required name="price" type="number" placeholder="Precio del arreglo ($)" value={form.price || ''} onChange={handle} className="input" style={{ width: '120px' }} />
-            <input name="deposit" type="number" placeholder="Seña ($)" value={form.deposit || ''} onChange={handle} className="input" style={{ width: '100px' }} />
+            <input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="input" style={{ flex: 1 }} />
+            <input required name="repairType" placeholder="Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="input" style={{ flex: 1 }} />
           </div>
           <input required name="description" placeholder="Detalle exacto del trabajo a realizar..." value={form.description} onChange={handle} className="input" />
+
           <div className="form-row">
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Ingreso</label>
@@ -187,6 +186,18 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
               <input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} className="input" style={{ width: '100%', boxSizing: 'border-box' }} />
             </div>
           </div>
+
+          <div className="form-row">
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Precio ($)</label>
+              <input required name="price" type="number" placeholder="Ej: 1500" value={form.price || ''} onChange={handle} className="input" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Seña ($)</label>
+              <input name="deposit" type="number" placeholder="Ej: 500" value={form.deposit || ''} onChange={handle} className="input" />
+            </div>
+          </div>
+
           {showStatus && (
             <select name="status" value={form.status} onChange={handle} className="input">
               <option value="recibido">Recibido</option>
@@ -195,6 +206,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
               <option value="entregado">Entregado</option>
             </select>
           )}
+
           <div className="form-actions">
             <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
             <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>

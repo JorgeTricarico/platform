@@ -57,8 +57,7 @@ export default function Dashboard() {
   const balance = monthlyIncome - monthlyExpenses;
 
   const formatDate = (dateStr: string) => {
-    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', timeZone: 'UTC' };
-    return new Date(dateStr).toLocaleDateString('es-AR', options);
+    return new Date(dateStr).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
   };
 
   const getStatusBadge = (status: string) => {

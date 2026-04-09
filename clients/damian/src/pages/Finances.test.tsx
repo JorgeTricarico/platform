@@ -85,7 +85,7 @@ describe('Finances', () => {
     await waitFor(() => {
       const modalCard = document.querySelector('.modal-card');
       expect(modalCard).not.toBeNull();
-      expect(modalCard!.className).toContain('modal-sm');
+      expect(modalCard!.className).toContain('modal-md');
     });
   });
 });

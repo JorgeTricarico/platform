@@ -31,7 +31,7 @@ export async function generateTicket(order: DBGarment): Promise<void> {
     doc.text(`Ubicación: ${order.location}`, 5, 55);
   }
   let y = order.location ? 60 : 55;
-  const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
   doc.text(`Ingreso: ${fmtDate(order.intakeDate)}`, 5, y); y += 5;
   doc.text(`Entrega: ${fmtDate(order.deliveryDate)}`, 5, y); y += 5;
   

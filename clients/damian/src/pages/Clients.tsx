@@ -103,7 +103,7 @@ export default function Clients() {
                   </td>
                   <td style={{ color: c.email ? 'inherit' : 'var(--text-secondary)' }}>{c.email || '-'}</td>
                   <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: c.notes ? 'inherit' : 'var(--text-secondary)' }}>{c.notes || '-'}</td>
-                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('es-AR')}</td>
+                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td>
                     <button
                       className="btn btn-small"
@@ -162,21 +162,30 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
 
   return (
     <div className="modal-overlay">
-      <div className="card modal-card">
+      <div className="card modal-card modal-md">
         <h2 style={{ marginTop: 0 }}>{title}</h2>
         <form onSubmit={handleSubmit} className="form-group">
-          <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className="input" />
-          <div className="form-row">
-            <input required name="phone" placeholder="Telefono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input" style={{ flex: 1, opacity: phoneDisabled ? 0.6 : 1 }} />
-            <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className="input" style={{ flex: 1 }} />
+          {/* Identity & Contact Group */}
+          <div style={{ padding: '16px', backgroundColor: 'var(--surface-secondary)', borderRadius: '12px', marginBottom: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Identidad y Contacto</label>
+            <div className="form-group" style={{ gap: '12px' }}>
+              <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className="input" />
+              <div className="form-row">
+                <input required name="phone" placeholder="Teléfono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input" style={{ flex: 1, opacity: phoneDisabled ? 0.6 : 1 }} />
+                <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className="input" style={{ flex: 1 }} />
+              </div>
+              <input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} className="input" />
+            </div>
           </div>
-          <input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} className="input" />
-          <textarea name="notes" placeholder="Notas (opcional)" value={form.notes} onChange={handle} rows={3} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+
+          <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Notas e Información Adicional</label>
+            <textarea name="notes" placeholder="Notas sobre el paciente, antecedentes, etc..." value={form.notes} onChange={handle} rows={3} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+          </div>
+
           <div className="form-actions">
             <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
-            <button type="submit" disabled={submitting} className="btn btn-primary">
-              {submitting ? 'Guardando...' : 'Guardar'}
-            </button>
+            <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
           </div>
         </form>
       </div>

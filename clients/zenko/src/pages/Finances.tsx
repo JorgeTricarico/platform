@@ -161,7 +161,7 @@ export default function Finances() {
             <tbody>
               {finances.map(f => (
                 <tr key={f.id}>
-                  <td style={{ fontWeight: 600 }}>{new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', timeZone: 'UTC' })}</td>
+                  <td style={{ fontWeight: 600 }}>{new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}</td>
                   <td>
                     <span className={`badge ${f.type === 'income' ? 'completed' : 'pending'}`}>
                       {f.type === 'income' ? 'Ingreso' : 'Gasto'}
@@ -205,62 +205,38 @@ export default function Finances() {
       {/* Modal Nuevo Registro */}
       {isModalOpen && (
         <div className="modal-overlay">
-          <div className="card modal-card modal-sm">
+          <div className="card modal-card modal-md">
             <h2 style={{ marginTop: 0 }}>Nuevo Registro Financiero</h2>
             <form onSubmit={handleSubmit} className="form-group">
               <div className="form-row">
-                <select
-                  name="type"
-                  value={form.type}
-                  onChange={handle}
-                  className="input"
-                  style={{ flex: 1 }}
-                >
-                  <option value="income">Ingreso</option>
-                  <option value="expense">Gasto</option>
-                </select>
-                <input
-                  required
-                  name="date"
-                  type="date"
-                  value={form.date}
-                  onChange={handle}
-                  className="input"
-                  style={{ flex: 1 }}
-                />
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Tipo</label>
+                  <select name="type" value={form.type} onChange={handle} className="input">
+                    <option value="income">Ingreso</option>
+                    <option value="expense">Gasto</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha</label>
+                  <input required name="date" type="date" value={form.date} onChange={handle} className="input" />
+                </div>
               </div>
-              <input
-                required
-                name="category"
-                placeholder={form.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'}
-                value={form.category}
-                onChange={handle}
-                className="input"
-              />
-              <input
-                required
-                name="amount"
-                type="number"
-                placeholder="Monto ($)"
-                value={form.amount || ''}
-                onChange={handle}
-                className="input"
-              />
-              <input
-                name="description"
-                placeholder="Descripción adicional (opcional)"
-                value={form.description}
-                onChange={handle}
-                className="input"
-              />
+
+              <div className="form-row">
+                <div style={{ flex: 2 }}>
+                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Categoría / Concepto</label>
+                  <input required name="category" placeholder={form.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'} value={form.category} onChange={handle} className="input" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Monto ($)</label>
+                  <input required name="amount" type="number" placeholder="0" value={form.amount || ''} onChange={handle} className="input" />
+                </div>
+              </div>
+
+              <input name="description" placeholder="Descripción adicional (opcional)" value={form.description} onChange={handle} className="input" />
+
               <div className="form-actions">
-                <button
-                  type="button"
-                  onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }}
-                  className="btn-secondary"
-                >
-                  Cancelar
-                </button>
+                <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="btn-secondary">Cancelar</button>
                 <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
               </div>
             </form>

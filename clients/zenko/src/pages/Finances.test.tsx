@@ -82,7 +82,7 @@ describe('Finances page', () => {
       expect(screen.getByText('Ingresos Totales')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Nuevo Registro'));
-    expect(document.querySelector('.modal-sm')).toBeInTheDocument();
+    expect(document.querySelector('.modal-md')).toBeInTheDocument();
     expect(document.querySelector('.modal-card')).toBeInTheDocument();
   });
 });

@@ -71,6 +71,46 @@ async function loadDemoTracksIfNeeded(): Promise<{ id: string; title: string; bl
   return loaded;
 }
 
+// --- Icons ---
+const PlayIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+  </svg>
+);
+
+const PauseIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="6" y="4" width="4" height="16"></rect>
+    <rect x="14" y="4" width="4" height="16"></rect>
+  </svg>
+);
+
+const NextIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="5 4 15 12 5 20 5 4"></polygon>
+    <line x1="19" y1="5" x2="19" y2="19"></line>
+  </svg>
+);
+
+const LoopIcon = ({ active, size = 18 }: { active: boolean; size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? 1 : 0.4 }}>
+    <polyline points="17 1 21 5 17 9"></polyline>
+    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+    <polyline points="7 23 3 19 7 15"></polyline>
+    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+  </svg>
+);
+
+const ShuffleIcon = ({ active, size = 18 }: { active: boolean; size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? 1 : 0.4 }}>
+    <polyline points="16 3 21 3 21 8"></polyline>
+    <line x1="4" y1="20" x2="21" y2="3"></line>
+    <polyline points="21 16 21 21 16 21"></polyline>
+    <line x1="15" y1="15" x2="21" y2="21"></line>
+    <line x1="4" y1="4" x2="9" y2="9"></line>
+  </svg>
+);
+
 export default function Ambient() {
   const { lastCommand, setPlaybackState } = useMusicCommand();
   const [tracks, setTracks] = useState<LocalTrack[]>([]);
@@ -215,6 +255,13 @@ export default function Ambient() {
     setIsPlaying(!isPlaying);
   };
 
+  const handleNext = () => {
+    const currentTracks = tracksRef.current;
+    if (currentTracks.length === 0) return;
+    const next = getNextTrack(currentTracks, activeTrack);
+    if (next) playTrack(next);
+  };
+
   const removeTrack = async (id: string) => {
     if (activeTrack?.id === id) {
       audioRef.current?.pause();
@@ -251,24 +298,80 @@ export default function Ambient() {
 
       {/* Player activo */}
       {activeTrack && (
-        <div className="card" style={{ marginBottom: '24px', padding: '20px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: isPlaying ? 'var(--success-color, #22c55e)' : '#aaa', animation: isPlaying ? 'pulse 2s infinite' : 'none' }} />
-            <span style={{ fontWeight: 600, flex: 1 }}>{isPlaying ? 'Reproduciendo' : 'Pausado'}: {activeTrack.title}</span>
-            <button className="btn" style={{ padding: '6px 14px', fontSize: '13px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }} onClick={togglePlay}>
-              {isPlaying ? 'Pausar' : 'Play'}
-            </button>
-            <button className="btn" style={{ padding: '6px 14px', fontSize: '13px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }} onClick={() => setLoop(!loop)}>
-              Loop: {loop ? 'ON' : 'OFF'}
-            </button>
-            <button className="btn" style={{ padding: '6px 14px', fontSize: '13px', backgroundColor: shuffle ? 'var(--primary-color, #6366f1)' : 'var(--surface-secondary)', color: shuffle ? 'white' : 'inherit', border: '1px solid var(--border-color)' }} onClick={() => setShuffle(!shuffle)}>
-              Shuffle: {shuffle ? 'ON' : 'OFF'}
-            </button>
+        <div className="card" style={{ marginBottom: '24px', padding: '24px', borderLeft: '6px solid var(--primary-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            {/* Visualizer indicator */}
+            <div style={{
+              width: 64, height: 64, borderRadius: '16px',
+              background: 'var(--surface-secondary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              position: 'relative', overflow: 'hidden'
+            }}>
+              {isPlaying ? (
+                <div className="flex" style={{ gap: '3px', alignItems: 'flex-end', height: '20px' }}>
+                  <div style={{ width: 4, background: 'var(--primary-color)', animation: 'pulse 1s infinite 0s', borderRadius: '2px' }} />
+                  <div style={{ width: 4, background: 'var(--primary-color)', animation: 'pulse 0.8s infinite 0.2s', borderRadius: '2px' }} />
+                  <div style={{ width: 4, background: 'var(--primary-color)', animation: 'pulse 1.2s infinite 0.4s', borderRadius: '2px' }} />
+                </div>
+              ) : (
+                <PauseIcon size={24} />
+              )}
+            </div>
+
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+                {isPlaying ? 'Reproduciendo ahora' : 'En pausa'}
+              </div>
+              <div style={{ fontWeight: 800, fontSize: '20px', color: 'var(--text-primary)' }}>{activeTrack.title}</div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button
+                className="btn-icon"
+                onClick={() => setShuffle(!shuffle)}
+                title="Mezclar"
+                aria-label="Mezclar"
+                style={{ color: shuffle ? 'var(--primary-color)' : 'var(--text-secondary)' }}
+              >
+                <ShuffleIcon active={shuffle} />
+              </button>
+              <button
+                className="btn-icon"
+                onClick={() => setLoop(!loop)}
+                title="Repetir"
+                aria-label="Repetir"
+                style={{ color: loop ? 'var(--primary-color)' : 'var(--text-secondary)' }}
+              >
+                <LoopIcon active={loop} />
+              </button>
+
+              <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 8px' }} />
+
+              <button
+                className="btn-primary"
+                style={{ width: 48, height: 48, padding: 0, borderRadius: '50%' }}
+                onClick={togglePlay}
+                aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+              >
+                {isPlaying ? <PauseIcon size={22} /> : <PlayIcon size={22} />}
+              </button>
+
+              <button
+                className="btn"
+                style={{ width: 40, height: 40, padding: 0, borderRadius: '50%', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                onClick={handleNext}
+                title="Siguiente"
+                aria-label="Siguiente"
+              >
+                <NextIcon size={18} />
+              </button>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
-            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', width: '60px' }}>Volumen</span>
-            <input type="range" min="0" max="1" step="0.05" value={volume} onChange={(e) => setVolume(Number(e.target.value))} style={{ flex: 1 }} />
-            <span style={{ fontSize: '13px', width: '40px', textAlign: 'right' }}>{Math.round(volume * 100)}%</span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '24px', padding: '12px 16px', background: 'var(--surface-secondary)', borderRadius: '12px' }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, width: '60px' }}>VOLUMEN</span>
+            <input type="range" min="0" max="1" step="0.05" value={volume} onChange={(e) => setVolume(Number(e.target.value))} style={{ flex: 1, accentColor: 'var(--primary-color)' }} />
+            <span style={{ fontSize: '12px', fontWeight: 700, width: '40px', textAlign: 'right', color: 'var(--primary-color)' }}>{Math.round(volume * 100)}%</span>
           </div>
           <audio
             ref={audioRef}
@@ -323,7 +426,9 @@ export default function Ambient() {
                   fontSize: '24px', flexShrink: 0,
                   color: activeTrack?.id === track.id ? 'white' : 'var(--text-secondary)',
                 }}>
-                  {activeTrack?.id === track.id && isPlaying ? '♫' : '▶'}
+                  {activeTrack?.id === track.id ? (
+                    isPlaying ? <PauseIcon size={24} /> : <PlayIcon size={24} />
+                  ) : <PlayIcon size={24} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title}</div>

@@ -348,8 +348,8 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 /* Photo Gallery */
 .photo-gallery {
   border-top: 1px solid var(--border-color);
-  padding-top: 16px;
-  margin-top: 16px;
+  padding-top: 12px;
+  margin-top: 12px;
 }
 
 .photo-grid {
@@ -444,14 +444,17 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 24px 16px;
 }
 
 .modal-card {
   background: var(--surface-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: 32px;
+  padding: 24px;
   width: min(480px, 90vw);
+  max-height: 100%;
+  overflow-y: auto;
 }
 .modal-card.modal-sm { width: min(420px, 90vw); }
 .modal-card.modal-md { width: min(450px, 90vw); }
@@ -460,7 +463,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .form-row {

@@ -97,7 +97,7 @@ export default function Patients() {
             <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Cargando...</div>
           ) : nextAppointment ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '14px' }}>
-              <span>{new Date(nextAppointment.date + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span>{new Date(nextAppointment.date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
               <span style={{ color: 'var(--text-secondary)' }}>{nextAppointment.time}</span>
               <span style={{ fontWeight: 600 }}>{nextAppointment.service}</span>
               <span className={`badge ${nextAppointment.status}`}>{nextAppointment.status}</span>
@@ -114,7 +114,7 @@ export default function Patients() {
               <div key={r.id} className="card" style={{ padding: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <h3 style={{ margin: 0 }}>{r.reason}</h3>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{r.date}</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{new Date(r.date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '14px' }}>
                   {r.symptoms && <div><strong>Sintomas:</strong> {r.symptoms}</div>}
@@ -131,15 +131,42 @@ export default function Patients() {
         {isNewRecord && (
           <div className="modal-overlay">
             <div className="card modal-card modal-lg" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
-              <h2 style={{ marginTop: 0 }}>Nueva Ficha Clinica — {selectedPatient.name}</h2>
+              <h2 style={{ marginTop: 0 }}>Nueva Ficha Clínica — {selectedPatient.name}</h2>
               <form onSubmit={handleNewRecord} className="form-group">
-                <input required name="date" type="date" value={recordForm.date} onChange={e => setRecordForm(p => ({ ...p, date: e.target.value }))} className="input" />
-                <input required name="reason" placeholder="Motivo de consulta" value={recordForm.reason} onChange={e => setRecordForm(p => ({ ...p, reason: e.target.value }))} className="input" />
-                <textarea name="symptoms" placeholder="Sintomas reportados por el paciente" value={recordForm.symptoms} onChange={e => setRecordForm(p => ({ ...p, symptoms: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
-                <textarea name="areas" placeholder="Zonas trabajadas (ej: cervical, lumbar, hombros)" value={recordForm.areas} onChange={e => setRecordForm(p => ({ ...p, areas: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
-                <textarea name="treatment" placeholder="Tratamiento aplicado" value={recordForm.treatment} onChange={e => setRecordForm(p => ({ ...p, treatment: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
-                <textarea name="observations" placeholder="Observaciones del terapeuta" value={recordForm.observations} onChange={e => setRecordForm(p => ({ ...p, observations: e.target.value }))} rows={3} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
-                <input name="nextSession" placeholder="Indicaciones proxima sesion" value={recordForm.nextSession} onChange={e => setRecordForm(p => ({ ...p, nextSession: e.target.value }))} className="input" />
+                {/* Consultation Group */}
+                <div style={{ padding: '16px', backgroundColor: 'var(--surface-secondary)', borderRadius: '12px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Detalles de la Consulta</label>
+                  <div className="form-row">
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha</label>
+                      <input required name="date" type="date" value={recordForm.date} onChange={e => setRecordForm(p => ({ ...p, date: e.target.value }))} className="input" />
+                    </div>
+                    <div style={{ flex: 2 }}>
+                      <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Motivo</label>
+                      <input required name="reason" placeholder="Motivo de consulta" value={recordForm.reason} onChange={e => setRecordForm(p => ({ ...p, reason: e.target.value }))} className="input" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Symptoms & Diagnosis */}
+                <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Diagnóstico y Síntomas</label>
+                  <textarea name="symptoms" placeholder="Síntomas reportados por el paciente" value={recordForm.symptoms} onChange={e => setRecordForm(p => ({ ...p, symptoms: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px' }} />
+                  <textarea name="areas" placeholder="Zonas trabajadas (ej: cervical, lumbar, hombros)" value={recordForm.areas} onChange={e => setRecordForm(p => ({ ...p, areas: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+                </div>
+
+                {/* Treatment */}
+                <div style={{ padding: '16px', backgroundColor: '#f0fff4', border: '1px solid #c6f6d5', borderRadius: '12px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#2f855a', marginBottom: '8px', display: 'block' }}>Tratamiento Realizado</label>
+                  <textarea name="treatment" placeholder="Tratamiento aplicado" value={recordForm.treatment} onChange={e => setRecordForm(p => ({ ...p, treatment: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px' }} />
+                  <textarea name="observations" placeholder="Observaciones del terapeuta" value={recordForm.observations} onChange={e => setRecordForm(p => ({ ...p, observations: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+                </div>
+
+                <div style={{ padding: '16px', border: '1px dotted var(--border-color)', borderRadius: '12px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Seguimiento</label>
+                  <input name="nextSession" placeholder="Indicaciones para la próxima sesión..." value={recordForm.nextSession} onChange={e => setRecordForm(p => ({ ...p, nextSession: e.target.value }))} className="input" />
+                </div>
+
                 <div className="form-actions">
                   <button type="button" onClick={() => { setIsNewRecord(false); setRecordForm({ ...EMPTY_RECORD }); }} className="btn-secondary">Cancelar</button>
                   <button type="submit" disabled={submitting} className="btn btn-primary">
@@ -196,7 +223,7 @@ export default function Patients() {
                       {p.totalRecords} ficha{p.totalRecords !== 1 ? 's' : ''}
                     </span>
                   </td>
-                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{p.lastVisit || '-'}</td>
+                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{p.lastVisit ? new Date(p.lastVisit + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</td>
                   <td style={{ fontSize: '13px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.lastReason || '-'}</td>
                   <td>
                     <button
