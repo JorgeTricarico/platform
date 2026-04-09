@@ -177,28 +177,24 @@ describe('Garments page', () => {
     expect(screen.getByPlaceholderText('Teléfono')).toBeInTheDocument();
   });
 
-  it('repair type select includes Otro option', async () => {
+  it('renders repair type text input', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
-    const select = screen.getByDisplayValue('Tipo de Arreglo...');
-    expect(select).toBeInTheDocument();
-    const options = Array.from(select.querySelectorAll('option')).map(o => o.textContent);
-    expect(options).toContain('Otro...');
-    expect(options).toContain('Arreglo de Tela');
+    const input = screen.getByPlaceholderText('Tipo de Arreglo (ej: Dobladillo)');
+    expect(input).toBeInTheDocument();
   });
 
-  it('selecting Otro shows custom text input', async () => {
+  it('renders deposit text input', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
-    const select = screen.getByDisplayValue('Tipo de Arreglo...');
-    fireEvent.change(select, { target: { value: 'otro' } });
-    expect(screen.getByPlaceholderText('Escribí el tipo de arreglo...')).toBeInTheDocument();
+    const input = screen.getByPlaceholderText('Seña ($)');
+    expect(input).toBeInTheDocument();
   });
 
   // Z14: Status filter chips

@@ -52,6 +52,7 @@ export interface DBGarment {
   intakeDate: string;
   deliveryDate: string;
   price: number;
+  deposit?: number;
   location?: string;
 }
 

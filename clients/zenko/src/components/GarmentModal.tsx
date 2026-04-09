@@ -2,16 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { searchClients } from '../services/api';
 import type { DBClient } from '../services/api';
 import PhotoGallery from './PhotoGallery';
-import { BUSINESS } from '../config';
-
+// No config imports needed
 export const EMPTY_FORM = {
   clientName: '', clientPhone: '', garmentName: '', repairType: '',
-  description: '', intakeDate: new Date().toISOString().split('T')[0], deliveryDate: '', price: 0, status: 'recibido', location: ''
+  description: '', intakeDate: new Date().toISOString().split('T')[0], deliveryDate: '', price: 0, deposit: 0, status: 'recibido', location: ''
 };
 
 export type GarmentFormState = typeof EMPTY_FORM;
 
-const KNOWN_REPAIR_TYPES = BUSINESS.repairTypes;
+// Removed unused KNOWN_REPAIR_TYPES
 
 export default function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, garmentId }: {
   title: string;
@@ -23,8 +22,6 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   garmentId?: string;
 }) {
   const [submitting, setSubmitting] = useState(false);
-  const isCustomRepair = form.repairType !== '' && !KNOWN_REPAIR_TYPES.includes(form.repairType);
-  const [showCustomRepair, setShowCustomRepair] = useState(isCustomRepair);
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -175,42 +172,10 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
           )}
           <input required name="garmentName" placeholder="Ej: Pantalón de Vestir" value={form.garmentName} onChange={handle} className="input" />
           <div className="form-row">
-            <select
-              required={!showCustomRepair}
-              name="repairType"
-              value={showCustomRepair ? 'otro' : form.repairType}
-              onChange={(e) => {
-                if (e.target.value === 'otro') {
-                  setShowCustomRepair(true);
-                  setForm(prev => ({ ...prev, repairType: '' }));
-                } else {
-                  setShowCustomRepair(false);
-                  setForm(prev => ({ ...prev, repairType: e.target.value }));
-                }
-              }}
-              className="input"
-              style={{ flex: 1 }}
-            >
-              <option value="">Tipo de Arreglo...</option>
-              <option value="dobladillo">Dobladillo</option>
-              <option value="cierre">Cambio de Cierre</option>
-              <option value="entalle">Entalle / Achicar</option>
-              <option value="tela">Arreglo de Tela</option>
-              <option value="diseño">Diseño Nuevo</option>
-              <option value="otro">Otro...</option>
-            </select>
-            <input required name="price" type="number" placeholder="Costo ($)" value={form.price || ''} onChange={handle} className="input" style={{ flex: 1 }} />
+            <input required name="repairType" placeholder="Tipo de Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="input" style={{ flex: 1 }} />
+            <input required name="price" type="number" placeholder="Precio del arreglo ($)" value={form.price || ''} onChange={handle} className="input" style={{ width: '120px' }} />
+            <input name="deposit" type="number" placeholder="Seña ($)" value={form.deposit || ''} onChange={handle} className="input" style={{ width: '100px' }} />
           </div>
-          {showCustomRepair && (
-            <input
-              required
-              name="repairType"
-              placeholder="Escribí el tipo de arreglo..."
-              value={form.repairType}
-              onChange={handle}
-              className="input"
-            />
-          )}
           <input required name="description" placeholder="Detalle exacto del trabajo a realizar..." value={form.description} onChange={handle} className="input" />
           <input name="location" placeholder="Ubicación en local (ej: Estante 3, Perchero B)" value={form.location} onChange={handle} className="input" />
           <div className="form-row">

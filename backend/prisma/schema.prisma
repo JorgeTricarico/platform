@@ -57,6 +57,7 @@ model Order {
   intakeDate      String   @default("")
   deliveryDate String
   price        Float
+  deposit      Float    @default(0)
   location     String?
   createdAt    DateTime @default(now())
 

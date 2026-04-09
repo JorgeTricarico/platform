@@ -30,14 +30,19 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   if (order.location) {
     doc.text(`Ubicación: ${order.location}`, 5, 55);
   }
+  let y = order.location ? 60 : 55;
   const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
-  doc.text(`Ingreso: ${fmtDate(order.intakeDate)}`, 5, order.location ? 60 : 55);
-  doc.text(`Entrega: ${fmtDate(order.deliveryDate)}`, 5, order.location ? 65 : 60);
+  doc.text(`Ingreso: ${fmtDate(order.intakeDate)}`, 5, y); y += 5;
+  doc.text(`Entrega: ${fmtDate(order.deliveryDate)}`, 5, y); y += 5;
+  
   doc.setFont('helvetica', 'bold');
-  doc.text(`Precio: $${order.price.toLocaleString()}`, 5, order.location ? 70 : 65);
+  doc.text(`Precio: $${order.price.toLocaleString()}`, 5, y); y += 5;
+  if (order.deposit) {
+    doc.text(`Seña: $${order.deposit.toLocaleString()}`, 5, y); y += 5;
+  }
 
   // QR Code
-  const qrY = order.location ? 75 : 70;
+  const qrY = y + 5;
   const qrData = JSON.stringify({ id: order.id, client: order.clientName, garment: order.garmentName });
   const qrDataUrl = await QRCode.toDataURL(qrData, { width: 200, margin: 1 });
   doc.addImage(qrDataUrl, 'PNG', 20, qrY, 40, 40);
@@ -46,6 +51,11 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   doc.text('Escanear para ubicar prenda', 40, qrY + 43, { align: 'center' });
+
+  doc.setFontSize(6);
+  doc.text('Pasados los 90 dias sin retirar el local dispone de las prendas.', 40, qrY + 48, { align: 'center' });
+  doc.text('Una vez finalizado el arreglo se avisara via', 40, qrY + 51, { align: 'center' });
+  doc.text('mensaje de WhatsApp que esta listo para retirarse.', 40, qrY + 54, { align: 'center' });
 
   doc.save(`ticket-${order.id}.pdf`);
 }
