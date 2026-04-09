@@ -3,33 +3,33 @@ import QRCode from 'qrcode';
 import type { DBGarment } from './api';
 
 export async function generateTicket(order: DBGarment): Promise<void> {
-  const doc = new jsPDF({ unit: 'mm', format: [80, 140] });
+  const doc = new jsPDF({ unit: 'mm', format: [80, 180] });
 
   // Header
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('ZENKO', 40, 10, { align: 'center' });
+  doc.text('ZENKO', 40, 25, { align: 'center' });
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('Arreglos de Ropa — Ana & Ariel', 40, 15, { align: 'center' });
+  doc.text('Arreglos de Ropa — Ana & Ariel', 40, 30, { align: 'center' });
 
   // Separator
   doc.setDrawColor(200);
-  doc.line(5, 18, 75, 18);
+  doc.line(5, 33, 75, 33);
 
   // Order info
   const shortId = order.id.slice(-6).toUpperCase();
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Orden: #${shortId}`, 5, 24);
+  doc.text(`Orden: #${shortId}`, 5, 39);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Cliente: ${order.clientName.toUpperCase()}`, 5, 30);
-  doc.text(`Tel: ${order.clientPhone}`, 5, 35);
-  doc.text(`Prenda: ${order.garmentName}`, 5, 40);
-  doc.text(`Arreglo: ${order.repairType}`, 5, 45);
-  doc.text(`Detalle: ${order.description.slice(0, 40)}`, 5, 50);
+  doc.text(`Cliente: ${order.clientName.toUpperCase()}`, 5, 45);
+  doc.text(`Tel: ${order.clientPhone}`, 5, 50);
+  doc.text(`Prenda: ${order.garmentName}`, 5, 55);
+  doc.text(`Arreglo: ${order.repairType}`, 5, 60);
+  doc.text(`Detalle: ${order.description.slice(0, 40)}`, 5, 65);
   
-  let y = 55;
+  let y = 70;
   const fmtDate = (d: string) => {
     if (!d) return '-';
     const date = new Date(d);
@@ -49,7 +49,7 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   // QR Code
   // Future URL: https://zenko.ar/orden/[shortId]
   const qrY = y + 5;
-  const trackingUrl = `https://zenko-app.onrender.com/estado/${shortId}`;
+  const trackingUrl = `${window.location.origin}/?view=status&order=${shortId}`;
   const qrDataUrl = await QRCode.toDataURL(trackingUrl, { width: 200, margin: 1 });
   doc.addImage(qrDataUrl, 'PNG', 20, qrY, 40, 40);
 

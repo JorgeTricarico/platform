@@ -37,6 +37,19 @@ export default function ChatDemo() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Auto-inquiry if order param exists
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('order');
+    if (orderId && messages.length === 0) {
+      setActiveScenario('estado');
+      // Delay slightly to allow the component to settle
+      setTimeout(() => {
+        sendMessageText(`Hola, quiero saber el estado de mi orden #${orderId.toUpperCase()}`, [], sessionIdRef.current);
+      }, 500);
+    }
+  }, [messages.length, sendMessageText]);
+
   const sendMessageText = useCallback(async (userMsg: string, currentHistory: GeminiMessage[], currentSessionId: string) => {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setLoading(true);
@@ -120,7 +133,7 @@ export default function ChatDemo() {
         <div style={{ background: '#25D366', color: 'white', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px' }}>Z</div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '16px' }}>Ana de Zenco</div>
+            <div style={{ fontWeight: 700, fontSize: '16px' }}>Ana de Zenko</div>
             <div style={{ fontSize: '12px', opacity: 0.9 }}>en linea</div>
           </div>
         </div>
