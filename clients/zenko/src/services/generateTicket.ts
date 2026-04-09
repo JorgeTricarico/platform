@@ -1,13 +1,13 @@
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import type { DBGarment } from './api';
-import logoThermal from '../assets/logo_thermal.png';
+import { LOGO_BASE64 } from '../constants/assets';
 
 export async function generateTicket(order: DBGarment): Promise<void> {
   const doc = new jsPDF({ unit: 'mm', format: [80, 180] });
 
   // Header Logo
-  doc.addImage(logoThermal, 'PNG', 27.5, 10, 25, 25);
+  doc.addImage(LOGO_BASE64, 'PNG', 27.5, 10, 25, 25);
 
   // Header Text
   doc.setFontSize(16);

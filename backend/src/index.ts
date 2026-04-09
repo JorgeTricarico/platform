@@ -14,6 +14,7 @@ import { chatHistoryRoutes } from './routes/chat-history.js';
 import { errorHandler, requestLogger } from './middleware/errorHandler.js';
 import { authenticate, requireBusiness } from './middleware/auth.js';
 import { authRoutes } from './routes/auth.js';
+import { publicRoutes } from './routes/public.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,7 @@ app.use('/uploads', express.static(path.resolve('uploads')));
 
 // Public routes — no auth required
 app.use('/api/auth', authRoutes);
+app.use('/api/public', publicRoutes);
 app.use('/api/zenco/chat', chatZencoRoutes);
 
 // Protected routes — JWT required + business check

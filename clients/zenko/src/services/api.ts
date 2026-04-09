@@ -225,3 +225,21 @@ export const deleteGarmentPhoto = async (garmentId: string, photoId: string): Pr
   const res = await mutationFetch(`${API_URL}/garments/${garmentId}/photos/${photoId}`, 'DELETE');
   if (!res.ok && res.status !== 202) throw new Error("Error al eliminar foto");
 };
+// --- PUBLIC STATUS ---
+
+export interface PublicStatusResponse {
+  id: string;
+  clientName: string;
+  garmentName: string;
+  repairType: string;
+  status: string;
+  deliveryDate: string;
+  price: number;
+  deposit: number;
+}
+
+export const fetchPublicStatus = async (id: string): Promise<PublicStatusResponse> => {
+  const res = await fetch(`${API_URL}/public/zenco/order/${id}`);
+  if (!res.ok) throw new Error("No pudimos encontrar el estado de tu pedido.");
+  return res.json();
+};
