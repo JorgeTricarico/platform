@@ -35,7 +35,7 @@ export default function Dashboard() {
       setSubmitting(false);
     }
   };
-
+  return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>

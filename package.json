@@ -2,8 +2,14 @@
   "name": "platform",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "clients/zenko",
+    "clients/damian",
+    "backend"
+  ],
   "scripts": {
-    "test": "vitest run",
+    "type-check": "npm run type-check -w clients/zenko && npm run type-check -w clients/damian && npm run type-check -w backend",
+    "test": "npm run type-check && vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage"

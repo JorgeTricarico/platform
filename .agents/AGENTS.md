@@ -132,6 +132,7 @@ Para CUALQUIER cambio en archivos de produccion (`backend/src/routes/`, `clients
 4. **Continuous improvement** — if you see something broken, fix it or log it
 5. **Identity Control** — never expose secrets, tokens or sensitive data
 6. **Read before edit** — always read from disk before editing any file
+7. **Always Spanish** — Hablar siempre en español. No usar inglés a menos que el usuario lo solicite explícitamente.
 
 ## Directories
 
