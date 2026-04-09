@@ -63,12 +63,17 @@ describe('POST /api/zenco/garments', () => {
     };
     const created = { id: 'ORD-123', ...input, status: 'recibido', createdAt: new Date().toISOString() };
     mockPrisma.order.create.mockResolvedValue(created);
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'client-123', name: 'Maria', phone: '1111', business: 'zenco' });
 
     const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
     expect(res.body.clientName).toBe('Maria');
     expect(res.body.price).toBe(4500);
     expect(mockPrisma.order.create).toHaveBeenCalledOnce();
+    expect(mockPrisma.client.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { phone_business: { phone: '1111', business: 'zenco' } },
+      create: expect.objectContaining({ name: 'Maria' }),
+    }));
 
     // Verify price is passed as Number
     const callData = mockPrisma.order.create.mock.calls[0][0].data;

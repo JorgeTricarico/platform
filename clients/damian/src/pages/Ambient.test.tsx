@@ -39,6 +39,12 @@ vi.mock('../components/MusicContext', async () => {
   };
 });
 
+// Mock Global UI functions
+if (typeof (globalThis as any).alert === 'undefined') {
+  (globalThis as any).alert = vi.fn();
+  (globalThis as any).confirm = vi.fn().mockReturnValue(true);
+}
+
 // Mock loadAllFromDB to avoid IndexedDB issues in tests
 vi.mock('./Ambient', async (importOriginal) => {
   const mod = await importOriginal<typeof import('./Ambient')>();

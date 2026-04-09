@@ -45,6 +45,18 @@ router.post('/appointments', validate(createAppointmentSchema), asyncHandler(asy
     res.status(409).json({ error: 'Conflicto de horario', conflictWith: conflict.id });
     return;
   }
+
+  // Ensure client is registered in the database
+  await prisma.client.upsert({
+    where: { phone_business: { phone: data.clientPhone, business: 'damian' } },
+    update: { name: data.clientName }, // Update name in case it changed
+    create: {
+      name: data.clientName,
+      phone: data.clientPhone,
+      business: 'damian'
+    }
+  });
+
   const newAppointment = await prisma.appointment.create({
     data: {
       id: `APT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,

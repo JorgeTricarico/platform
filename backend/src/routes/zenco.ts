@@ -71,6 +71,18 @@ router.get('/garments', asyncHandler(async (req, res) => {
 
 router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req, res) => {
   const data = req.body;
+
+  // Ensure client is registered in the database
+  await prisma.client.upsert({
+    where: { phone_business: { phone: data.clientPhone, business: 'zenco' } },
+    update: { name: data.clientName }, // Update name in case it changed
+    create: {
+      name: data.clientName,
+      phone: data.clientPhone,
+      business: 'zenco'
+    }
+  });
+
   const newGarment = await prisma.order.create({
     data: {
       id: randomUUID(),

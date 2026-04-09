@@ -47,12 +47,17 @@ describe('POST /api/damian/appointments', () => {
     const created = { id: 'APT-123', ...input, status: 'pendiente', createdAt: new Date().toISOString() };
     mockPrisma.appointment.findMany.mockResolvedValue([]);
     mockPrisma.appointment.create.mockResolvedValue(created);
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'client-123', name: 'Carlos', phone: '3333', business: 'damian' });
 
     const res = await request(app).post('/api/damian/appointments').set('Authorization', authHeader('damian')).send(input);
     expect(res.status).toBe(200);
     expect(res.body.clientName).toBe('Carlos');
     expect(res.body.status).toBe('pendiente');
     expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
+    expect(mockPrisma.client.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { phone_business: { phone: '3333', business: 'damian' } },
+      create: expect.objectContaining({ name: 'Carlos' }),
+    }));
   });
 
   it('returns 500 when prisma throws', async () => {
@@ -741,10 +746,12 @@ describe('POST /api/damian/appointments - conflict detection', () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
     const created = { id: 'APT-NEW', ...newAppointment, status: 'pendiente' };
     mockPrisma.appointment.create.mockResolvedValue(created);
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'client-123', name: 'Carlos', phone: '3333', business: 'damian' });
 
     const res = await request(app).post('/api/damian/appointments').set('Authorization', authHeader('damian')).send(newAppointment);
     expect(res.status).toBe(200);
     expect(res.body.clientName).toBe('Carlos');
     expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
+    expect(mockPrisma.client.upsert).toHaveBeenCalled();
   });
 });

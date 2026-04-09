@@ -304,6 +304,7 @@ export default function Ambient() {
   };
 
   const removeTrack = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este audio?')) return;
     if (activeTrack?.id === id) {
       audioRef.current?.pause();
       setActiveTrack(null);
@@ -317,20 +318,52 @@ export default function Ambient() {
     });
   };
 
+  const restoreDemos = async () => {
+    const currentIds = tracks.map(t => t.id);
+    const missing = DEMO_TRACKS.filter(d => !currentIds.includes(d.id));
+    
+    if (missing.length === 0) {
+      alert('Todos los audios originales ya están en tu biblioteca.');
+      return;
+    }
+
+    const restored: LocalTrack[] = [];
+    for (const demo of missing) {
+      try {
+        const res = await fetch(demo.url);
+        if (!res.ok) continue;
+        const blob = await res.blob();
+        await saveToDB(demo.id, demo.title, blob);
+        restored.push({ 
+          id: demo.id, 
+          title: demo.title, 
+          blob, 
+          url: URL.createObjectURL(blob) 
+        });
+      } catch (err) {
+        console.error('Error restaurando demo:', err);
+      }
+    }
+    setTracks(prev => [...prev, ...restored]);
+    if (restored.length > 0) {
+      alert(`Se restauraron ${restored.length} audios originales.`);
+    }
+  };
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <div className="flex-between" style={{ marginBottom: '32px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
+      <div className="flex-between" style={{ marginBottom: '16px', flexShrink: 0 }}>
         <div>
-          <h1 style={{ marginBottom: '4px' }}>Música Ambiente</h1>
-          <p className="subtitle" style={{ margin: 0 }}>Gestión de audio local.</p>
+          <h1 style={{ marginBottom: '0px', fontSize: '24px' }}>Música Ambiente</h1>
+          <p className="subtitle" style={{ margin: 0, fontSize: '13px' }}>Gestión de audio local.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => fileInputRef.current?.click()} style={{ borderRadius: '12px', padding: '10px 16px' }}>
+        <button className="btn btn-primary" onClick={() => fileInputRef.current?.click()} style={{ borderRadius: '12px', padding: '8px 14px', fontSize: '14px' }}>
           + Agregar Audio
         </button>
         <input ref={fileInputRef} type="file" accept="audio/*" multiple hidden onChange={handleFileSelect} />
       </div>
 
-      <div className="ambient-split-container">
+      <div className="ambient-split-container" style={{ flex: 1, minHeight: 0 }}>
         {/* Panel Izquierdo: Reproductor Compacto */}
         <div className="ambient-player-panel">
           <div className="card glass-card" style={{ 
@@ -467,9 +500,16 @@ export default function Ambient() {
         </div>
 
         {/* Panel Derecho: Lista de Temas */}
-        <div className="ambient-tracks-panel">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Biblioteca de Audio ({tracks.length})</h3>
+        <div className="ambient-tracks-panel custom-scrollbar" style={{ overflowY: 'auto', paddingRight: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', position: 'sticky', top: 0, background: 'var(--bg-color, #F6F1EA)', zIndex: 1, paddingBottom: '8px' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800 }}>Biblioteca ({tracks.length})</h3>
+            <button 
+              className="btn" 
+              onClick={restoreDemos}
+              style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary-color)', fontWeight: 700, border: 'none' }}
+            >
+              ✨ Restaurar Originales
+            </button>
           </div>
           <div className="grid grid-cols-2" style={{ gap: '12px' }}>
             {tracks.map(track => (
