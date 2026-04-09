@@ -318,189 +318,197 @@ export default function Ambient() {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div className="flex-between" style={{ marginBottom: '32px' }}>
         <div>
-          <h1 style={{ marginBottom: '8px' }}>Música Ambiente</h1>
-          <p className="subtitle" style={{ margin: 0 }}>Gestión de audio local para tu consultorio.</p>
+          <h1 style={{ marginBottom: '4px' }}>Música Ambiente</h1>
+          <p className="subtitle" style={{ margin: 0 }}>Gestión de audio local.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => fileInputRef.current?.click()} style={{ borderRadius: '12px' }}>
+        <button className="btn btn-primary" onClick={() => fileInputRef.current?.click()} style={{ borderRadius: '12px', padding: '10px 16px' }}>
           + Agregar Audio
         </button>
         <input ref={fileInputRef} type="file" accept="audio/*" multiple hidden onChange={handleFileSelect} />
       </div>
 
-      {/* Command feedback from agent */}
-      {commandFeedback && (
-        <div className="card glass-card" style={{ 
-          marginBottom: '16px', 
-          padding: '12px 20px', 
-          backgroundColor: 'rgba(99, 102, 241, 0.1)', 
-          color: 'var(--primary-color)', 
-          fontWeight: 700, 
-          fontSize: '14px',
-          borderRadius: '16px',
-          border: '1px solid rgba(99, 102, 241, 0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <span style={{ fontSize: '18px' }}>💬</span> {commandFeedback}
-        </div>
-      )}
-
-      {/* Player Premium */}
-      <div className={`card glass-card ${activeTrack ? '' : 'disabled'}`} style={{ 
-        marginBottom: '40px', 
-        padding: '40px', 
-        borderRadius: '32px',
-        opacity: activeTrack ? 1 : 0.6,
-        pointerEvents: activeTrack ? 'all' : 'none',
-        transition: 'all 0.5s ease',
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
-        border: '1px solid rgba(255,255,255,0.5)',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.08)'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          {/* Album Art / Icon */}
-          <div style={{ 
-            width: '120px', 
-            height: '120px', 
-            borderRadius: '30px', 
-            background: 'var(--primary-color)',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '24px',
-            boxShadow: '0 12px 24px rgba(99, 102, 241, 0.3)',
+      <div className="ambient-split-container">
+        {/* Panel Izquierdo: Reproductor Compacto */}
+        <div className="ambient-player-panel">
+          <div className="card glass-card" style={{ 
+            padding: '24px', 
+            borderRadius: '24px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
             position: 'relative'
           }}>
-            <MusicIcon size={48} />
-            {isPlaying && (
-              <div style={{ position: 'absolute', bottom: '-10px', display: 'flex', gap: '3px', alignItems: 'flex-end', height: '24px' }}>
-                <div className="wave-bar" style={{ animationDelay: '0s' }} />
-                <div className="wave-bar" style={{ animationDelay: '0.2s' }} />
-                <div className="wave-bar" style={{ animationDelay: '0.4s' }} />
-                <div className="wave-bar" style={{ animationDelay: '0.1s' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+              {/* Album Art Mini */}
+              <div style={{ 
+                width: '80px', 
+                height: '80px', 
+                borderRadius: '20px', 
+                background: 'var(--primary-color)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px',
+                boxShadow: '0 8px 16px rgba(99, 102, 241, 0.2)',
+                position: 'relative'
+              }}>
+                <MusicIcon size={32} />
+                {isPlaying && (
+                  <div style={{ position: 'absolute', bottom: '-6px', display: 'flex', gap: '2px', alignItems: 'flex-end', height: '16px' }}>
+                    <div className="wave-bar" style={{ width: '3px', animationDelay: '0s' }} />
+                    <div className="wave-bar" style={{ width: '3px', animationDelay: '0.2s' }} />
+                    <div className="wave-bar" style={{ width: '3px', animationDelay: '0.4s' }} />
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}>
+                  {activeTrack?.title || 'Sin selección'}
+                </h2>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  {isPlaying ? 'En línea' : 'En pausa'}
+                </p>
+              </div>
+
+              {/* Progress Bar Compact */}
+              <div style={{ width: '100%', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+                <input 
+                  type="range" 
+                  className="premium-slider" 
+                  min="0" 
+                  max={duration || 0} 
+                  value={currentTime} 
+                  onChange={onSeek}
+                  style={{ height: '4px' }}
+                />
+              </div>
+
+              {/* Controls Compact */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
+                <button className="btn-icon" onClick={handlePrev} title="Anterior" style={{ padding: '4px' }}>
+                  <PrevIcon size={20} />
+                </button>
+                
+                <button 
+                  className="btn-primary" 
+                  style={{ width: '56px', height: '56px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onClick={togglePlay}
+                >
+                  {isPlaying ? <PauseIcon size={24} /> : <PlayIcon size={24} />}
+                </button>
+
+                <button className="btn-icon" onClick={handleNext} title="Siguiente" style={{ padding: '4px' }}>
+                  <NextIcon size={20} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+                <button className="btn-icon" onClick={() => setShuffle(!shuffle)} title="Mezclar">
+                  <ShuffleIcon active={shuffle} size={18} />
+                </button>
+                <button className="btn-icon" onClick={() => setLoop(!loop)} title="Repetir">
+                  <LoopIcon active={loop} size={18} />
+                </button>
+              </div>
+
+              {/* Volume Compact */}
+              <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'rgba(0,0,0,0.03)', borderRadius: '12px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-secondary)' }}>
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                </svg>
+                <input 
+                  type="range" 
+                  className="premium-slider" 
+                  min="0" max="1" step="0.05" 
+                  value={volume} 
+                  onChange={(e) => setVolume(Number(e.target.value))} 
+                  style={{ height: '4px' }}
+                />
+              </div>
+            </div>
+
+            <audio
+              ref={audioRef}
+              src={activeTrack?.url}
+              onTimeUpdate={onTimeUpdate}
+              onEnded={() => {
+                if (!loop) handleNext();
+                else if (audioRef.current) audioRef.current.play();
+              }}
+            />
+          </div>
+
+          {/* Assistant Feedback Inline */}
+          {commandFeedback && (
+            <div style={{ 
+              marginTop: '16px',
+              padding: '12px 16px', 
+              backgroundColor: 'rgba(99, 102, 241, 0.05)', 
+              color: 'var(--primary-color)', 
+              fontWeight: 700, 
+              fontSize: '12px',
+              borderRadius: '16px',
+              border: '1px solid rgba(99, 102, 241, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span>💬</span> {commandFeedback}
+            </div>
+          )}
+        </div>
+
+        {/* Panel Derecho: Lista de Temas */}
+        <div className="ambient-tracks-panel">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Biblioteca de Audio ({tracks.length})</h3>
+          </div>
+          <div className="grid grid-cols-2" style={{ gap: '12px' }}>
+            {tracks.map(track => (
+              <div
+                key={track.id}
+                className={`card track-card ${activeTrack?.id === track.id ? 'active' : ''}`}
+                style={{ padding: '12px', borderRadius: '16px', cursor: 'pointer' }}
+                onClick={() => play(track)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ 
+                    width: '36px', height: '36px', borderRadius: '10px', 
+                    background: activeTrack?.id === track.id ? 'var(--primary-color)' : 'var(--surface-secondary)',
+                    color: activeTrack?.id === track.id ? 'white' : 'var(--text-secondary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {activeTrack?.id === track.id && isPlaying ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title}</div>
+                  </div>
+                  <button 
+                    className="btn-icon" 
+                    style={{ color: '#ef4444', backgroundColor: 'transparent', padding: '4px' }}
+                    onClick={(e) => { e.stopPropagation(); removeTrack(track.id); }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {tracks.length === 0 && (
+              <div className="card" style={{ gridColumn: 'span 2', padding: '32px', textAlign: 'center', borderRadius: '20px', border: '2px dashed var(--border-color)', background: 'transparent' }}>
+                <p style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px' }}>Arrastra archivos o usa el botón de arriba.</p>
               </div>
             )}
           </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <h2 style={{ margin: '0 0 8px', fontSize: '24px', fontWeight: 800 }}>{activeTrack?.title || 'Seleccionar un track'}</h2>
-            <p style={{ margin: 0, color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
-              {isPlaying ? 'Reproduciendo' : 'En Pausa'} • {tracks.length} Audios
-            </p>
-          </div>
-
-          {/* Progress Bar */}
-          <div style={{ width: '100%', marginBottom: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
-            <input 
-              type="range" 
-              className="premium-slider" 
-              min="0" 
-              max={duration || 0} 
-              value={currentTime} 
-              onChange={onSeek}
-            />
-          </div>
-
-          {/* Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '32px', marginBottom: '40px' }}>
-            <button className="btn-icon" onClick={() => setShuffle(!shuffle)} title="Mezclar">
-              <ShuffleIcon active={shuffle} size={22} />
-            </button>
-            <button className="btn-icon" onClick={handlePrev} title="Anterior">
-              <PrevIcon size={24} />
-            </button>
-            
-            <button 
-              className="btn-primary" 
-              style={{ width: '72px', height: '72px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              onClick={togglePlay}
-            >
-              {isPlaying ? <PauseIcon size={32} /> : <PlayIcon size={32} />}
-            </button>
-
-            <button className="btn-icon" onClick={handleNext} title="Siguiente">
-              <NextIcon size={24} />
-            </button>
-            <button className="btn-icon" onClick={() => setLoop(!loop)} title="Repetir">
-              <LoopIcon active={loop} size={22} />
-            </button>
-          </div>
-
-          {/* Volume */}
-          <div style={{ width: '200px', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px', background: 'rgba(0,0,0,0.03)', borderRadius: '20px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-secondary)' }}>
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
-            <input 
-              type="range" 
-              className="premium-slider" 
-              min="0" max="1" step="0.05" 
-              value={volume} 
-              onChange={(e) => setVolume(Number(e.target.value))} 
-            />
-          </div>
         </div>
-
-        <audio
-          ref={audioRef}
-          src={activeTrack?.url}
-          onTimeUpdate={onTimeUpdate}
-          onEnded={() => {
-            if (!loop) handleNext();
-            else if (audioRef.current) audioRef.current.play();
-          }}
-        />
-      </div>
-
-      {/* Grid de Tracks */}
-      <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: 800 }}>Tus Audios</h3>
-      <div className="grid grid-cols-2" style={{ gap: '16px' }}>
-        {tracks.map(track => (
-          <div
-            key={track.id}
-            className={`card track-card ${activeTrack?.id === track.id ? 'active' : ''}`}
-            style={{ padding: '16px', borderRadius: '20px', cursor: 'pointer' }}
-            onClick={() => play(track)}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ 
-                width: '48px', height: '48px', borderRadius: '12px', 
-                background: activeTrack?.id === track.id ? 'var(--primary-color)' : 'var(--surface-secondary)',
-                color: activeTrack?.id === track.id ? 'white' : 'var(--text-secondary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                {activeTrack?.id === track.id && isPlaying ? <PauseIcon size={20} /> : <PlayIcon size={20} />}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Audio Local</div>
-              </div>
-              <button 
-                className="btn-icon" 
-                style={{ color: '#ef4444', backgroundColor: 'transparent' }}
-                onClick={(e) => { e.stopPropagation(); removeTrack(track.id); }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {tracks.length === 0 && (
-          <div className="card" style={{ gridColumn: 'span 2', padding: '40px', textAlign: 'center', borderRadius: '24px', border: '2px dashed var(--border-color)', background: 'transparent' }}>
-            <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>No hay audios cargados. Subí algunos para empezar.</p>
-          </div>
-        )}
       </div>
     </div>
   );

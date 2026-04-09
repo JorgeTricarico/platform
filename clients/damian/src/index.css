@@ -640,3 +640,32 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   background: var(--surface-secondary);
   border: 2px solid var(--primary-color);
 }
+
+/* Split Layout for Music Player */
+.ambient-split-container {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.ambient-player-panel {
+  flex: 0 0 350px;
+  position: sticky;
+  top: 24px;
+}
+
+.ambient-tracks-panel {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .ambient-split-container {
+    flex-direction: column;
+  }
+  .ambient-player-panel {
+    flex: none;
+    width: 100%;
+    position: static;
+  }
+}
