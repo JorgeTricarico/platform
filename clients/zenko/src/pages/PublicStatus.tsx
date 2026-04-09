@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fetchPublicStatus, PublicStatusResponse } from '../services/api';
+import { fetchPublicStatus } from '../services/api';
+import type { PublicStatusResponse } from '../services/api';
 
 const STEPS = [
   { id: 'recibido', label: 'Recibido', icon: '📥' },

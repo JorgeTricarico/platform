@@ -4,7 +4,14 @@ import Garments from './pages/Garments';
 import Finances from './pages/Finances';
 import Clients from './pages/Clients';
 import ChatDemo from './pages/ChatDemo';
+import Login from './pages/Login';
 import PublicStatus from './pages/PublicStatus';
+import NotificationBell from './components/NotificationBell';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { ToastProvider, useToast } from './components/ToastContext';
+import { AuthProvider, useAuth } from './components/AuthContext';
+import { setupOnlineSync } from './services/sync';
+import logoUrl from './assets/logo.png';
 
 function AuthGate() {
   const { isAuthenticated, loading } = useAuth();
