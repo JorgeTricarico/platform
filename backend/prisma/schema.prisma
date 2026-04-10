@@ -17,7 +17,7 @@ model User {
   passwordHash String
   name         String
   role         String   @default("admin")  // "admin" | "viewer"
-  business     String                       // "zenco" | "damian" | "all"
+  business     String                       // "zenco" | "mg_masajes" | "all"
   createdAt    DateTime @default(now())
 
   @@map("users")
@@ -32,7 +32,7 @@ model Client {
   name      String
   phone     String
   altPhone  String?
-  business  String               // "zenco" o "damian"
+  business  String               // "zenco" o "mg_masajes"
   createdAt DateTime @default(now())
 
   @@unique([phone, business])
@@ -88,7 +88,7 @@ model ZencoFinance {
 }
 
 // =============================================
-// DAMIAN — Masajes y Bienestar
+// WELLNESS — MG Masajes y Salud
 // =============================================
 
 model Appointment {
@@ -109,7 +109,7 @@ model Appointment {
   @@map("appointments")
 }
 
-model DamianFinance {
+model MgMasajesFinance {
   id          String @id
   date        String
   type        String
@@ -118,11 +118,11 @@ model DamianFinance {
   description String
 
   @@index([date])
-  @@map("damian_finances")
+  @@map("mg_masajes_finances")
 }
 
 // =============================================
-// FICHAS CLINICAS — Historia clínica de pacientes (Damian)
+// FICHAS CLINICAS — Historia clínica de pacientes
 // =============================================
 
 model PatientRecord {
@@ -147,7 +147,7 @@ model PatientRecord {
 
 model ChatMessage {
   id        String   @id @default(uuid())
-  business  String               // "zenco" o "damian"
+  business  String               // "zenco" o "mg_masajes"
   role      String               // "user" o "assistant"
   content   String
   sessionId String

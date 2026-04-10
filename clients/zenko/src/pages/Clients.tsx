@@ -82,17 +82,17 @@ export default function Clients() {
   if (loading && clients.length === 0) return <div>Cargando clientes...</div>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
+    <div className="clients-page clients-page-full">
+      <div className="flex-between clients-header">
         <div>
           <h1>Clientes</h1>
-          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Base de datos de clientes de Zenko.</p>
+          <p className="subtitle clients-subtitle">Base de datos de clientes de Zenko.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)}>+ Nuevo Cliente</button>
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', flexShrink: 0 }}>
+      <div className="card clients-table-card clients-table-card-full">
+        <div className="clients-search-bar clients-search-bar-shrink">
           <input
             type="text"
             placeholder="Buscar por nombre, telefono..."
@@ -116,39 +116,36 @@ export default function Clients() {
             <tbody>
               {clients.map(c => (
                 <tr key={c.id}>
-                  <td style={{ fontWeight: 600, textTransform: 'uppercase' }}>{c.name}</td>
+                  <td className="clients-td-name clients-td-name-upper">{c.name}</td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div className="clients-phone-row">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                       {c.phone}
                     </div>
-                    {c.altPhone && <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {c.altPhone && <div className="clients-td-secondary clients-phone-row">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                       {c.altPhone}
                     </div>}
                   </td>
-                  <td style={{ color: c.email ? 'inherit' : 'var(--text-secondary)' }}>{c.email || '-'}</td>
-                  <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: c.notes ? 'inherit' : 'var(--text-secondary)' }}>{c.notes || '-'}</td>
-                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                  <td className={c.email ? '' : 'clients-td-muted'}>{c.email || '-'}</td>
+                  <td className={`clients-td-notes ${c.notes ? '' : 'clients-td-muted'}`}>{c.notes || '-'}</td>
+                  <td className="clients-td-secondary">{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div className="clients-actions-row clients-actions-row-sm">
                       <button
-                        className="btn btn-small"
-                        style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                        className="btn btn-small clients-btn-edit"
                         onClick={() => openEdit(c)}
                       >
                         Editar
                       </button>
                       <button
-                        className="btn btn-small"
-                        style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
+                        className="btn btn-small clients-btn-historial"
                         onClick={() => openHistorial(c)}
                       >
                         Ver historial
                       </button>
                       <button
-                        className="btn btn-small"
-                        style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                        className="btn btn-small clients-btn-delete"
                         onClick={() => handleDelete(c)}
                       >
                         Eliminar
@@ -159,7 +156,7 @@ export default function Clients() {
               ))}
               {clients.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
+                  <td colSpan={6} className="clients-td-empty">
                     No se encontraron clientes.
                   </td>
                 </tr>
@@ -180,19 +177,19 @@ export default function Clients() {
       {historialTarget && (
         <div className="modal-overlay">
           <div className="card modal-card modal-lg">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ margin: 0 }}>Historial — {historialTarget.name}</h2>
+            <div className="clients-history-modal-header">
+              <h2 className="clients-modal-h2">Historial — {historialTarget.name}</h2>
               <button className="btn-secondary" onClick={() => setHistorialTarget(null)}>Cerrar</button>
             </div>
             {clientOrders === null ? (
               <p>Cargando historial...</p>
             ) : (
               <>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                <p className="clients-historial-summary">
                   {clientOrders.summary.totalOrders} órdenes en total
                 </p>
                 {clientOrders.orders.length === 0 ? (
-                  <p style={{ color: 'var(--text-secondary)' }}>Sin órdenes registradas.</p>
+                  <p className="clients-td-muted">Sin órdenes registradas.</p>
                 ) : (
                   <div className="table-container">
                     <table>
@@ -208,9 +205,9 @@ export default function Clients() {
                       <tbody>
                         {clientOrders.orders.map((o: DBGarment) => (
                           <tr key={o.id}>
-                            <td style={{ fontWeight: 600 }}>{o.garmentName} ({o.repairType})</td>
-                            <td style={{ fontSize: '13px' }}>{o.intakeDate ? new Date(o.intakeDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</td>
-                            <td style={{ fontSize: '13px' }}>{o.deliveryDate ? new Date(o.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</td>
+                            <td className="clients-td-name">{o.garmentName} ({o.repairType})</td>
+                            <td className="clients-td-sm">{o.intakeDate ? new Date(o.intakeDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</td>
+                            <td className="clients-td-sm">{o.deliveryDate ? new Date(o.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</td>
                             <td>{o.status}</td>
                             <td>${o.price.toLocaleString('es-AR')}</td>
                           </tr>
@@ -254,25 +251,25 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
   return (
     <div className="modal-overlay">
       <div className="card modal-card modal-md">
-        <h2 style={{ marginTop: 0 }}>{title}</h2>
+        <h2 className="clients-modal-title">{title}</h2>
         <form onSubmit={handleSubmit} className="form-group">
           {/* Contact Details Group */}
-          <div style={{ padding: '16px', backgroundColor: 'var(--surface-secondary)', borderRadius: '12px', marginBottom: '8px' }}>
-            <label style={{ fontSize: '12px', color: '#666', marginBottom: '12px', display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Datos de Contacto</label>
-            <div className="form-group" style={{ gap: '12px' }}>
+          <div className="clients-modal-section">
+            <label className="clients-modal-section-label clients-modal-section-label-lg">Datos de Contacto</label>
+            <div className="form-group clients-modal-fields">
               <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className="input" />
               <div className="form-row">
-                <input required name="phone" placeholder="Teléfono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input" style={{ flex: 1, opacity: phoneDisabled ? 0.6 : 1 }} />
-                <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className="input" style={{ flex: 1 }} />
+                <input required name="phone" placeholder="Teléfono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input clients-input-flex" style={{ opacity: phoneDisabled ? 0.6 : 1 }} />
+                <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className="input clients-input-flex" />
               </div>
               <input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} className="input" />
             </div>
           </div>
 
           {/* Info Group */}
-          <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
-            <label style={{ fontSize: '12px', color: '#666', marginBottom: '8px', display: 'block', fontWeight: 600, textTransform: 'uppercase' }}>Información Adicional</label>
-            <textarea name="notes" placeholder="Notas sobre el cliente, preferencias, etc..." value={form.notes} onChange={handle} rows={3} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
+          <div className="clients-modal-section clients-modal-section-border">
+            <label className="clients-modal-section-label">Información Adicional</label>
+            <textarea name="notes" placeholder="Notas sobre el cliente, preferencias, etc..." value={form.notes} onChange={handle} rows={3} className="input clients-textarea" />
           </div>
 
           <div className="form-actions">

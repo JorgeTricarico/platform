@@ -922,3 +922,541 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   font-weight: 600;
   font-family: var(--font-sans);
 }
+
+/* ========================= */
+/* PUBLIC STATUS PAGE        */
+/* ========================= */
+
+.public-page {
+  min-height: 100vh;
+  background: #F8F9FA;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.public-page-center {
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: #F8F9FA;
+}
+
+.public-page-error {
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.public-loading-inner {
+  text-align: center;
+}
+
+.public-loading-inner .loader {
+  margin-bottom: var(--space-lg);
+}
+
+.public-loading-text {
+  color: #666;
+  font-size: 14px;
+}
+
+.public-error-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-lg);
+}
+
+.public-error-title {
+  margin: 0 0 var(--space-md) 0;
+}
+
+.public-error-message {
+  color: #666;
+  margin-bottom: var(--space-xl);
+}
+
+.public-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.public-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.public-brand {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--primary-color);
+  margin-bottom: var(--space-sm);
+}
+
+.public-brand-suffix {
+  color: #666;
+  font-weight: 400;
+}
+
+.public-portal-badge {
+  display: inline-block;
+  padding: var(--space-xs) var(--space-md);
+  background: white;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #25D366;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.public-card {
+  margin-bottom: var(--space-2xl);
+  border: none;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.public-card-greeting {
+  font-size: 14px;
+  color: #999;
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.public-card-garment-name {
+  font-size: 22px;
+  margin: 0 0 var(--space-md) 0;
+  color: #333;
+}
+
+.public-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.public-tag {
+  font-size: 13px;
+  background: #F0F0F0;
+  padding: var(--space-xs) 10px;
+  border-radius: 15px;
+  color: #555;
+}
+
+.public-card-footer {
+  border-top: 1px dashed #eee;
+  padding-top: var(--space-lg);
+  margin-top: var(--space-lg);
+  display: flex;
+  justify-content: space-between;
+}
+
+.public-card-footer-right {
+  text-align: right;
+}
+
+.public-meta-label {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.public-meta-value {
+  font-weight: 700;
+  color: #333;
+}
+
+/* Stepper card */
+.public-stepper-card {
+  border: none;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  padding: var(--space-2xl) var(--space-xl);
+}
+
+.public-stepper-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.public-step-row {
+  display: flex;
+  gap: 20px;
+  position: relative;
+}
+
+.public-step-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+/* Step circle — base */
+.public-step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.public-step-circle--pending {
+  background: white;
+  color: #CCC;
+  font-size: 14px;
+  border: 2px solid #EEE;
+  box-shadow: none;
+}
+
+.public-step-circle--completed {
+  background: #25D366;
+  color: white;
+  font-size: 18px;
+  border: none;
+  box-shadow: none;
+}
+
+.public-step-circle--current {
+  background: #25D366;
+  color: white;
+  font-size: 18px;
+  border: none;
+  box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.15);
+}
+
+/* Step connector line */
+.public-step-line {
+  width: 3px;
+  height: 48px;
+  margin: var(--space-xs) 0;
+  opacity: 0.8;
+}
+
+.public-step-line--done {
+  background: #25D366;
+}
+
+.public-step-line--pending {
+  background: #EEE;
+}
+
+/* Step content */
+.public-step-content {
+  padding-top: 6px;
+  flex: 1;
+}
+
+.public-step-label {
+  font-size: 16px;
+}
+
+.public-step-label--completed {
+  font-weight: 700;
+  color: #333;
+}
+
+.public-step-label--pending {
+  font-weight: 500;
+  color: #999;
+}
+
+.public-step-badge-current {
+  display: inline-block;
+  font-size: 11px;
+  background: rgba(37, 211, 102, 0.1);
+  color: #25D366;
+  padding: 2px var(--space-sm);
+  border-radius: 10px;
+  font-weight: 700;
+  margin-top: var(--space-xs);
+}
+
+.public-step-pending-text {
+  font-size: 13px;
+  color: #BBB;
+}
+
+/* Footer contact */
+.public-footer {
+  text-align: center;
+  margin-top: 40px;
+  color: #999;
+  font-size: 13px;
+}
+
+.public-footer-brand {
+  margin-top: var(--space-md);
+  font-weight: 600;
+  color: #444;
+}
+
+/* ========================= */
+/* GARMENT MODAL             */
+/* ========================= */
+
+.garment-modal-mode-toggle {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.garment-modal-client-search {
+  position: relative;
+}
+
+.garment-modal-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.garment-modal-dropdown-msg {
+  padding: var(--space-md) 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.garment-modal-dropdown-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.garment-modal-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.garment-modal-dropdown-item:hover {
+  background: var(--surface-secondary);
+}
+
+.garment-modal-client-name {
+  font-weight: 600;
+}
+
+.garment-modal-client-phone {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.garment-modal-selected-client {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.garment-modal-client-error {
+  color: var(--danger, var(--urgent-color));
+  font-size: 13px;
+  margin-top: var(--space-xs);
+}
+
+.garment-modal-field {
+  flex: 1;
+}
+
+.garment-modal-label {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: var(--space-xs);
+  display: block;
+}
+
+.garment-modal-input-full {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.garment-modal-input-flex {
+  flex: 1;
+}
+
+/* ========================= */
+/* CLIENTS PAGE               */
+/* ========================= */
+.clients-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.clients-page-full {
+  height: 100%;
+}
+
+.clients-header {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.clients-subtitle {
+  margin: 0;
+  font-size: 14px;
+}
+
+.clients-table-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.clients-table-card-full {
+  flex: 1;
+  min-height: 0;
+}
+
+.clients-search-bar {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.clients-search-bar-shrink {
+  flex-shrink: 0;
+}
+
+/* Table cells */
+.clients-td-name {
+  font-weight: 600;
+}
+
+.clients-td-name-upper {
+  text-transform: uppercase;
+}
+
+.clients-td-secondary {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.clients-td-muted {
+  color: var(--text-secondary);
+}
+
+.clients-td-notes {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clients-td-sm {
+  font-size: 13px;
+}
+
+.clients-td-empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-secondary);
+}
+
+/* Phone row */
+.clients-phone-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* Action buttons */
+.clients-actions-row {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.clients-actions-row-sm {
+  gap: 6px;
+}
+
+.clients-btn-edit {
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.clients-btn-historial {
+  background-color: #f0f5ff;
+  border: 1px solid #cce0ff;
+  color: #0055cc;
+}
+
+.clients-btn-delete {
+  background-color: #fff0f0;
+  border: 1px solid #ffcccc;
+  color: #cc0000;
+}
+
+/* History modal */
+.clients-history-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.clients-historial-summary {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+/* Modal form */
+.clients-modal-section {
+  padding: var(--space-lg);
+  background-color: var(--surface-secondary);
+  border-radius: 12px;
+  margin-bottom: var(--space-sm);
+}
+
+.clients-modal-section-border {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+}
+
+.clients-modal-section-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: var(--space-sm);
+  display: block;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.clients-modal-section-label-lg {
+  margin-bottom: var(--space-md);
+  letter-spacing: 0.05em;
+}
+
+.clients-modal-fields {
+  gap: var(--space-md);
+}
+
+.clients-input-flex {
+  flex: 1;
+}
+
+.clients-textarea {
+  font-family: inherit;
+  resize: vertical;
+}
+
+.clients-modal-h2 {
+  margin: 0;
+}
+
+.clients-modal-title {
+  margin-top: 0;
+}

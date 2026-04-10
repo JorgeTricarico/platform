@@ -33,7 +33,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{ background: '#fef2f2', color: '#dc2626', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+            <div style={{ background: 'var(--error-bg)', color: 'var(--error-text)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
               {error}
             </div>
           )}

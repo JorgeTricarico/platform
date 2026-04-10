@@ -34,10 +34,10 @@ export default function PublicStatus() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8F9FA' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="loader" style={{ marginBottom: '16px' }}></div>
-          <p style={{ color: '#666', fontSize: '14px' }}>Consultando el estado de tu prenda...</p>
+      <div className="public-page-center">
+        <div className="public-loading-inner">
+          <div className="loader"></div>
+          <p className="public-loading-text">Consultando el estado de tu prenda...</p>
         </div>
       </div>
     );
@@ -45,11 +45,11 @@ export default function PublicStatus() {
 
   if (error || !order) {
     return (
-      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+      <div className="public-page-error">
         <div className="card" style={{ maxWidth: '400px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-          <h2 style={{ margin: '0 0 12px 0' }}>Ups!</h2>
-          <p style={{ color: '#666', marginBottom: '24px' }}>{error || 'No pudimos cargar la información.'}</p>
+          <div className="public-error-icon">🔍</div>
+          <h2 className="public-error-title">Ups!</h2>
+          <p className="public-error-message">{error || 'No pudimos cargar la información.'}</p>
           <button className="btn btn-primary" onClick={() => window.location.reload()}>Reintentar</button>
         </div>
       </div>
@@ -59,104 +59,75 @@ export default function PublicStatus() {
   const currentStepIndex = STEPS.findIndex(s => s.id === order.status);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8F9FA', padding: '24px 16px' }}>
-      <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-        <header style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ fontSize: '32px', fontWeight: 900, color: 'var(--primary-color)', marginBottom: '8px' }}>
-            Zenko<span style={{ color: '#666', fontWeight: 400 }}>.arg</span>
+    <div className="public-page">
+      <div className="public-container">
+        <header className="public-header">
+          <div className="public-brand">
+            Zenko<span className="public-brand-suffix">.arg</span>
           </div>
-          <div style={{ 
-            display: 'inline-block', 
-            padding: '4px 12px', 
-            background: 'white', 
-            borderRadius: '20px', 
-            fontSize: '12px', 
-            fontWeight: 600, 
-            color: '#25D366',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-          }}>
+          <div className="public-portal-badge">
             Portal del Cliente
           </div>
         </header>
 
-        <div className="card" style={{ marginBottom: '32px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
-          <p style={{ fontSize: '14px', color: '#999', margin: '0 0 4px 0' }}>Hola {order.clientName.split(' ')[0]}, el estado de tu</p>
-          <h2 style={{ fontSize: '22px', margin: '0 0 12px 0', color: '#333' }}>{order.garmentName}</h2>
-          
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '13px', background: '#F0F0F0', padding: '4px 10px', borderRadius: '15px', color: '#555' }}>
+        <div className="card public-card">
+          <p className="public-card-greeting">Hola {order.clientName.split(' ')[0]}, el estado de tu</p>
+          <h2 className="public-card-garment-name">{order.garmentName}</h2>
+
+          <div className="public-tags-row">
+            <span className="public-tag">
               <strong>Arreglo:</strong> {order.repairType}
             </span>
           </div>
 
-          <div style={{ borderTop: '1px dashed #eee', paddingTop: '16px', marginTop: '16px', display: 'flex', justifyContent: 'space-between' }}>
+          <div className="public-card-footer">
             <div>
-              <div style={{ fontSize: '11px', color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ID de Orden</div>
-              <div style={{ fontWeight: 700, color: '#333' }}>#{order.id.slice(-6).toUpperCase()}</div>
+              <div className="public-meta-label">ID de Orden</div>
+              <div className="public-meta-value">#{order.id.slice(-6).toUpperCase()}</div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Entrega Estimada</div>
-              <div style={{ fontWeight: 700, color: '#333' }}>{new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('es-AR')}</div>
+            <div className="public-card-footer-right">
+              <div className="public-meta-label">Entrega Estimada</div>
+              <div className="public-meta-value">{new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('es-AR')}</div>
             </div>
           </div>
         </div>
 
         {/* Vertical Stepper */}
-        <div className="card" style={{ border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', padding: '32px 24px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="card public-stepper-card">
+          <div className="public-stepper-list">
             {STEPS.map((s, idx) => {
               const isCompleted = idx <= currentStepIndex;
               const isCurrent = idx === currentStepIndex;
-              
+
+              const circleClass = isCurrent
+                ? 'public-step-circle public-step-circle--current'
+                : isCompleted
+                  ? 'public-step-circle public-step-circle--completed'
+                  : 'public-step-circle public-step-circle--pending';
+
+              const labelClass = isCompleted
+                ? 'public-step-label public-step-label--completed'
+                : 'public-step-label public-step-label--pending';
+
               return (
-                <div key={s.id} style={{ display: 'flex', gap: '20px', position: 'relative' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
-                    <div style={{
-                      width: '36px', height: '36px', borderRadius: '50%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: isCompleted ? '#25D366' : 'white',
-                      color: isCompleted ? 'white' : '#CCC',
-                      fontSize: isCompleted ? '18px' : '14px',
-                      border: isCompleted ? 'none' : '2px solid #EEE',
-                      boxShadow: isCurrent ? '0 0 0 4px rgba(37, 211, 102, 0.15)' : 'none',
-                      transition: 'all 0.3s ease'
-                    }}>
+                <div key={s.id} className="public-step-row">
+                  <div className="public-step-track">
+                    <div className={circleClass}>
                       {isCompleted ? '✓' : idx + 1}
                     </div>
                     {idx < STEPS.length - 1 && (
-                      <div style={{ 
-                        width: '3px', 
-                        height: '48px', 
-                        background: idx < currentStepIndex ? '#25D366' : '#EEE',
-                        margin: '4px 0',
-                        opacity: 0.8
-                      }} />
+                      <div className={`public-step-line ${idx < currentStepIndex ? 'public-step-line--done' : 'public-step-line--pending'}`} />
                     )}
                   </div>
-                  <div style={{ paddingTop: '6px', flex: 1 }}>
-                    <div style={{ 
-                      fontWeight: isCompleted ? 700 : 500, 
-                      color: isCompleted ? '#333' : '#999',
-                      fontSize: '16px'
-                    }}>
+                  <div className="public-step-content">
+                    <div className={labelClass}>
                       {s.label} {s.icon}
                     </div>
                     {isCurrent && (
-                      <div style={{ 
-                        display: 'inline-block',
-                        fontSize: '11px', 
-                        background: 'rgba(37, 211, 102, 0.1)',
-                        color: '#25D366', 
-                        padding: '2px 8px',
-                        borderRadius: '10px',
-                        fontWeight: 700,
-                        marginTop: '4px'
-                      }}>
-                        ACTUAL
-                      </div>
+                      <div className="public-step-badge-current">ACTUAL</div>
                     )}
                     {!isCompleted && !isCurrent && (
-                      <div style={{ fontSize: '13px', color: '#BBB' }}>Pendiente</div>
+                      <div className="public-step-pending-text">Pendiente</div>
                     )}
                   </div>
                 </div>
@@ -165,9 +136,9 @@ export default function PublicStatus() {
           </div>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '40px', color: '#999', fontSize: '13px' }}>
+        <div className="public-footer">
           <p>¿Tenes alguna duda? Comunícate con nosotros.</p>
-          <div style={{ marginTop: '12px', fontWeight: 600, color: '#444' }}>Zenko Arreglos de Ropa</div>
+          <div className="public-footer-brand">Zenko Arreglos de Ropa</div>
         </div>
       </div>
     </div>

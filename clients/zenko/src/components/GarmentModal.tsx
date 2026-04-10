@@ -90,11 +90,10 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
         <form onSubmit={handleSubmit} className="form-group">
           {/* Client selector */}
           {!isEditing && (
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <div className="garment-modal-mode-toggle">
               <button
                 type="button"
                 className={clientMode === 'existing' ? 'btn btn-primary btn-small' : 'btn btn-small'}
-                style={clientMode !== 'existing' ? { backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' } : {}}
                 onClick={() => setClientMode('existing')}
               >
                 Cliente existente
@@ -102,7 +101,6 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
               <button
                 type="button"
                 className={clientMode === 'new' ? 'btn btn-primary btn-small' : 'btn btn-small'}
-                style={clientMode !== 'new' ? { backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' } : {}}
                 onClick={() => { setClientMode('new'); setClientQuery(''); setShowDropdown(false); }}
               >
                 Nuevo cliente
@@ -111,7 +109,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
           )}
 
           {clientMode === 'existing' && !isEditing ? (
-            <div style={{ position: 'relative' }} ref={dropdownRef}>
+            <div className="garment-modal-client-search" ref={dropdownRef}>
               <input
                 type="text"
                 placeholder="Buscar cliente por nombre o teléfono..."
@@ -121,13 +119,9 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                 className="input"
               />
               {showDropdown && (
-                <div style={{
-                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
-                  background: 'white', border: '1px solid var(--border-color)', borderRadius: '8px',
-                  maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                }}>
+                <div className="garment-modal-dropdown">
                   {searching ? (
-                    <div style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                    <div className="garment-modal-dropdown-msg">
                       Buscando...
                     </div>
                   ) : clientResults.length > 0 ? (
@@ -135,65 +129,60 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                       <div
                         key={c.id}
                         onClick={() => selectClient(c)}
-                        style={{
-                          padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--border-color)',
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-secondary)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+                        className="garment-modal-dropdown-item"
                       >
-                        <span style={{ fontWeight: 600 }}>{c.name}</span>
-                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{c.phone}</span>
+                        <span className="garment-modal-client-name">{c.name}</span>
+                        <span className="garment-modal-client-phone">{c.phone}</span>
                       </div>
                     ))
                   ) : (
-                    <div style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                    <div className="garment-modal-dropdown-msg">
                       No se encontraron clientes
                     </div>
                   )}
                 </div>
               )}
               {form.clientName && (
-                <div style={{ marginTop: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                <div className="garment-modal-selected-client">
                   Seleccionado: <strong>{form.clientName}</strong> — {form.clientPhone}
                 </div>
               )}
               <input type="hidden" name="clientName" value={form.clientName} />
               <input type="hidden" name="clientPhone" value={form.clientPhone} />
               {clientError && (
-                <div style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '4px' }}>{clientError}</div>
+                <div className="garment-modal-client-error">{clientError}</div>
               )}
             </div>
           ) : (
             <div className="form-row">
-              <input required name="clientName" placeholder="Nombre y Apellido" value={form.clientName} onChange={handle} className="input" style={{ flex: 1 }} />
-              <input required name="clientPhone" placeholder="Teléfono" value={form.clientPhone} onChange={handle} className="input" style={{ flex: 1 }} />
+              <input required name="clientName" placeholder="Nombre y Apellido" value={form.clientName} onChange={handle} className="input garment-modal-input-flex" />
+              <input required name="clientPhone" placeholder="Teléfono" value={form.clientPhone} onChange={handle} className="input garment-modal-input-flex" />
             </div>
           )}
           <div className="form-row">
-            <input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="input" style={{ flex: 1 }} />
-            <input required name="repairType" placeholder="Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="input" style={{ flex: 1 }} />
+            <input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="input garment-modal-input-flex" />
+            <input required name="repairType" placeholder="Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="input garment-modal-input-flex" />
           </div>
           <input required name="description" placeholder="Detalle exacto del trabajo a realizar..." value={form.description} onChange={handle} className="input" />
 
           <div className="form-row">
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Ingreso</label>
-              <input required name="intakeDate" type="date" value={form.intakeDate} onChange={handle} className="input" style={{ width: '100%', boxSizing: 'border-box' }} />
+            <div className="garment-modal-field">
+              <label className="garment-modal-label">Fecha de Ingreso</label>
+              <input required name="intakeDate" type="date" value={form.intakeDate} onChange={handle} className="input garment-modal-input-full" />
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha de Entrega</label>
-              <input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} className="input" style={{ width: '100%', boxSizing: 'border-box' }} />
+            <div className="garment-modal-field">
+              <label className="garment-modal-label">Fecha de Entrega</label>
+              <input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} className="input garment-modal-input-full" />
             </div>
           </div>
 
           <div className="form-row">
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Precio ($)</label>
+            <div className="garment-modal-field">
+              <label className="garment-modal-label">Precio ($)</label>
               <input required name="price" type="number" placeholder="Ej: 1500" value={form.price || ''} onChange={handle} className="input" />
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Seña ($)</label>
+            <div className="garment-modal-field">
+              <label className="garment-modal-label">Seña ($)</label>
               <input name="deposit" type="number" placeholder="Ej: 500" value={form.deposit || ''} onChange={handle} className="input" />
             </div>
           </div>

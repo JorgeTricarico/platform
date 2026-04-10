@@ -20,9 +20,9 @@ async function main() {
     {
       email: "damian@damian.com",
       password: "asdasd",
-      name: "damian",
+      name: "Damian",
       role: "admin",
-      business: "damian",
+      business: "mg_masajes",
     },
     {
       email: "ana2@zenco.com",

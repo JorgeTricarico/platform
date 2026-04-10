@@ -1114,3 +1114,628 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   font-weight: 600;
   font-size: 13px;
 }
+
+/* ========================= */
+/* PATIENTS PAGE              */
+/* ========================= */
+.patients-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.patients-detail-header {
+  flex-shrink: 0;
+  margin-bottom: var(--space-lg);
+}
+
+.patients-back-btn {
+  margin-bottom: var(--space-md);
+}
+
+.patients-name {
+  margin-bottom: var(--space-xs);
+  text-transform: uppercase;
+}
+
+.patients-contact-row {
+  margin: 0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.patients-phone-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.patients-action-btns {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.patients-detail-body {
+  padding-right: var(--space-sm);
+}
+
+.patients-next-appt-card {
+  padding: 20px 24px;
+  margin-bottom: var(--space-lg);
+}
+
+.patients-next-appt-title {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 16px;
+}
+
+.patients-next-appt-loading {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.patients-next-appt-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.patients-next-appt-time {
+  color: var(--text-secondary);
+}
+
+.patients-next-appt-service {
+  font-weight: 600;
+}
+
+.patients-next-appt-empty {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.patients-records-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.patients-record-empty {
+  padding: var(--space-2xl);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.patients-record-card {
+  padding: 24px;
+}
+
+.patients-record-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.patients-record-title {
+  margin: 0;
+}
+
+.patients-record-date {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.patients-record-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  font-size: 14px;
+}
+
+.patients-record-observations {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background-color: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+}
+
+/* Modal form sections */
+.patients-modal-scroll {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.patients-form-section {
+  padding: var(--space-lg);
+  border-radius: 12px;
+}
+
+.patients-form-section-bg {
+  background-color: var(--surface-secondary);
+}
+
+.patients-form-section-border {
+  border: 1px solid var(--border-color);
+}
+
+.patients-form-section-green {
+  background-color: #f0fff4;
+  border: 1px solid #c6f6d5;
+}
+
+.patients-form-section-dotted {
+  border: 1px dotted var(--border-color);
+}
+
+.patients-form-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.patients-form-section-label-green {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #2f855a;
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.patients-form-field-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: var(--space-xs);
+  display: block;
+}
+
+.patients-form-field-flex1 {
+  flex: 1;
+}
+
+.patients-form-field-flex2 {
+  flex: 2;
+}
+
+.patients-textarea-mb {
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: var(--space-md);
+}
+
+.patients-textarea {
+  font-family: inherit;
+  resize: vertical;
+}
+
+/* List view */
+.patients-list-header {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.patients-subtitle {
+  margin: 0;
+  font-size: 14px;
+}
+
+.patients-list-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.patients-search-bar {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.patients-table-name {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.patients-table-phone {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.patients-table-lastvisit {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.patients-table-lastreason {
+  font-size: 13px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patients-table-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.patients-table-empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-secondary);
+}
+
+/* ========================= */
+/* APPOINTMENTS PAGE          */
+/* ========================= */
+.appointments-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.appointments-page-header {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.appointments-subtitle {
+  margin: 0;
+  font-size: 14px;
+}
+
+.appointments-list-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.appointments-filters-bar {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.appointments-chip-row {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* Table cells */
+.appointments-client-name {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.appointments-client-phone {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.appointments-service-name {
+  font-weight: 600;
+}
+
+.appointments-service-duration {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.appointments-cell-bold {
+  font-weight: 600;
+}
+
+.appointments-table-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.appointments-btn-cursor {
+  cursor: pointer;
+}
+
+.appointments-btn-delete {
+  cursor: pointer;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+/* Modals */
+.appointments-modal-title {
+  margin-top: 0;
+}
+
+.appointments-form-section {
+  padding: var(--space-lg);
+  border-radius: 12px;
+}
+
+.appointments-form-section-bg {
+  background-color: var(--surface-secondary);
+}
+
+.appointments-form-section-border {
+  border: 1px solid var(--border-color);
+}
+
+.appointments-form-section-blue {
+  background-color: #f0f7ff;
+}
+
+.appointments-form-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.appointments-form-section-label-blue {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #0055cc;
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.appointments-form-field-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: var(--space-xs);
+  display: block;
+}
+
+.appointments-form-field-flex1 {
+  flex: 1;
+}
+
+.appointments-select-mb {
+  margin-bottom: var(--space-md);
+}
+
+.appointments-conflict-error {
+  color: var(--error-text);
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+/* chip filter buttons */
+.chip {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.chip:hover {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+}
+
+.chip-active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+/* Cancelled row */
+.row-cancelled {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* ========================= */
+/* CLIENTS PAGE               */
+/* ========================= */
+.clients-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.clients-header {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.clients-subtitle {
+  margin: 0;
+  font-size: 14px;
+}
+
+.clients-table-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.clients-search-bar {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: var(--space-lg);
+}
+
+/* Table cells */
+.clients-td-name {
+  font-weight: 600;
+}
+
+.clients-td-secondary {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.clients-td-empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-secondary);
+}
+
+/* Action buttons */
+.clients-actions-row {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.clients-btn-edit {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+}
+
+.clients-btn-history {
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+}
+
+/* History modal */
+.clients-history-modal {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.clients-history-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+  position: sticky;
+  top: 0;
+  background-color: var(--surface-color);
+  z-index: 1;
+  padding-bottom: var(--space-md);
+}
+
+.clients-history-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.clients-history-summary-row {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.clients-history-stat-card {
+  flex: 1;
+  padding: var(--space-lg);
+  text-align: center;
+}
+
+.clients-history-stat-number {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.clients-section-heading {
+  margin-bottom: var(--space-md);
+  font-size: 16px;
+}
+
+.clients-empty-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.clients-history-table-wrap {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.clients-history-table {
+  font-size: 14px;
+}
+
+.clients-records-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.clients-record-card {
+  padding: var(--space-lg);
+  border: 1px solid var(--border-color);
+}
+
+.clients-record-date {
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.clients-record-reason {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+.clients-record-detail {
+  font-size: 13px;
+  margin-top: var(--space-sm);
+}
+
+.clients-record-observations {
+  font-size: 13px;
+  margin-top: var(--space-xs);
+  font-style: italic;
+}
+
+/* Modal form */
+.clients-modal-section {
+  padding: var(--space-lg);
+  background-color: var(--surface-secondary);
+  border-radius: 12px;
+  margin-bottom: var(--space-xl);
+}
+
+.clients-modal-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.clients-modal-fields {
+  gap: var(--space-md);
+}
+
+.clients-input-flex {
+  flex: 1;
+}
+
+.clients-modal-h2 {
+  margin: 0;
+}
+
+.clients-modal-title {
+  margin-top: 0;
+}

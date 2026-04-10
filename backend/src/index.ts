@@ -3,10 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { zencoRoutes } from './routes/zenco.js';
-import { damianRoutes } from './routes/damian.js';
+import { mgMasajesRoutes } from './routes/mg_masajes.js';
 import { chatZencoRoutes } from './routes/chat-zenco.js';
-import { chatDamianRoutes } from './routes/chat-damian.js';
-import { agentDamianRoutes } from './routes/agent-damian.js';
+import { chatMgMasajesRoutes } from './routes/chat-mg_masajes.js';
+import { agentMgMasajesRoutes } from './routes/agent-mg_masajes.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { garmentPhotosRoutes } from './routes/garment-photos.js';
 import { whatsappRoutes } from './routes/whatsapp.js';
@@ -63,20 +63,20 @@ app.use('/api/zenco', authenticate, requireBusiness('zenco'), zencoRoutes);
 app.use('/api/zenco/chat/history', authenticate, requireBusiness('zenco'), chatHistoryRoutes);
 app.use('/api/zenco/notifications', authenticate, requireBusiness('zenco'), notificationRoutes);
 app.use('/api/zenco/garments/:id/photos', authenticate, requireBusiness('zenco'), garmentPhotosRoutes);
-app.use('/api/damian', authenticate, requireBusiness('damian'), damianRoutes);
-app.use('/api/damian/chat/history', authenticate, requireBusiness('damian'), chatHistoryRoutes);
-app.use('/api/damian/chat', authenticate, requireBusiness('damian'), chatDamianRoutes);
-app.use('/api/damian/agent', authenticate, requireBusiness('damian'), agentDamianRoutes);
+app.use('/api/mg_masajes', authenticate, requireBusiness('mg_masajes'), mgMasajesRoutes);
+app.use('/api/mg_masajes/chat/history', authenticate, requireBusiness('mg_masajes'), chatHistoryRoutes);
+app.use('/api/mg_masajes/chat', authenticate, requireBusiness('mg_masajes'), chatMgMasajesRoutes);
+app.use('/api/mg_masajes/agent', authenticate, requireBusiness('mg_masajes'), agentMgMasajesRoutes);
 app.use('/api/whatsapp', authenticate, whatsappRoutes);
 
 // Health check para Render
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', services: ['zenco', 'damian'], timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', services: ['zenco', 'mg_masajes'], timestamp: new Date().toISOString() });
 });
 
 // Backwards compatibility: redirect old routes
 app.get('/api/garments', (_req, res) => res.redirect(301, '/api/zenco/garments'));
-app.get('/api/appointments', (_req, res) => res.redirect(301, '/api/damian/appointments'));
+app.get('/api/appointments', (_req, res) => res.redirect(301, '/api/mg_masajes/appointments'));
 
 // Centralized error handler — must be last
 app.use(errorHandler);
@@ -89,6 +89,6 @@ if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`Zenko Unified Backend corriendo en http://localhost:${PORT}`);
     console.log(`  Zenco API: /api/zenco/*`);
-    console.log(`  Damian API: /api/damian/*`);
+    console.log(`  MG Masajes API: /api/mg_masajes/*`);
   });
 }

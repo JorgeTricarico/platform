@@ -20,11 +20,11 @@ export default function Appointments() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'service' && value in (BUSINESS.services as any)) {
       const selected = (BUSINESS.services as any)[value];
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         service: value,
         price: selected.price,
         duration: selected.duration
@@ -165,17 +165,17 @@ export default function Appointments() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
+    <div className="appointments-page">
+      <div className="flex-between appointments-page-header">
         <div>
           <h1>Gestion de Citas</h1>
-          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Administra los turnos de tus clientes.</p>
+          <p className="subtitle appointments-subtitle">Administra los turnos de tus clientes.</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setIsModalOpen(true); setConflictError(''); }}>+ Nueva Cita</button>
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }} >
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="card appointments-list-card">
+        <div className="appointments-filters-bar">
           <input
             type="text"
             placeholder="Buscar por cliente o servicio..."
@@ -183,7 +183,7 @@ export default function Appointments() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="input-search"
           />
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="appointments-chip-row">
             {(['todos', 'proximas', 'historial', 'hoy', 'semana', 'mes'] as const).map((f) => {
               const label = { todos: 'Todos', proximas: 'Próximas', historial: 'Historial', hoy: 'Hoy', semana: 'Esta semana', mes: 'Este mes' }[f];
               return (
@@ -212,30 +212,29 @@ export default function Appointments() {
             </thead>
             <tbody>
               {filtered.map(a => (
-                <tr key={a.id} className={a.status === 'cancelado' ? 'row-cancelled' : ''} style={a.status === 'cancelado' ? { opacity: 0.5, textDecoration: 'line-through' } : {}}>
+                <tr key={a.id} className={a.status === 'cancelado' ? 'row-cancelled' : ''}>
                   <td>
-                    <div style={{ fontWeight: 600, textTransform: 'uppercase' }}>{a.clientName}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div className="appointments-client-name">{a.clientName}</div>
+                    <div className="appointments-client-phone">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                       {a.clientPhone}
                     </div>
                   </td>
                   <td>
-                    <div style={{ fontWeight: 600 }}>{a.service}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{a.duration} min</div>
+                    <div className="appointments-service-name">{a.service}</div>
+                    <div className="appointments-service-duration">{a.duration} min</div>
                   </td>
-                  <td style={{ fontWeight: 600 }}>
+                  <td className="appointments-cell-bold">
                     {new Date(a.date + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })} {a.time}
                   </td>
-                  <td style={{ fontWeight: 600 }}>{BUSINESS.currency}{a.price.toLocaleString()}</td>
+                  <td className="appointments-cell-bold">{BUSINESS.currency}{a.price.toLocaleString()}</td>
                   <td>{getStatusBadge(a.status)}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div className="appointments-table-actions">
                       <select
                         value={a.status}
                         onChange={(e) => handleStatusChange(a.id, e.target.value)}
-                        className="btn-small"
-                        style={{ cursor: 'pointer' }}
+                        className="btn-small appointments-btn-cursor"
                       >
                         <option value="pendiente">Pendiente</option>
                         <option value="confirmado">Confirmado</option>
@@ -244,15 +243,13 @@ export default function Appointments() {
                       </select>
                       <button
                         type="button"
-                        className="btn-small"
+                        className="btn-small appointments-btn-cursor"
                         onClick={() => openEdit(a)}
-                        style={{ cursor: 'pointer' }}
                       >Editar</button>
                       <button
                         type="button"
-                        className="btn-small"
+                        className="btn-small appointments-btn-delete"
                         onClick={() => handleDelete(a.id)}
-                        style={{ cursor: 'pointer', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5' }}
                       >Eliminar</button>
                     </div>
                   </td>
@@ -262,51 +259,52 @@ export default function Appointments() {
           </table>
         </div>
       </div>
+
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="card modal-card modal-md">
-            <h2 style={{ marginTop: 0 }}>Agendar Nueva Cita</h2>
+            <h2 className="appointments-modal-title">Agendar Nueva Cita</h2>
             <form onSubmit={handleSubmit} className="form-group">
               {/* Patient Group */}
-              <div style={{ padding: '16px', backgroundColor: 'var(--surface-secondary)', borderRadius: '12px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Información del Paciente</label>
+              <div className="appointments-form-section appointments-form-section-bg">
+                <label className="appointments-form-section-label">Información del Paciente</label>
                 <div className="form-row">
-                  <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                  <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                  <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className="input appointments-form-field-flex1" />
+                  <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className="input appointments-form-field-flex1" />
                 </div>
               </div>
 
               {/* Service Details */}
-              <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Detalles del Servicio</label>
-                <select required name="service" value={formData.service} onChange={handleInputChange} className="input" style={{ marginBottom: '12px' }}>
+              <div className="appointments-form-section appointments-form-section-border">
+                <label className="appointments-form-section-label">Detalles del Servicio</label>
+                <select required name="service" value={formData.service} onChange={handleInputChange} className="input appointments-select-mb">
                   <option value="">Tipo de Masaje...</option>
                   {Object.keys(BUSINESS.services).map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
                 <div className="form-row">
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Duración (min)</label>
+                  <div className="appointments-form-field-flex1">
+                    <label className="appointments-form-field-label">Duración (min)</label>
                     <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className="input" />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Precio ($)</label>
+                  <div className="appointments-form-field-flex1">
+                    <label className="appointments-form-field-label">Precio ($)</label>
                     <input required name="price" type="number" value={formData.price || ''} onChange={handleInputChange} className="input" placeholder="Precio ($)" />
                   </div>
                 </div>
               </div>
 
               {/* Date/Time Group */}
-              <div style={{ padding: '16px', backgroundColor: '#f0f7ff', borderRadius: '12px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#0055cc', marginBottom: '8px', display: 'block' }}>Programación</label>
+              <div className="appointments-form-section appointments-form-section-blue">
+                <label className="appointments-form-section-label-blue">Programación</label>
                 <div className="form-row">
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha</label>
+                  <div className="appointments-form-field-flex1">
+                    <label className="appointments-form-field-label">Fecha</label>
                     <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input" />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Hora</label>
+                  <div className="appointments-form-field-flex1">
+                    <label className="appointments-form-field-label">Hora</label>
                     <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input" />
                   </div>
                 </div>
@@ -315,7 +313,7 @@ export default function Appointments() {
               <input name="notes" placeholder="Notas adicionales (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
 
               {conflictError && (
-                <p style={{ color: 'var(--danger, #e53e3e)', margin: '4px 0', fontSize: '14px' }}>{conflictError}</p>
+                <p className="appointments-conflict-error">{conflictError}</p>
               )}
 
               <div className="form-actions">
@@ -332,11 +330,11 @@ export default function Appointments() {
       {editTarget !== null && (
         <div className="modal-overlay">
           <div className="card modal-card modal-md">
-            <h2 style={{ marginTop: 0 }}>Editar Cita</h2>
+            <h2 className="appointments-modal-title">Editar Cita</h2>
             <form onSubmit={handleEditSubmit} className="form-group">
               <div className="form-row">
-                <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className="input appointments-form-field-flex1" />
+                <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className="input appointments-form-field-flex1" />
               </div>
 
               <select required name="service" value={formData.service} onChange={handleInputChange} className="input">
@@ -347,19 +345,19 @@ export default function Appointments() {
               </select>
 
               <div className="form-row">
-                <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className="input appointments-form-field-flex1" />
+                <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className="input appointments-form-field-flex1" />
               </div>
 
               <div className="form-row">
-                <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+                <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input appointments-form-field-flex1" />
+                <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input appointments-form-field-flex1" />
               </div>
 
               <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
 
               {conflictError && (
-                <p style={{ color: 'var(--danger, #e53e3e)', margin: '4px 0', fontSize: '14px' }}>{conflictError}</p>
+                <p className="appointments-conflict-error">{conflictError}</p>
               )}
 
               <div className="form-actions">
