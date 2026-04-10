@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { fetchGarments, createGarment, updateGarment, deleteGarment } from '../services/api';
 import type { DBGarment } from '../services/api';
 import { generateTicket } from '../services/generateTicket';
@@ -32,26 +32,32 @@ export default function Garments() {
 
   const STATUS_ORDER: Record<string, number> = { listo: 0, en_proceso: 1, recibido: 2, entregado: 3 };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const isOverdue = (g: DBGarment) => g.deliveryDate < today && g.status !== 'entregado';
 
-  const statusCounts = garments.reduce<Record<string, number>>((acc, g) => {
-    acc[g.status] = (acc[g.status] || 0) + 1;
-    return acc;
-  }, {});
+  const statusCounts = useMemo(
+    () => garments.reduce<Record<string, number>>((acc, g) => {
+      acc[g.status] = (acc[g.status] || 0) + 1;
+      return acc;
+    }, {}),
+    [garments]
+  );
 
-  const filtered = garments
-    .filter(g => {
-      if (statusFilter !== 'all' && g.status !== statusFilter) return false;
-      const q = searchTerm.toLowerCase();
-      const shortId = g.id.slice(-6).toLowerCase();
-      return g.clientName.toLowerCase().includes(q) ||
-        g.garmentName.toLowerCase().includes(q) ||
-        g.repairType.toLowerCase().includes(q) ||
-        g.description.toLowerCase().includes(q) ||
-        shortId.includes(q);
-    })
-    .sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99));
+  const filtered = useMemo(
+    () => garments
+      .filter(g => {
+        if (statusFilter !== 'all' && g.status !== statusFilter) return false;
+        const q = searchTerm.toLowerCase();
+        const shortId = g.id.slice(-6).toLowerCase();
+        return g.clientName.toLowerCase().includes(q) ||
+          g.garmentName.toLowerCase().includes(q) ||
+          g.repairType.toLowerCase().includes(q) ||
+          g.description.toLowerCase().includes(q) ||
+          shortId.includes(q);
+      })
+      .sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99)),
+    [garments, statusFilter, searchTerm]
+  );
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

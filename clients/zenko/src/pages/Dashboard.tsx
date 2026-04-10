@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { fetchGarments, fetchDashboard, createGarment } from '../services/api';
 import type { DBGarment, DashboardData } from '../services/api';
 import { useToast } from '../components/ToastContext';
@@ -45,21 +45,31 @@ export default function Dashboard() {
     }
   };
 
+  const itemsToRepair = useMemo(
+    () => garments.filter(g => g.status === 'recibido' || g.status === 'en_proceso').length,
+    [garments]
+  );
+
+  const itemsToDeliver = useMemo(
+    () => garments.filter(g => g.status === 'listo').length,
+    [garments]
+  );
+
+  const urgentGarments = useMemo(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return garments
+      .filter(g => (g.status === 'recibido' || g.status === 'en_proceso') && new Date(g.deliveryDate + 'T23:59:59') <= tomorrow)
+      .sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
+  }, [garments]);
+
+  const { monthlyIncome, balance } = useMemo(() => {
+    const income = dashData?.monthlyIncome ?? 0;
+    const expenses = dashData?.monthlyExpenses ?? 0;
+    return { monthlyIncome: income, monthlyExpenses: expenses, balance: income - expenses };
+  }, [dashData]);
+
   if (loading && garments.length === 0) return <div>Cargando dashboard...</div>;
-
-  const pendingGarments = garments.filter(g => g.status !== 'entregado');
-  const itemsToRepair = garments.filter(g => g.status === 'recibido' || g.status === 'en_proceso').length;
-  const itemsToDeliver = garments.filter(g => g.status === 'listo').length;
-  
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const urgentGarments = pendingGarments
-    .filter(g => (g.status === 'recibido' || g.status === 'en_proceso') && new Date(g.deliveryDate + 'T23:59:59') <= tomorrow)
-    .sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime());
-
-  const monthlyIncome = dashData?.monthlyIncome ?? 0;
-  const monthlyExpenses = dashData?.monthlyExpenses ?? 0;
-  const balance = monthlyIncome - monthlyExpenses;
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });

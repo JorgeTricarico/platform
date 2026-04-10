@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { fetchFinances, createFinance, updateFinance, deleteFinance } from '../services/api';
 import type { DBFinance } from '../services/api';
+import { BUSINESS } from '../config';
 import { useToast } from '../components/ToastContext';
 
 const EMPTY_FORM = {
@@ -16,10 +17,10 @@ export default function Finances() {
   const [finances, setFinances] = useState<DBFinance[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [editSubmitting, setEditSubmitting] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [filterMonth, setFilterMonth] = useState('');
+  const [submittingCreate, setSubmittingCreate] = useState(false);
+  const [submittingEdit, setSubmittingEdit] = useState(false);
 
   // Edit state
   const [editTarget, setEditTarget] = useState<DBFinance | null>(null);
@@ -38,9 +39,9 @@ export default function Finances() {
   useEffect(() => { load(filterMonth); }, [filterMonth]);
 
   const { totalIncome, totalExpenses, netIncome } = useMemo(() => {
-    const income = finances.filter(f => f.type === 'income').reduce((acc, f) => acc + f.amount, 0);
-    const expenses = finances.filter(f => f.type === 'expense').reduce((acc, f) => acc + f.amount, 0);
-    return { totalIncome: income, totalExpenses: expenses, netIncome: income - expenses };
+    const totalIncome = finances.filter(f => f.type === 'income').reduce((acc, f) => acc + f.amount, 0);
+    const totalExpenses = finances.filter(f => f.type === 'expense').reduce((acc, f) => acc + f.amount, 0);
+    return { totalIncome, totalExpenses, netIncome: totalIncome - totalExpenses };
   }, [finances]);
 
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -51,17 +52,17 @@ export default function Finances() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmittingCreate(true);
     try {
       await createFinance({ ...form, amount: Number(form.amount) });
-      toast.success('Registro guardado correctamente');
       setIsModalOpen(false);
       setForm({ ...EMPTY_FORM });
+      toast.success('Registro guardado correctamente');
       load(filterMonth);
     } catch {
       toast.error('Error al guardar el registro');
     } finally {
-      setSubmitting(false);
+      setSubmittingCreate(false);
     }
   };
 
@@ -79,16 +80,16 @@ export default function Finances() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editTarget) return;
-    setEditSubmitting(true);
+    setSubmittingEdit(true);
     try {
       await updateFinance(editTarget.id, { ...editForm, amount: Number(editForm.amount) });
-      toast.success('Registro actualizado correctamente');
       setEditTarget(null);
+      toast.success('Registro actualizado correctamente');
       load(filterMonth);
     } catch {
       toast.error('Error al actualizar el registro');
     } finally {
-      setEditSubmitting(false);
+      setSubmittingEdit(false);
     }
   };
 
@@ -110,7 +111,7 @@ export default function Finances() {
       <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
         <div>
           <h1>Control Financiero</h1>
-          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Registro de ingresos y gastos del taller.</p>
+          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Registro de ingresos y gastos del consultorio.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nuevo Registro</button>
       </div>
@@ -135,15 +136,15 @@ export default function Finances() {
       <div className="grid grid-cols-3" style={{ marginBottom: '16px', flexShrink: 0 }}>
         <div className="card" style={{ borderTop: '4px solid var(--success-color)' }}>
           <div className="stat-title">Ingresos Totales</div>
-          <div className="stat-value" style={{ color: 'var(--success-color)' }}>${totalIncome.toLocaleString()}</div>
+          <div className="stat-value" style={{ color: 'var(--success-color)' }}>{BUSINESS.currency}{totalIncome.toLocaleString()}</div>
         </div>
         <div className="card" style={{ borderTop: '4px solid var(--urgent-color)' }}>
-          <div className="stat-title">Gastos del Taller</div>
-          <div className="stat-value" style={{ color: 'var(--urgent-color)' }}>${totalExpenses.toLocaleString()}</div>
+          <div className="stat-title">Gastos del Consultorio</div>
+          <div className="stat-value" style={{ color: 'var(--urgent-color)' }}>{BUSINESS.currency}{totalExpenses.toLocaleString()}</div>
         </div>
         <div className="card" style={{ borderTop: '4px solid var(--primary-color)' }}>
           <div className="stat-title">Ganancia Neta</div>
-          <div className="stat-value">${netIncome.toLocaleString()}</div>
+          <div className="stat-value">{BUSINESS.currency}{netIncome.toLocaleString()}</div>
         </div>
       </div>
 
@@ -155,7 +156,7 @@ export default function Finances() {
               <tr>
                 <th>Fecha</th>
                 <th>Tipo</th>
-                <th>Concepto / Descripción</th>
+                <th>Concepto / Descripcion</th>
                 <th>Monto</th>
                 <th>Acciones</th>
               </tr>
@@ -174,7 +175,7 @@ export default function Finances() {
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{f.description}</div>
                   </td>
                   <td style={{ fontWeight: 800, color: f.type === 'income' ? 'var(--success-color)' : 'var(--urgent-color)' }}>
-                    {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
+                    {f.type === 'income' ? '+' : '-'}{BUSINESS.currency}{f.amount.toLocaleString()}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -206,7 +207,6 @@ export default function Finances() {
         </div>
       </div>
 
-      {/* Modal Nuevo Registro */}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="card modal-card modal-md">
@@ -228,8 +228,8 @@ export default function Finances() {
 
               <div className="form-row">
                 <div style={{ flex: 2 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Categoría / Concepto</label>
-                  <input required name="category" placeholder={form.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'} value={form.category} onChange={handle} className="input" />
+                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Concepto</label>
+                  <input required name="category" placeholder={form.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={form.category} onChange={handle} className="input" />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Monto ($)</label>
@@ -241,7 +241,9 @@ export default function Finances() {
 
               <div className="form-actions">
                 <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="btn-secondary">Cancelar</button>
-                <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
+                <button type="submit" disabled={submittingCreate} className="btn btn-primary">
+                  {submittingCreate ? 'Guardando...' : 'Guardar'}
+                </button>
               </div>
             </form>
           </div>
@@ -255,59 +257,20 @@ export default function Finances() {
             <h2 style={{ marginTop: 0 }}>Editar Registro</h2>
             <form onSubmit={handleEditSubmit} className="form-group">
               <div className="form-row">
-                <select
-                  name="type"
-                  value={editForm.type}
-                  onChange={handleEditChange}
-                  className="input"
-                  style={{ flex: 1 }}
-                >
+                <select name="type" value={editForm.type} onChange={handleEditChange} className="input" style={{ flex: 1 }}>
                   <option value="income">Ingreso</option>
                   <option value="expense">Gasto</option>
                 </select>
-                <input
-                  required
-                  name="date"
-                  type="date"
-                  value={editForm.date}
-                  onChange={handleEditChange}
-                  className="input"
-                  style={{ flex: 1 }}
-                />
+                <input required name="date" type="date" value={editForm.date} onChange={handleEditChange} className="input" style={{ flex: 1 }} />
               </div>
-              <input
-                required
-                name="category"
-                placeholder={editForm.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'}
-                value={editForm.category}
-                onChange={handleEditChange}
-                className="input"
-              />
-              <input
-                required
-                name="amount"
-                type="number"
-                placeholder="Monto ($)"
-                value={editForm.amount || ''}
-                onChange={handleEditChange}
-                className="input"
-              />
-              <input
-                name="description"
-                placeholder="Descripción adicional (opcional)"
-                value={editForm.description}
-                onChange={handleEditChange}
-                className="input"
-              />
+              <input required name="category" placeholder={editForm.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={editForm.category} onChange={handleEditChange} className="input" />
+              <input required name="amount" type="number" placeholder="Monto ($)" value={editForm.amount || ''} onChange={handleEditChange} className="input" />
+              <input name="description" placeholder="Descripcion adicional (opcional)" value={editForm.description} onChange={handleEditChange} className="input" />
               <div className="form-actions">
-                <button
-                  type="button"
-                  onClick={() => setEditTarget(null)}
-                  className="btn-secondary"
-                >
-                  Cancelar
+                <button type="button" onClick={() => setEditTarget(null)} className="btn-secondary">Cancelar</button>
+                <button type="submit" disabled={submittingEdit} className="btn btn-primary">
+                  {submittingEdit ? 'Guardando...' : 'Guardar'}
                 </button>
-                <button type="submit" disabled={editSubmitting} className="btn btn-primary">{editSubmitting ? 'Guardando...' : 'Guardar'}</button>
               </div>
             </form>
           </div>
