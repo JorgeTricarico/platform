@@ -99,7 +99,7 @@ const NextIcon = ({ size = 20 }) => (
 );
 
 const LoopIcon = ({ active, size = 18 }: { active: boolean; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: active ? 'var(--primary-color)' : 'currentColor', opacity: active ? 1 : 0.5 }}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: active ? '#D66D26' : 'currentColor', opacity: active ? 1 : 0.5 }}>
     <polyline points="17 1 21 5 17 9"></polyline>
     <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
     <polyline points="7 23 3 19 7 15"></polyline>
@@ -108,7 +108,7 @@ const LoopIcon = ({ active, size = 18 }: { active: boolean; size?: number }) => 
 );
 
 const ShuffleIcon = ({ active, size = 18 }: { active: boolean; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: active ? 'var(--primary-color)' : 'currentColor', opacity: active ? 1 : 0.5 }}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: active ? '#D66D26' : 'currentColor', opacity: active ? 1 : 0.5 }}>
     <polyline points="16 3 21 3 21 8"></polyline>
     <line x1="4" y1="20" x2="21" y2="3"></line>
     <polyline points="21 16 21 21 16 21"></polyline>
@@ -117,11 +117,34 @@ const ShuffleIcon = ({ active, size = 18 }: { active: boolean; size?: number }) 
   </svg>
 );
 
-const MusicIcon = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const MusicNoteIcon = ({ size = 48 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18V5l12-2v13"></path>
     <circle cx="6" cy="18" r="3"></circle>
     <circle cx="18" cy="16" r="3"></circle>
+  </svg>
+);
+
+const UploadIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <polyline points="17 8 12 3 7 8"></polyline>
+    <line x1="12" y1="3" x2="12" y2="15"></line>
+  </svg>
+);
+
+const TrashIcon = ({ size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18"></path>
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+  </svg>
+);
+
+const VolumeIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
   </svg>
 );
 
@@ -136,9 +159,12 @@ export default function Ambient() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [commandFeedback, setCommandFeedback] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tracksRef = useRef<LocalTrack[]>([]);
+  const objectUrlsRef = useRef<string[]>([]);
 
   // Keep tracksRef in sync
   useEffect(() => { tracksRef.current = tracks; }, [tracks]);
@@ -150,21 +176,26 @@ export default function Ambient() {
 
   // Load cached tracks on mount, download demos if first time
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       let cached = await loadAllFromDB();
       if (cached.length === 0) {
         const demos = await loadDemoTracksIfNeeded();
         cached = demos;
       }
-      const loaded = cached.map(t => ({
-        id: t.id,
-        title: t.title,
-        blob: t.blob,
-        url: URL.createObjectURL(t.blob),
-      }));
+      if (cancelled) return;
+      const loaded = cached.map(t => {
+        const url = URL.createObjectURL(t.blob);
+        objectUrlsRef.current.push(url);
+        return { id: t.id, title: t.title, blob: t.blob, url };
+      });
       setTracks(loaded);
     })();
-    return () => { tracks.forEach(t => URL.revokeObjectURL(t.url)); };
+    return () => {
+      cancelled = true;
+      objectUrlsRef.current.forEach(u => URL.revokeObjectURL(u));
+      objectUrlsRef.current = [];
+    };
   }, []);
 
   // Sync audio element with state
@@ -188,10 +219,24 @@ export default function Ambient() {
     return currentTracks[(currentIdx + 1) % currentTracks.length];
   }, []);
 
+  // BUG FIX: use 'canplay' event instead of setTimeout(50ms)
   const playTrack = useCallback((track: LocalTrack) => {
     setActiveTrack(track);
     setIsPlaying(true);
-    setTimeout(() => { audioRef.current?.play(); }, 50);
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const onCanPlay = () => {
+      audio.play().catch(() => { /* autoplay blocked */ });
+      audio.removeEventListener('canplay', onCanPlay);
+    };
+
+    // If the src is already set to this track and ready, play immediately
+    if (audio.src === track.url && audio.readyState >= 3) {
+      audio.play().catch(() => {});
+    } else {
+      audio.addEventListener('canplay', onCanPlay);
+    }
   }, []);
 
   // Listen for music commands from agent
@@ -243,11 +288,9 @@ export default function Ambient() {
 
     const timer = setTimeout(() => setCommandFeedback(null), 4000);
     return () => clearTimeout(timer);
-  }, [lastCommand]);
+  }, [lastCommand, activeTrack, playTrack, getNextTrack]);
 
-  const play = (track: LocalTrack) => playTrack(track);
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     for (const file of Array.from(files)) {
@@ -256,14 +299,15 @@ export default function Ambient() {
       const title = file.name.replace(/\.[^.]+$/, '');
       await saveToDB(id, title, file);
       const url = URL.createObjectURL(file);
+      objectUrlsRef.current.push(url);
       setTracks(prev => [...prev, { id, title, blob: file, url }]);
     }
     e.target.value = '';
-  };
+  }, []);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     if (!audioRef.current) return;
-    
+
     if (!activeTrack) {
       if (tracks.length > 0) {
         playTrack(tracks[0]);
@@ -271,74 +315,81 @@ export default function Ambient() {
       return;
     }
 
-    if (isPlaying) { 
-      audioRef.current.pause(); 
-    } else { 
-      audioRef.current.play(); 
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
     }
     setIsPlaying(!isPlaying);
-  };
+  }, [activeTrack, isPlaying, tracks, playTrack]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const currentTracks = tracksRef.current;
     if (currentTracks.length === 0) return;
     const next = getNextTrack(currentTracks, activeTrack);
     if (next) playTrack(next);
-  };
+  }, [activeTrack, getNextTrack, playTrack]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     const currentTracks = tracksRef.current;
     if (currentTracks.length === 0 || !activeTrack) return;
     const currentIdx = currentTracks.findIndex(t => t.id === activeTrack.id);
     const prevIdx = (currentIdx - 1 + currentTracks.length) % currentTracks.length;
     playTrack(currentTracks[prevIdx]);
-  };
+  }, [activeTrack, playTrack]);
 
-  const formatTime = (time: number) => {
+  const formatTime = useCallback((time: number) => {
     const mins = Math.floor(time / 60);
     const secs = Math.floor(time % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const onTimeUpdate = () => {
+  const onTimeUpdate = useCallback(() => {
     if (audioRef.current) {
       setCurrentTime(audioRef.current.currentTime);
       setDuration(audioRef.current.duration || 0);
     }
-  };
+  }, []);
 
-  const onSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (audioRef.current) {
       const time = Number(e.target.value);
       audioRef.current.currentTime = time;
       setCurrentTime(time);
     }
-  };
+  }, []);
 
-  const removeTrack = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este audio?')) return;
-    if (activeTrack?.id === id) {
-      audioRef.current?.pause();
-      setActiveTrack(null);
-      setIsPlaying(false);
+  // BUG FIX: inline delete confirmation instead of window.confirm
+  const handleDeleteClick = useCallback((e: React.MouseEvent, trackId: string) => {
+    e.stopPropagation();
+    if (deleteConfirm === trackId) {
+      // Already confirming — execute delete
+      if (activeTrack?.id === trackId) {
+        audioRef.current?.pause();
+        setActiveTrack(null);
+        setIsPlaying(false);
+      }
+      deleteFromDB(trackId);
+      setTracks(prev => {
+        const t = prev.find(x => x.id === trackId);
+        if (t) URL.revokeObjectURL(t.url);
+        return prev.filter(x => x.id !== trackId);
+      });
+      setDeleteConfirm(null);
+    } else {
+      // Start confirmation — auto-reset after 2s
+      setDeleteConfirm(trackId);
+      setTimeout(() => setDeleteConfirm(prev => prev === trackId ? null : prev), 2000);
     }
-    await deleteFromDB(id);
-    setTracks(prev => {
-      const t = prev.find(x => x.id === id);
-      if (t) URL.revokeObjectURL(t.url);
-      return prev.filter(x => x.id !== id);
-    });
-  };
+  }, [deleteConfirm, activeTrack]);
 
-  const restoreDemos = async () => {
+  const restoreDemos = useCallback(async () => {
     const currentIds = tracks.map(t => t.id);
     const missing = DEMO_TRACKS.filter(d => !currentIds.includes(d.id));
 
-    if (missing.length === 0) {
-      alert('Todos los audios originales ya están en tu biblioteca.');
-      return;
-    }
+    if (missing.length === 0) return;
 
+    setIsRestoring(true);
     const restored: LocalTrack[] = [];
     for (const demo of missing) {
       try {
@@ -346,176 +397,235 @@ export default function Ambient() {
         if (!res.ok) continue;
         const blob = await res.blob();
         await saveToDB(demo.id, demo.title, blob);
-        restored.push({
-          id: demo.id,
-          title: demo.title,
-          blob,
-          url: URL.createObjectURL(blob)
-        });
+        const url = URL.createObjectURL(blob);
+        objectUrlsRef.current.push(url);
+        restored.push({ id: demo.id, title: demo.title, blob, url });
       } catch (err) {
         console.error('Error restaurando demo:', err);
       }
     }
     setTracks(prev => [...prev, ...restored]);
-    if (restored.length > 0) {
-      alert(`Se restauraron ${restored.length} audios originales.`);
-    }
-  };
+    setIsRestoring(false);
+  }, [tracks]);
+
+  // BUG FIX: onEnded simplified — only advance when loop is off
+  const onEnded = useCallback(() => {
+    if (!loop) handleNext();
+  }, [loop, handleNext]);
+
+  const play = useCallback((track: LocalTrack) => playTrack(track), [playTrack]);
+
+  // Track number helper
+  const getTrackNumber = useCallback((trackId: string) => {
+    const idx = tracks.findIndex(t => t.id === trackId);
+    return idx >= 0 ? String(idx + 1).padStart(2, '0') : '--';
+  }, [tracks]);
+
+  // Progress percentage for the slider visual
+  const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="ambient-page">
-      <div className="flex-between ambient-header">
-        <div>
+      {/* Header */}
+      <div className="ambient-header">
+        <div className="ambient-header-left">
           <h1 className="ambient-title">Música Ambiente</h1>
-          <p className="subtitle ambient-subtitle">Gestión de audio local.</p>
+          <p className="ambient-subtitle">Reproductor de sala</p>
         </div>
-        <button className="btn btn-primary ambient-add-btn" onClick={() => fileInputRef.current?.click()}>
-          + Agregar Audio
+        <button className="ambient-upload-btn" onClick={() => fileInputRef.current?.click()}>
+          <UploadIcon size={16} />
+          <span>+ Agregar Audio</span>
         </button>
         <input ref={fileInputRef} type="file" accept="audio/*" multiple hidden onChange={handleFileSelect} />
       </div>
 
-      <div className="ambient-split-container">
-        {/* Panel Izquierdo: Reproductor Compacto */}
+      <div className="ambient-layout">
+        {/* LEFT: Dark player panel */}
         <div className="ambient-player-panel">
-          <div className="card glass-card ambient-glass-card">
-            <div className="ambient-player-inner">
-              {/* Album Art Mini */}
-              <div className="ambient-album-art">
-                <MusicIcon size={32} />
-                {isPlaying && (
-                  <div className="ambient-wave-container">
-                    <div className="wave-bar" style={{ width: '3px', animationDelay: '0s' }} />
-                    <div className="wave-bar" style={{ width: '3px', animationDelay: '0.2s' }} />
-                    <div className="wave-bar" style={{ width: '3px', animationDelay: '0.4s' }} />
-                  </div>
-                )}
-              </div>
-
-              <div className="ambient-track-info">
-                <h2 className="ambient-track-title">
-                  {activeTrack?.title || 'Sin selección'}
-                </h2>
-                <p className="ambient-track-status">
-                  {isPlaying ? 'En línea' : 'En pausa'}
-                </p>
-              </div>
-
-              {/* Controls Compact */}
-              <div className="ambient-controls">
-                <button className="btn-icon ambient-btn-icon-sm" onClick={handlePrev} title="Anterior">
-                  <PrevIcon size={20} />
-                </button>
-
-                <button
-                  className="btn-primary ambient-play-btn"
-                  onClick={togglePlay}
-                >
-                  {isPlaying ? <PauseIcon size={20} /> : <PlayIcon size={20} />}
-                </button>
-
-                <button className="btn-icon ambient-btn-icon-sm" onClick={handleNext} title="Siguiente">
-                  <NextIcon size={20} />
-                </button>
-              </div>
-
-              {/* Progress Bar Compact */}
-              <div className="ambient-progress-wrap">
-                <div className="ambient-time-row">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
-                <input
-                  type="range"
-                  className="premium-slider ambient-slider-sm"
-                  min="0"
-                  max={duration || 0}
-                  value={currentTime}
-                  onChange={onSeek}
-                />
-              </div>
-
-              <div className="ambient-mode-btns">
-                <button className="btn-icon" onClick={() => setShuffle(!shuffle)} title="Mezclar">
-                  <ShuffleIcon active={shuffle} size={18} />
-                </button>
-                <button className="btn-icon" onClick={() => setLoop(!loop)} title="Repetir">
-                  <LoopIcon active={loop} size={18} />
-                </button>
-              </div>
-
-              {/* Volume Compact */}
-              <div className="ambient-volume-row">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ambient-volume-icon">
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                </svg>
-                <input
-                  type="range"
-                  className="premium-slider ambient-slider-sm"
-                  min="0" max="1" step="0.05"
-                  value={volume}
-                  onChange={(e) => setVolume(Number(e.target.value))}
-                />
-              </div>
+          {/* Artwork */}
+          <div className={`ambient-artwork ${isPlaying ? 'ambient-artwork-playing' : ''}`}>
+            <div className="ambient-artwork-inner">
+              <MusicNoteIcon size={48} />
             </div>
-
-            <audio
-              ref={audioRef}
-              src={activeTrack?.url}
-              onTimeUpdate={onTimeUpdate}
-              onEnded={() => {
-                if (!loop) handleNext();
-                else if (audioRef.current) audioRef.current.play();
-              }}
-            />
+            {isPlaying && (
+              <>
+                <div className="ambient-artwork-ring ambient-artwork-ring-1"></div>
+                <div className="ambient-artwork-ring ambient-artwork-ring-2"></div>
+                <div className="ambient-artwork-ring ambient-artwork-ring-3"></div>
+              </>
+            )}
           </div>
 
-          {/* Assistant Feedback Inline */}
-          {commandFeedback && (
-            <div className="ambient-feedback">
-              <span>💬</span> {commandFeedback}
+          {/* Track info */}
+          <div className="ambient-now-playing-info">
+            <h2 className="ambient-now-playing-title">
+              {activeTrack?.title || 'Sin seleccion'}
+            </h2>
+            <p className="ambient-now-playing-label">
+              {isPlaying ? 'Reproduciendo' : activeTrack ? 'En pausa' : 'Esperando'}
+            </p>
+          </div>
+
+          {/* Wave bars */}
+          {isPlaying && (
+            <div className="ambient-wave-bars">
+              {[0, 1, 2, 3, 4, 5, 6].map(i => (
+                <div
+                  key={i}
+                  className="ambient-wave-bar"
+                  style={{ animationDelay: `${i * 0.12}s` }}
+                />
+              ))}
             </div>
           )}
-        </div>
 
-        {/* Panel Derecho: Lista de Temas */}
-        <div className="ambient-tracks-panel ambient-tracks-panel-scroll custom-scrollbar">
-          <div className="ambient-library-header">
-            <h3 className="ambient-library-title">Biblioteca ({tracks.length})</h3>
-            <button
-              className="btn ambient-restore-btn"
-              onClick={restoreDemos}
-            >
-              ✨ Restaurar Originales
+          {/* Controls */}
+          <div className="ambient-controls">
+            <button className="ambient-ctrl-btn" onClick={handlePrev} title="Anterior">
+              <PrevIcon size={18} />
+            </button>
+
+            <button className="ambient-play-btn" onClick={togglePlay}>
+              {isPlaying ? <PauseIcon size={28} /> : <PlayIcon size={28} />}
+            </button>
+
+            <button className="ambient-ctrl-btn" onClick={handleNext} title="Siguiente">
+              <NextIcon size={18} />
             </button>
           </div>
-          <div className="grid grid-cols-2 ambient-tracks-grid">
-            {tracks.map(track => (
-              <div
-                key={track.id}
-                className={`card track-card ambient-track-card ${activeTrack?.id === track.id ? 'active' : ''}`}
-                onClick={() => play(track)}
-              >
-                <div className="ambient-track-row">
-                  <div className={`ambient-track-icon ${activeTrack?.id === track.id ? 'ambient-track-icon-active' : 'ambient-track-icon-inactive'}`}>
-                    {activeTrack?.id === track.id && isPlaying ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
-                  </div>
-                  <div className="ambient-track-name-wrap">
-                    <div title={track.title} className="ambient-track-name">{track.title}</div>
-                  </div>
-                  <button
-                    className="btn-icon ambient-delete-btn"
-                    onClick={(e) => { e.stopPropagation(); removeTrack(track.id); }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-                  </button>
-                </div>
+
+          {/* Progress */}
+          <div className="ambient-progress">
+            <div className="ambient-progress-bar-wrap">
+              <div className="ambient-progress-bar-bg">
+                <div
+                  className="ambient-progress-bar-fill"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
-            ))}
+              <input
+                type="range"
+                className="ambient-progress-input"
+                min="0"
+                max={duration || 0}
+                value={currentTime}
+                onChange={onSeek}
+              />
+            </div>
+            <div className="ambient-time-row">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+          </div>
+
+          {/* Volume + modes */}
+          <div className="ambient-bottom-controls">
+            <div className="ambient-volume-row">
+              <VolumeIcon size={14} />
+              <input
+                type="range"
+                className="ambient-volume-slider"
+                min="0" max="1" step="0.05"
+                value={volume}
+                onChange={(e) => setVolume(Number(e.target.value))}
+              />
+            </div>
+            <div className="ambient-mode-btns">
+              <button className="ambient-mode-btn" onClick={() => setShuffle(!shuffle)} title="Mezclar">
+                <ShuffleIcon active={shuffle} size={16} />
+              </button>
+              <button className="ambient-mode-btn" onClick={() => setLoop(!loop)} title="Repetir">
+                <LoopIcon active={loop} size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Agent feedback */}
+          {commandFeedback && (
+            <div className="ambient-feedback">
+              {commandFeedback}
+            </div>
+          )}
+
+          <audio
+            ref={audioRef}
+            src={activeTrack?.url}
+            onTimeUpdate={onTimeUpdate}
+            onEnded={onEnded}
+          />
+        </div>
+
+        {/* RIGHT: Library panel */}
+        <div className="ambient-library-panel">
+          <div className="ambient-library-header">
+            <h3 className="ambient-library-title">Biblioteca</h3>
+            <span className="ambient-library-count">{tracks.length} tracks</span>
+            <button
+              className="ambient-restore-btn"
+              onClick={restoreDemos}
+              disabled={isRestoring}
+            >
+              {isRestoring ? 'Descargando...' : 'Restaurar Originales'}
+            </button>
+          </div>
+
+          <div className="ambient-track-list">
+            {tracks.map(track => {
+              const isActive = activeTrack?.id === track.id;
+              const isConfirming = deleteConfirm === track.id;
+              return (
+                <div
+                  key={track.id}
+                  className={`ambient-track-item ${isActive ? 'ambient-track-item-active' : ''}`}
+                  onClick={() => play(track)}
+                >
+                  <div className="ambient-track-item-num">
+                    {isActive && isPlaying ? (
+                      <div className="ambient-track-mini-wave">
+                        <span /><span /><span />
+                      </div>
+                    ) : (
+                      getTrackNumber(track.id)
+                    )}
+                  </div>
+
+                  <div className={`ambient-track-item-icon ${isActive ? 'ambient-track-item-icon-active' : ''}`}>
+                    {isActive && isPlaying ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
+                  </div>
+
+                  <div className="ambient-track-item-info">
+                    <div className="ambient-track-item-name" title={track.title}>{track.title}</div>
+                    <div className="ambient-track-item-meta">
+                      {track.id.startsWith('demo-') ? 'Demo' : 'Local'}
+                    </div>
+                  </div>
+
+                  <div className="ambient-track-item-actions" onClick={e => e.stopPropagation()}>
+                    {isConfirming ? (
+                      <button
+                        className="ambient-delete-confirm"
+                        onClick={(e) => handleDeleteClick(e, track.id)}
+                      >
+                        Borrar?
+                      </button>
+                    ) : (
+                      <button
+                        className="ambient-delete-btn"
+                        onClick={(e) => handleDeleteClick(e, track.id)}
+                      >
+                        <TrashIcon size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
 
             {tracks.length === 0 && (
-              <div className="card ambient-empty-card">
-                <p className="ambient-empty-text">Arrastra archivos o usa el botón de arriba.</p>
+              <div className="ambient-empty">
+                <MusicNoteIcon size={40} />
+                <p>No hay tracks en la biblioteca</p>
+                <p className="ambient-empty-hint">Subi archivos de audio o restaura los originales</p>
               </div>
             )}
           </div>
