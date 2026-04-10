@@ -3,7 +3,7 @@
 export const BUSINESS = {
   name: 'MG Masajes',
   brandLabel: 'MG',
-  brandSuffix: '.masajes',
+  brandSuffix: '',
   ownerName: 'Damian',
   greeting: 'Hola, Damian',
   subtitle: 'Aqui tienes el resumen de tu agenda al dia de hoy.',
