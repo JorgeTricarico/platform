@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../components/AuthContext';
-import logoUrl from '../assets/logo.svg';
+import logoUrl from '../assets/logo_mg.png';
 
 export default function Login() {
   const { login, loginAsDemo, authRequired } = useAuth();
@@ -26,7 +26,7 @@ export default function Login() {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg-primary, #f5f0eb)' }}>
       <div className="card" style={{ width: '100%', maxWidth: 400, padding: '2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <img src={logoUrl} alt="Damian Logo" style={{ width: 64, height: 64, borderRadius: '16px', objectFit: 'cover', marginBottom: '0.5rem' }} />
+          <img src={logoUrl} alt="MG Masajes Logo" style={{ width: 64, height: 64, borderRadius: '16px', objectFit: 'cover', marginBottom: '0.5rem' }} />
           <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Damian<span style={{ color: 'var(--primary-color)' }}>.masajes</span></h1>
           <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0' }}>Inicia sesion para continuar</p>
         </div>

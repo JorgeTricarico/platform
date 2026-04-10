@@ -9,7 +9,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { setupOnlineSync } from './services/sync';
 import { BUSINESS } from './config';
-import logoUrl from './assets/logo.svg';
+import logoUrl from './assets/logo_mg.png';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Appointments = lazy(() => import('./pages/Appointments'));
