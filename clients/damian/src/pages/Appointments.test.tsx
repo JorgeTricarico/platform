@@ -46,7 +46,7 @@ describe('Appointments', () => {
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
-    const searchInput = screen.getByPlaceholderText('Buscar por cliente, servicio o ID...');
+    const searchInput = screen.getByPlaceholderText('Buscar por cliente o servicio...');
     expect(searchInput.className).toContain('input-search');
   });
 

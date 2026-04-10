@@ -4,6 +4,7 @@ import { prisma } from '../db.js';
 import { app } from '../index.js';
 import { authHeader } from './setup.js';
 import { chatWithFallback } from '../services/ai-chat.js';
+import { DAMIAN_CONFIG } from '../config/damian.js';
 
 vi.mock('../services/ai-chat.js');
 const mockChat = chatWithFallback as ReturnType<typeof vi.fn>;
@@ -54,9 +55,12 @@ describe('POST /api/damian/chat — Conversación con contexto pre-cargado', () 
   });
 
   it('onFunctionCall: book_appointment creates appointment', async () => {
+    const serviceName = 'Descontracturante Cuello y Espalda';
+    const servicePrice = DAMIAN_CONFIG.services[serviceName].price;
+
     mockPrisma.appointment.create.mockResolvedValue({
-      id: 'APT-123', clientName: 'Laura', service: 'Masaje Descontracturante',
-      date: '2026-04-07', time: '15:00', price: 8000, status: 'pendiente',
+      id: 'APT-123', clientName: 'Laura', service: serviceName,
+      date: '2026-04-07', time: '15:00', price: servicePrice, status: 'pendiente',
     });
 
     // Trigger a call and capture onFunctionCall
@@ -70,7 +74,7 @@ describe('POST /api/damian/chat — Conversación con contexto pre-cargado', () 
     expect(result.success).toBe(true);
     expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
     const data = mockPrisma.appointment.create.mock.calls[0][0].data;
-    expect(data.service).toBe('Masaje Descontracturante');
+    expect(data.service).toBe('Descontracturante Cuello y Espalda');
     expect(data.status).toBe('pendiente');
   });
 

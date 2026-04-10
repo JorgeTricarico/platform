@@ -164,7 +164,7 @@ export default function Appointments() {
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
             type="text"
-            placeholder="Buscar por cliente, servicio o ID..."
+            placeholder="Buscar por cliente o servicio..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="input-search"

@@ -3,6 +3,7 @@ import request from 'supertest';
 import { prisma } from '../db.js';
 import { app } from '../index.js';
 import { authHeader } from './setup.js';
+import { DAMIAN_CONFIG } from '../config/damian.js';
 
 const mockPrisma = prisma as unknown as {
   appointment: { findMany: ReturnType<typeof vi.fn>; findFirst: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
@@ -26,9 +27,13 @@ describe('GET /api/damian/appointments', () => {
   });
 
   it('returns appointments sorted by date', async () => {
+    const serviceA = 'Descontracturante Cuello y Espalda';
+    const priceA = DAMIAN_CONFIG.services[serviceA].price;
+    const durationA = DAMIAN_CONFIG.services[serviceA].duration;
+
     const appointments = [
-      { id: 'APT-1', clientName: 'Juan', clientPhone: '1111', service: 'Masaje descontracturante', duration: 60, date: '2026-04-05', time: '10:00', status: 'pendiente', price: 8000, notes: null },
-      { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Reflexologia', duration: 45, date: '2026-04-06', time: '14:00', status: 'confirmado', price: 6000, notes: 'Primera vez' },
+      { id: 'APT-1', clientName: 'Juan', clientPhone: '1111', service: serviceA, duration: durationA, date: '2026-04-05', time: '10:00', status: 'pendiente', price: priceA, notes: null },
+      { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Reflexologia', duration: 45, date: '2026-04-06', time: '14:00', status: 'confirmado', price: 25000, notes: 'Primera vez' },
     ];
     mockPrisma.appointment.findMany.mockResolvedValue(appointments);
     const res = await request(app).get('/api/damian/appointments').set('Authorization', authHeader('damian'));
@@ -388,7 +393,7 @@ describe('GET /api/damian/dashboard/today', () => {
     const today = new Date().toISOString().split('T')[0];
     const appointments = [
       { id: 'APT-1', clientName: 'Juan', clientPhone: '1111', service: 'Descontracturante', duration: 60, date: today, time: '10:00', status: 'pendiente', price: 8000, notes: null },
-      { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Relajante', duration: 60, date: today, time: '14:00', status: 'confirmado', price: 7000, notes: null },
+      { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Relajante', duration: 60, date: today, time: '14:00', status: 'confirmado', price: 30000, notes: null },
     ];
     mockPrisma.appointment.findMany.mockResolvedValue(appointments);
     const res = await request(app).get('/api/damian/dashboard/today').set('Authorization', authHeader('damian'));
@@ -478,7 +483,7 @@ describe('GET /api/damian/dashboard/appointments', () => {
     const today = new Date().toISOString().split('T')[0];
     const appointments = [
       { id: 'APT-1', clientName: 'Juan', clientPhone: '1111', service: 'Descontracturante', duration: 60, date: today, time: '10:00', status: 'pendiente', price: 8000, notes: null },
-      { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Relajante', duration: 60, date: '2026-04-10', time: '14:00', status: 'confirmado', price: 7000, notes: null },
+      { id: 'APT-2', clientName: 'Laura', clientPhone: '2222', service: 'Relajante', duration: 60, date: '2026-04-10', time: '14:00', status: 'confirmado', price: 30000, notes: null },
     ];
     mockPrisma.appointment.findMany.mockResolvedValue(appointments);
     const res = await request(app).get('/api/damian/dashboard/appointments').set('Authorization', authHeader('damian'));
@@ -515,13 +520,13 @@ describe('GET /api/damian/dashboard/monthly-income', () => {
     const currentMonth = new Date().toISOString().slice(0, 7);
     mockPrisma.damianFinance.findMany.mockResolvedValue([
       { id: 'FIN-D-1', date: `${currentMonth}-05`, type: 'income', category: 'Sesiones', amount: 8000, description: 'Masaje A' },
-      { id: 'FIN-D-2', date: `${currentMonth}-10`, type: 'income', category: 'Sesiones', amount: 7000, description: 'Masaje B' },
+      { id: 'FIN-D-2', date: `${currentMonth}-10`, type: 'income', category: 'Sesiones', amount: 30000, description: 'Masaje B' },
       { id: 'FIN-D-3', date: `${currentMonth}-12`, type: 'expense', category: 'Insumos', amount: 2000, description: 'Aceites' },
     ]);
 
     const res = await request(app).get('/api/damian/dashboard/monthly-income').set('Authorization', authHeader('damian'));
     expect(res.status).toBe(200);
-    expect(res.body.monthlyIncome).toBe(15000);
+    expect(res.body.monthlyIncome).toBe(38000);
     expect(res.body.monthlyExpenses).toBe(2000);
   });
 

@@ -46,17 +46,26 @@ const tools: any[] = [
 
 function matchService(input: string): string {
   const lower = input.toLowerCase();
-  if (lower.includes('descontracturante') || lower.includes('descontract')) return 'Masaje Descontracturante';
-  if (lower.includes('relajante') || lower.includes('relaj')) return 'Masaje Relajante';
-  if (lower.includes('deportivo') || lower.includes('deport')) return 'Masaje Deportivo';
-  if (lower.includes('drenaje') || lower.includes('linfat')) return 'Drenaje Linfatico';
-  return input;
+  const hasPiernas = lower.includes('pierna');
+  const hasCuerpo = lower.includes('cuerpo') || lower.includes('completo') || lower.includes('entero');
+  const hasDrenaje = lower.includes('drenaje') || lower.includes('linfat');
+  const hasDeportivo = lower.includes('deportivo') || lower.includes('deport');
+  
+  if (hasDrenaje) return 'Drenaje por Zona';
+  if (hasDeportivo) return 'Masaje Deportivo';
+  if (hasCuerpo) return 'Descontracturante Cuerpo Entero';
+  if (hasPiernas) return 'Descontracturante Piernas';
+  
+  // Default to Cuello y Espalda for general or descontracturante requests
+  return 'Descontracturante Cuello y Espalda';
 }
 
 async function executeFunction(name: string, args: Record<string, string>) {
   if (name === 'book_appointment') {
     const service = matchService(args.service);
-    const info = SERVICE_PRICES[service] || { price: 7000, duration: 60 };
+    // Default to the base service price from config
+    const defaultService = 'Descontracturante Cuello y Espalda';
+    const info = SERVICE_PRICES[service] || SERVICE_PRICES[defaultService];
     const appointment = await prisma.appointment.create({
       data: {
         id: `APT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,

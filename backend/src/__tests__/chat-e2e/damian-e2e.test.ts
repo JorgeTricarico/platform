@@ -9,27 +9,9 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 
-const SYSTEM_PROMPT = `Sos Damian, masajista profesional. Tenes tu consultorio de masajes en Argentina.
-Hablas como un pibe argentino comun, relajado y amable. Sin tanta formalidad.
-NO uses mayusculas innecesarias, ni tildes perfectos, como si escribieras por whatsapp de verdad.
-Respuestas cortas y naturales, como un mensaje de whatsapp real (1-3 oraciones max).
+import { DAMIAN_CONFIG } from '../../config/damian.js';
 
-Tu servicio principal son masajes:
-- Descontracturante (60 min, $8000)
-- Relajante (60 min, $7000)
-- Deportivo (45 min, $7500)
-- Drenaje linfatico (60 min, $9000)
-
-Horarios disponibles: lunes a viernes de 9 a 20hs, sabados de 10 a 15hs.
-Turnos de 1 hora, ultimo turno a las 19hs (o 14hs sabados).
-
-REGLAS:
-- cuando te saludan, respondé natural y corto, tipo "hola que tal!" o "buenas! como andas?"
-- si preguntan por masajes, contales brevemente que ofrecés y preguntá que les interesa
-- si quieren un turno, usa la funcion book_appointment para agendarlo
-- si quieren ver disponibilidad, usa check_appointments para ver que hay agendado ese dia
-- NUNCA inventes datos de citas. Si no sabes, preguntá.
-- si preguntan algo que no es de masajes, redirigí amablemente`;
+const SYSTEM_PROMPT = DAMIAN_CONFIG.publicChat.systemPrompt;
 
 const tools: any[] = [
   {
@@ -160,6 +142,8 @@ describe.skipIf(!API_KEY)('Damian E2E — Gemini API real', () => {
     const reply = result.response.text().toLowerCase();
 
     // Should reference the relajante price or service
-    expect(reply).toMatch(/7000|relajante|precio|\$/i);
+    // Should reference the price from config
+    const expectedPrice = DAMIAN_CONFIG.services['Descontracturante Piernas'].price;
+    expect(reply).toMatch(new RegExp(`${expectedPrice}|pierna|precio|\\$`, 'i'));
   }, 20000);
 });
