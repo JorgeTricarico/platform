@@ -1,24 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { fetchDashboardMonthlyIncome } from '../services/api';
 import type { MonthlyIncomeData } from '../services/api';
+import { useDashboardRefresh } from './DashboardRefreshContext';
 
 function MonthlyIncomeWidget() {
   const [data, setData] = useState<MonthlyIncomeData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboardRefresh();
 
-  const load = () => {
+  useEffect(() => {
+    setLoading(true);
     fetchDashboardMonthlyIncome()
       .then(setData)
       .catch(err => console.error('Error cargando ingresos:', err))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
-    const onRefresh = () => load();
-    window.addEventListener('dashboard-refresh', onRefresh);
-    return () => window.removeEventListener('dashboard-refresh', onRefresh);
-  }, []);
+  }, [refreshKey]);
 
   if (loading) return <div className="card"><p>Cargando ingresos...</p></div>;
 

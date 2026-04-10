@@ -1,24 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { fetchDashboardToday } from '../services/api';
 import type { DBAppointment } from '../services/api';
+import { useDashboardRefresh } from './DashboardRefreshContext';
 
 function TodayAppointmentsWidget() {
   const [appointments, setAppointments] = useState<DBAppointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboardRefresh();
 
-  const load = () => {
+  useEffect(() => {
+    setLoading(true);
     fetchDashboardToday()
       .then(setAppointments)
       .catch(err => console.error('Error cargando turnos de hoy:', err))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
-    const onRefresh = () => load();
-    window.addEventListener('dashboard-refresh', onRefresh);
-    return () => window.removeEventListener('dashboard-refresh', onRefresh);
-  }, []);
+  }, [refreshKey]);
 
   if (loading) return <div className="card"><p>Cargando turnos de hoy...</p></div>;
 
