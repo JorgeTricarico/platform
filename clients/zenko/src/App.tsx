@@ -8,6 +8,7 @@ const Login = lazy(() => import('./pages/Login'));
 const PublicStatus = lazy(() => import('./pages/PublicStatus'));
 import NotificationBell from './components/NotificationBell';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider, useToast } from './components/ToastContext';
 import { AuthProvider, useAuth } from './components/AuthContext';
 import { setupOnlineSync } from './services/sync';
@@ -18,15 +19,11 @@ function AuthGate() {
   const isPublicView = window.location.search.includes('view=status');
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p>Cargando...</p>
-      </div>
-    );
+    return <div className="page-loading" />;
   }
 
-  if (isPublicView) return <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}><p>Cargando...</p></div>}><PublicStatus /></Suspense>;
-  if (!isAuthenticated) return <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}><p>Cargando...</p></div>}><Login /></Suspense>;
+  if (isPublicView) return <ErrorBoundary><Suspense fallback={<div className="page-loading" />}><PublicStatus /></Suspense></ErrorBoundary>;
+  if (!isAuthenticated) return <ErrorBoundary><Suspense fallback={<div className="page-loading" />}><Login /></Suspense></ErrorBoundary>;
   return <AppContent />;
 }
 
@@ -143,13 +140,15 @@ function AppContent() {
         </header>
 
         <div className="page-content">
-          <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><p>Cargando...</p></div>}>
-            {activeTab === 'dashboard' && <Dashboard />}
-            {activeTab === 'garments' && <Garments />}
-            {activeTab === 'finances' && <Finances />}
-            {activeTab === 'clients' && <Clients />}
-            {activeTab === 'chat' && <ChatDemo />}
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<div className="page-loading" />}>
+              {activeTab === 'dashboard' && <Dashboard />}
+              {activeTab === 'garments' && <Garments />}
+              {activeTab === 'finances' && <Finances />}
+              {activeTab === 'clients' && <Clients />}
+              {activeTab === 'chat' && <ChatDemo />}
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </main>
     </div>

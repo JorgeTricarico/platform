@@ -5,6 +5,7 @@ import { ToastProvider, useToast } from './components/ToastContext';
 import { AuthProvider, useAuth } from './components/AuthContext';
 import { DashboardRefreshProvider } from './components/DashboardRefreshContext';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { setupOnlineSync } from './services/sync';
 import { BUSINESS } from './config';
 import logoUrl from './assets/logo.svg';
@@ -30,7 +31,7 @@ function AuthGate() {
     );
   }
 
-  if (!isAuthenticated) return <Suspense fallback={<div className="page-loading" />}><Login /></Suspense>;
+  if (!isAuthenticated) return <ErrorBoundary><Suspense fallback={<div className="page-loading" />}><Login /></Suspense></ErrorBoundary>;
   return <AppContent />;
 }
 
@@ -186,16 +187,18 @@ function AppContent() {
         </header>
 
         <div className="page-content">
-          <Suspense fallback={<div className="page-loading" />}>
-            {activeTab === 'dashboard' && <Dashboard />}
-            {activeTab === 'appointments' && <Appointments />}
-            {activeTab === 'finances' && <Finances />}
-            {activeTab === 'clients' && <Clients />}
-            {activeTab === 'patients' && <Patients />}
-            {activeTab === 'agent' && <Agent />}
-            <div style={{ display: activeTab === 'ambient' ? 'block' : 'none' }}><Ambient /></div>
-            {activeTab === 'chat' && <ChatDemo />}
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<div className="page-loading" />}>
+              {activeTab === 'dashboard' && <Dashboard />}
+              {activeTab === 'appointments' && <Appointments />}
+              {activeTab === 'finances' && <Finances />}
+              {activeTab === 'clients' && <Clients />}
+              {activeTab === 'patients' && <Patients />}
+              {activeTab === 'agent' && <Agent />}
+              <div style={{ display: activeTab === 'ambient' ? 'block' : 'none' }}><Ambient /></div>
+              {activeTab === 'chat' && <ChatDemo />}
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </main>
     </div>

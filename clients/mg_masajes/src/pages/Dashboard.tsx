@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { createAppointment } from '../services/api';
 import { BUSINESS } from '../config';
 import { useToast } from '../components/ToastContext';
@@ -17,13 +17,16 @@ export default function Dashboard() {
     clientName: '', clientPhone: '', service: '', duration: 40, date: '', time: '', price: 0, notes: ''
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleOpenModal = useCallback(() => setIsModalOpen(true), []);
+  const handleCloseModal = useCallback(() => setIsModalOpen(false), []);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'service' && value in (BUSINESS.services as any)) {
       const selected = (BUSINESS.services as any)[value];
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         service: value,
         price: selected.price,
         duration: selected.duration
@@ -31,9 +34,9 @@ export default function Dashboard() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
-  };
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
@@ -47,7 +50,7 @@ export default function Dashboard() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [formData, toast, triggerRefresh]);
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
@@ -55,7 +58,7 @@ export default function Dashboard() {
           <h1>{BUSINESS.greeting}</h1>
           <p className="subtitle" style={{ margin: 0 }}>{BUSINESS.subtitle}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nueva Cita</button>
+        <button className="btn btn-primary" onClick={handleOpenModal}>+ Nueva Cita</button>
       </div>
 
       <div className="grid grid-cols-3" style={{ marginBottom: '24px', flexShrink: 0 }}>
@@ -98,7 +101,7 @@ export default function Dashboard() {
               <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
 
               <div className="form-actions">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancelar</button>
+                <button type="button" onClick={handleCloseModal} className="btn-secondary">Cancelar</button>
                 <button type="submit" disabled={submitting} className="btn btn-primary">
                   {submitting ? 'Agendando...' : 'Agendar Cita'}
                 </button>
