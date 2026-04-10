@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import App from './App';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 
 // Mock all page components to avoid loading their heavy logic
 vi.mock('./pages/Dashboard', () => ({ default: () => <div data-testid="dashboard-page">Dashboard Page</div> }));
@@ -88,7 +88,7 @@ describe('App Navigation & Routing', () => {
   });
 
   it('syncs state when URL changes externally (e.g. internal navigation)', async () => {
-    const { container } = render(
+    render(
       <MemoryRouter initialEntries={['/damian/clients']}>
         <App />
       </MemoryRouter>
