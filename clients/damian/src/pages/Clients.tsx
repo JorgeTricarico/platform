@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchClients, searchClients, createClient, updateClient, fetchClientHistory } from '../services/api';
 import type { DBClient, ClientHistoryResponse } from '../services/api';
 import { useToast } from '../components/ToastContext';
 
-const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
+const EMPTY_FORM = { name: '', phone: '', altPhone: '' };
 
 export default function Clients() {
   const toast = useToast();
+  const navigate = useNavigate();
   const [clients, setClients] = useState<DBClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,7 +49,7 @@ export default function Clients() {
 
   const openEdit = (c: DBClient) => {
     setEditTarget(c);
-    setEditForm({ name: c.name, phone: c.phone, altPhone: c.altPhone || '', email: c.email || '', notes: c.notes || '' });
+    setEditForm({ name: c.name, phone: c.phone, altPhone: c.altPhone || '' });
   };
 
   const handleEdit = async (e: React.FormEvent) => {
@@ -70,6 +72,10 @@ export default function Clients() {
     } catch {
       toast.error('Error al cargar historial');
     }
+  };
+
+  const createRecord = (c: DBClient) => {
+    navigate(`/damian/patients?select=${c.id}&action=new_record`);
   };
 
   if (loading && clients.length === 0) return <div>Cargando clientes...</div>;
@@ -100,8 +106,6 @@ export default function Clients() {
               <tr>
                 <th>Nombre</th>
                 <th>Telefono</th>
-                <th>Email</th>
-                <th>Notas</th>
                 <th>Registrado</th>
                 <th>Acciones</th>
               </tr>
@@ -114,13 +118,18 @@ export default function Clients() {
                     <div>{c.phone}</div>
                     {c.altPhone && <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{c.altPhone}</div>}
                   </td>
-                  <td style={{ color: c.email ? 'inherit' : 'var(--text-secondary)' }}>{c.email || '-'}</td>
-                  <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: c.notes ? 'inherit' : 'var(--text-secondary)' }}>{c.notes || '-'}</td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button
+                        className="btn btn-primary btn-small"
+                        onClick={() => createRecord(c)}
+                      >
+                        Crear Ficha
+                      </button>
+                      <button
                         className="btn btn-small"
+                        style={{ backgroundColor: 'var(--surface-color)', border: '1px solid var(--border-color)' }}
                         onClick={() => openEdit(c)}
                       >
                         Editar
@@ -138,7 +147,7 @@ export default function Clients() {
               ))}
               {clients.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
+                  <td colSpan={4} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
                     No se encontraron clientes.
                   </td>
                 </tr>
@@ -264,7 +273,7 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
         <h2 style={{ marginTop: 0 }}>{title}</h2>
         <form onSubmit={handleSubmit} className="form-group">
           {/* Identity & Contact Group */}
-          <div style={{ padding: '16px', backgroundColor: 'var(--surface-secondary)', borderRadius: '12px', marginBottom: '8px' }}>
+          <div style={{ padding: '16px', backgroundColor: 'var(--surface-secondary)', borderRadius: '12px', marginBottom: '24px' }}>
             <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Identidad y Contacto</label>
             <div className="form-group" style={{ gap: '12px' }}>
               <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className="input" />
@@ -272,13 +281,7 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
                 <input required name="phone" placeholder="Teléfono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input" style={{ flex: 1, opacity: phoneDisabled ? 0.6 : 1 }} />
                 <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className="input" style={{ flex: 1 }} />
               </div>
-              <input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} className="input" />
             </div>
-          </div>
-
-          <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Notas e Información Adicional</label>
-            <textarea name="notes" placeholder="Notas sobre el paciente, antecedentes, etc..." value={form.notes} onChange={handle} rows={3} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
           </div>
 
           <div className="form-actions">

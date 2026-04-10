@@ -51,8 +51,6 @@ export const createClientSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(1),
   altPhone: z.string().nullish(),
-  email: z.string().nullish(),
-  notes: z.string().nullish(),
 });
 
 export const updateClientSchema = createClientSchema.partial();

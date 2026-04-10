@@ -23,7 +23,7 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
         where: { phone_business: { phone: senderPhone, business: 'zenco' } }
       });
       if (client) {
-        parts.push(`CLIENTE IDENTIFICADO: ${client.name} (tel: ${client.phone})${client.notes ? ` — Notas: ${client.notes}` : ''}`);
+        parts.push(`CLIENTE IDENTIFICADO: ${client.name} (tel: ${client.phone})`);
         parts.push('Podes saludarlo por nombre.');
 
         const orders = await prisma.order.findMany({
@@ -120,7 +120,7 @@ router.post('/', async (req, res) => {
         await prisma.client.upsert({
           where: { phone_business: { phone: senderPhone, business: 'zenco' } },
           update: {},
-          create: { name: 'Cliente nuevo', phone: senderPhone, business: 'zenco', notes: 'Registrado automaticamente via chat' },
+          create: { name: 'Cliente nuevo', phone: senderPhone, business: 'zenco' },
         });
       } catch { /* ignore */ }
     }

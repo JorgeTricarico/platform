@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Patients from './Patients';
 import { ToastProvider } from '../components/ToastContext';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockPatient = {
   id: 'c1',
@@ -39,14 +40,14 @@ beforeEach(() => {
 
 describe('Patients page (damian)', () => {
   it('renders patient list', async () => {
-    render(<ToastProvider><Patients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Patients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Juan Perez')).toBeInTheDocument();
     });
   });
 
   it('opens patient detail when Ver Historial is clicked', async () => {
-    render(<ToastProvider><Patients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Patients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Juan Perez')).toBeInTheDocument();
     });
@@ -57,7 +58,7 @@ describe('Patients page (damian)', () => {
   });
 
   it('shows Próxima Cita widget in patient detail', async () => {
-    render(<ToastProvider><Patients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Patients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Juan Perez')).toBeInTheDocument();
     });
@@ -70,7 +71,7 @@ describe('Patients page (damian)', () => {
   it('shows "Sin citas programadas" when no upcoming appointment', async () => {
     (fetchNextAppointment as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-    render(<ToastProvider><Patients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Patients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Juan Perez')).toBeInTheDocument();
     });
@@ -93,7 +94,7 @@ describe('Patients page (damian)', () => {
       price: 8000,
     });
 
-    render(<ToastProvider><Patients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Patients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Juan Perez')).toBeInTheDocument();
     });
@@ -117,7 +118,7 @@ describe('Patients page (damian)', () => {
       price: 6000,
     });
 
-    render(<ToastProvider><Patients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Patients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Juan Perez')).toBeInTheDocument();
     });

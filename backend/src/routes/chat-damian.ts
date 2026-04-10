@@ -26,7 +26,7 @@ const tools: any[] = [
             date: { type: SchemaType.STRING, description: 'Fecha YYYY-MM-DD' },
             time: { type: SchemaType.STRING, description: 'Hora HH:MM' },
           },
-          required: ['clientName', 'service', 'date', 'time'],
+          required: ['clientName', 'clientPhone', 'service', 'date', 'time'],
         },
       },
       {
@@ -38,6 +38,19 @@ const tools: any[] = [
             appointmentId: { type: SchemaType.STRING, description: 'ID del turno a cancelar' },
           },
           required: ['appointmentId'],
+        },
+      },
+      {
+        name: 'reschedule_appointment',
+        description: 'Reprograma un turno existente a una nueva fecha y hora. Verifica disponibilidad automaticamente.',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            appointmentId: { type: SchemaType.STRING, description: 'ID del turno a reprogramar' },
+            newDate: { type: SchemaType.STRING, description: 'Nueva fecha YYYY-MM-DD' },
+            newTime: { type: SchemaType.STRING, description: 'Nuevas hora HH:MM' },
+          },
+          required: ['appointmentId', 'newDate', 'newTime'],
         },
       },
     ],
@@ -66,11 +79,23 @@ async function executeFunction(name: string, args: Record<string, string>) {
     // Default to the base service price from config
     const defaultService = 'Descontracturante Cuello y Espalda';
     const info = SERVICE_PRICES[service] || SERVICE_PRICES[defaultService];
+    // Ensure client is registered
+    const phone = args.clientPhone || '(pendiente)';
+    await prisma.client.upsert({
+      where: { phone_business: { phone: phone, business: 'damian' } },
+      update: { name: args.clientName },
+      create: {
+        name: args.clientName,
+        phone: phone,
+        business: 'damian',
+      }
+    });
+
     const appointment = await prisma.appointment.create({
       data: {
         id: `APT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         clientName: args.clientName,
-        clientPhone: args.clientPhone || '',
+        clientPhone: phone,
         service,
         duration: info.duration,
         date: args.date,
@@ -99,6 +124,38 @@ async function executeFunction(name: string, args: Record<string, string>) {
     }
   }
 
+  if (name === 'reschedule_appointment') {
+    try {
+      const { appointmentId, newDate, newTime } = args;
+      const appointment = await prisma.appointment.findUnique({ where: { id: appointmentId } });
+      if (!appointment) return { success: false, message: 'No encontre el turno original' };
+
+      // Check for availability in the new slot
+      const existing = await prisma.appointment.findFirst({
+        where: {
+          date: newDate,
+          time: newTime,
+          status: { not: 'cancelado' },
+          id: { not: appointmentId }, // Don't conflict with itself
+        }
+      });
+
+      if (existing) {
+        return { success: false, message: `Ese horario (${newTime}) ya esta ocupado para el dia ${newDate}.` };
+      }
+
+      const updated = await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: { date: newDate, time: newTime }
+      });
+
+      return { success: true, rescheduled: { id: updated.id, oldDate: appointment.date, oldTime: appointment.time, newDate: updated.date, newTime: updated.time, service: updated.service } };
+    } catch (error) {
+      console.error('Reschedule error:', error);
+      return { success: false, message: 'Error tecnico al reprogramar' };
+    }
+  }
+
   return { error: 'Funcion no encontrada' };
 }
 
@@ -114,7 +171,7 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
         where: { phone_business: { phone: senderPhone, business: 'damian' } }
       });
       if (client) {
-        parts.push(`CLIENTE IDENTIFICADO: ${client.name} (tel: ${client.phone})${client.notes ? ` — Notas: ${client.notes}` : ''}`);
+        parts.push(`CLIENTE IDENTIFICADO: ${client.name} (tel: ${client.phone})`);
         parts.push('Podes saludarlo por nombre.');
 
         // Their appointments
@@ -222,23 +279,24 @@ router.post('/', async (req, res) => {
     const context = await buildContext(senderPhone, message);
 
     const { reply } = await chatWithFallback({
-      systemPrompt: SYSTEM_PROMPT + context,
+      systemPrompt: (senderPhone ? `SENDER_PHONE: ${senderPhone}\n\n` : '') + SYSTEM_PROMPT + context,
       message,
       history: history || [],
       tools,
       onFunctionCall: executeFunction,
     });
 
-    // Auto-register client if phone provided
+    // Auto-register client if phone provided and not found (or update if needed)
     if (senderPhone) {
       try {
         await prisma.client.upsert({
           where: { phone_business: { phone: senderPhone, business: 'damian' } },
           update: {},
-          create: { name: 'Cliente nuevo', phone: senderPhone, business: 'damian', notes: 'Registrado automaticamente via chat' },
+          create: { name: 'Cliente nuevo', phone: senderPhone, business: 'damian' },
         });
       } catch { /* ignore */ }
     }
+
 
     // Persist messages
     if (sessionId) {

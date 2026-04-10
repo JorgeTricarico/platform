@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Clients from './Clients';
 import { ToastProvider } from '../components/ToastContext';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockClients = [
   {
@@ -37,14 +38,14 @@ beforeEach(() => {
 
 describe('Clients page (damian)', () => {
   it('renders client list', async () => {
-    render(<ToastProvider><Clients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Clients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Carlos Ruiz')).toBeInTheDocument();
     });
   });
 
   it('opens edit modal when Editar is clicked', async () => {
-    render(<ToastProvider><Clients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Clients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Carlos Ruiz')).toBeInTheDocument();
     });
@@ -55,7 +56,7 @@ describe('Clients page (damian)', () => {
   });
 
   it('edit modal pre-populates with client data', async () => {
-    render(<ToastProvider><Clients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Clients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Carlos Ruiz')).toBeInTheDocument();
     });
@@ -67,7 +68,7 @@ describe('Clients page (damian)', () => {
   });
 
   it('calls updateClient (NOT createClient) on edit submit', async () => {
-    render(<ToastProvider><Clients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Clients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Carlos Ruiz')).toBeInTheDocument();
     });
@@ -87,7 +88,7 @@ describe('Clients page (damian)', () => {
   });
 
   it('renders create form when + Nuevo Cliente is clicked', async () => {
-    render(<ToastProvider><Clients /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Clients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Carlos Ruiz')).toBeInTheDocument();
     });

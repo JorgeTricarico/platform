@@ -177,14 +177,12 @@ router.post('/clients', validate(createClientSchema), asyncHandler(async (req, r
   const data = req.body;
   const client = await prisma.client.upsert({
     where: { phone_business: { phone: data.phone, business: 'damian' } },
-    update: { name: data.name, altPhone: data.altPhone, email: data.email, notes: data.notes },
+    update: { name: data.name, altPhone: data.altPhone },
     create: {
       name: data.name,
       phone: data.phone,
       altPhone: data.altPhone,
-      email: data.email,
       business: 'damian',
-      notes: data.notes,
     }
   });
   res.json(client);
@@ -198,8 +196,6 @@ router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req
     data: {
       name: data.name,
       altPhone: data.altPhone,
-      email: data.email,
-      notes: data.notes,
     }
   });
   res.json(updated);

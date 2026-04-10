@@ -12,11 +12,23 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: ''
+    clientName: '', clientPhone: '', service: '', duration: 40, date: '', time: '', price: 0, notes: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    if (name === 'service' && value in (BUSINESS.services as any)) {
+      const selected = (BUSINESS.services as any)[value];
+      setFormData(prev => ({ 
+        ...prev, 
+        service: value,
+        price: selected.price,
+        duration: selected.duration
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,7 +37,7 @@ export default function Dashboard() {
     try {
       await createAppointment({ ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setIsModalOpen(false);
-      setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
+      setFormData({ clientName: '', clientPhone: '', service: '', duration: 40, date: '', time: '', price: 0, notes: '' });
       toast.success('Cita agendada correctamente');
       // Dispatch custom event so widgets re-fetch
       window.dispatchEvent(new Event('dashboard-refresh'));
@@ -67,7 +79,7 @@ export default function Dashboard() {
 
               <select required name="service" value={formData.service} onChange={handleInputChange} className="input">
                 <option value="">Tipo de Masaje...</option>
-                {BUSINESS.services.map(s => (
+                {Object.keys(BUSINESS.services).map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>

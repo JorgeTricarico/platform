@@ -15,11 +15,23 @@ export default function Appointments() {
   const [submitting, setSubmitting] = useState(false);
   const [dateFilter, setDateFilter] = useState<'todos' | 'hoy' | 'semana' | 'mes' | 'proximas' | 'historial'>('todos');
   const [formData, setFormData] = useState({
-    clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: new Date().toISOString().split('T')[0], time: '', price: 0, notes: ''
+    clientName: '', clientPhone: '', service: '', duration: 40, date: new Date().toISOString().split('T')[0], time: '', price: 0, notes: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    if (name === 'service' && value in (BUSINESS.services as any)) {
+      const selected = (BUSINESS.services as any)[value];
+      setFormData(prev => ({ 
+        ...prev, 
+        service: value,
+        price: selected.price,
+        duration: selected.duration
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const openEdit = (appointment: DBAppointment) => {
@@ -45,7 +57,7 @@ export default function Appointments() {
       await updateAppointment(editTarget.id, { ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setEditTarget(null);
       setConflictError('');
-      setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
+      setFormData({ clientName: '', clientPhone: '', service: '', duration: 40, date: '', time: '', price: 0, notes: '' });
       toast.success('Cita actualizada correctamente');
       loadData();
     } catch (error: unknown) {
@@ -66,7 +78,7 @@ export default function Appointments() {
       await createAppointment({ ...formData, duration: Number(formData.duration), price: Number(formData.price) });
       setIsModalOpen(false);
       setConflictError('');
-      setFormData({ clientName: '', clientPhone: '', service: '', duration: BUSINESS.defaultDuration, date: '', time: '', price: 0, notes: '' });
+      setFormData({ clientName: '', clientPhone: '', service: '', duration: 40, date: '', time: '', price: 0, notes: '' });
       toast.success('Cita agendada correctamente');
       loadData();
     } catch (error: unknown) {
@@ -267,7 +279,7 @@ export default function Appointments() {
                 <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Detalles del Servicio</label>
                 <select required name="service" value={formData.service} onChange={handleInputChange} className="input" style={{ marginBottom: '12px' }}>
                   <option value="">Tipo de Masaje...</option>
-                  {BUSINESS.services.map(s => (
+                  {Object.keys(BUSINESS.services).map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
@@ -327,7 +339,7 @@ export default function Appointments() {
 
               <select required name="service" value={formData.service} onChange={handleInputChange} className="input">
                 <option value="">Tipo de Masaje...</option>
-                {BUSINESS.services.map(s => (
+                {Object.keys(BUSINESS.services).map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>

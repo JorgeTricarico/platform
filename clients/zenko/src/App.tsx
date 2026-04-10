@@ -32,10 +32,17 @@ function AuthGate() {
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'clients' | 'chat'>('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Default visible on desktop
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toast = useToast();
   const { user, authRequired, logout } = useAuth();
+
+  useEffect(() => {
+    // Initial state based on screen size
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
+  }, []);
 
   useEffect(() => {
     const cleanup = setupOnlineSync((count) => {
@@ -46,26 +53,28 @@ function AppContent() {
 
   const navigate = (tab: typeof activeTab) => {
     setActiveTab(tab);
-    setSidebarOpen(false);
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
   };
 
   const toggleSidebar = () => {
-    if (window.innerWidth > 768) {
-      setIsCollapsed(!isCollapsed);
-    } else {
-      setSidebarOpen(!sidebarOpen);
-    }
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
     <div className="app-container">
       <OfflineIndicator />
       {/* Sidebar overlay for mobile */}
-      <div className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
+      <div className={`sidebar-overlay ${sidebarOpen && window.innerWidth <= 768 ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
+      <aside className={`sidebar ${sidebarOpen ? 'open' : 'hidden'} ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-logo">
-          <img src={logoUrl} alt="Zenko Logo" style={{ width: 48, height: 48, borderRadius: '12px', objectFit: 'cover' }} />
+          <img src={logoUrl} alt="Zenko Logo" style={{ width: 44, height: 44, borderRadius: '12px', objectFit: 'cover' }} />
           <span className="logo-text">Zenko<span>.arg</span></span>
         </div>
         
@@ -82,7 +91,7 @@ function AppContent() {
             onClick={() => navigate('garments')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"></path></svg>
-            <span>Prendas y Órdenes</span>
+            <span>Ordenes</span>
           </div>
           <div 
             className={`nav-link ${activeTab === 'finances' ? 'active' : ''}`}
@@ -103,9 +112,18 @@ function AppContent() {
             onClick={() => navigate('chat')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            <span>Estado del Pedido (AI)</span>
+            <span>AI Bot</span>
           </div>
         </nav>
+
+        <div className="sidebar-footer">
+          <button className="collapse-btn" onClick={toggleCollapse}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Colapsar</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Area */}

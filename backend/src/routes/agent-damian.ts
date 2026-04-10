@@ -1,7 +1,6 @@
 import { Router } from 'express';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { prisma } from '../db.js';
-
+import { chatWithFallback } from '../services/ai-chat.js';
 import { DAMIAN_CONFIG } from '../config/damian.js';
 
 const router = Router();
@@ -15,9 +14,9 @@ const tools: any[] = [
         name: 'search_patients',
         description: 'Busca pacientes por nombre o telefono',
         parameters: {
-          type: SchemaType.OBJECT,
+          type: 'OBJECT',
           properties: {
-            query: { type: SchemaType.STRING, description: 'Nombre o telefono del paciente' },
+            query: { type: 'STRING', description: 'Nombre o telefono del paciente' },
           },
           required: ['query'],
         },
@@ -26,9 +25,9 @@ const tools: any[] = [
         name: 'get_patient_history',
         description: 'Obtiene el historial clinico completo de un paciente por su ID',
         parameters: {
-          type: SchemaType.OBJECT,
+          type: 'OBJECT',
           properties: {
-            clientId: { type: SchemaType.STRING, description: 'ID del paciente' },
+            clientId: { type: 'STRING', description: 'ID del paciente' },
           },
           required: ['clientId'],
         },
@@ -37,16 +36,16 @@ const tools: any[] = [
         name: 'save_patient_record',
         description: 'Guarda una nueva ficha clinica para un paciente',
         parameters: {
-          type: SchemaType.OBJECT,
+          type: 'OBJECT',
           properties: {
-            clientId: { type: SchemaType.STRING, description: 'ID del paciente' },
-            date: { type: SchemaType.STRING, description: 'Fecha de la sesion YYYY-MM-DD' },
-            reason: { type: SchemaType.STRING, description: 'Motivo de consulta' },
-            symptoms: { type: SchemaType.STRING, description: 'Sintomas reportados' },
-            areas: { type: SchemaType.STRING, description: 'Zonas trabajadas' },
-            treatment: { type: SchemaType.STRING, description: 'Tratamiento aplicado' },
-            observations: { type: SchemaType.STRING, description: 'Observaciones' },
-            nextSession: { type: SchemaType.STRING, description: 'Indicaciones proxima sesion' },
+            clientId: { type: 'STRING', description: 'ID del paciente' },
+            date: { type: 'STRING', description: 'Fecha de la sesion YYYY-MM-DD' },
+            reason: { type: 'STRING', description: 'Motivo de consulta' },
+            symptoms: { type: 'STRING', description: 'Sintomas reportados' },
+            areas: { type: 'STRING', description: 'Zonas trabajadas' },
+            treatment: { type: 'STRING', description: 'Tratamiento aplicado' },
+            observations: { type: 'STRING', description: 'Observaciones' },
+            nextSession: { type: 'STRING', description: 'Indicaciones proxima sesion' },
           },
           required: ['clientId', 'date', 'reason'],
         },
@@ -55,12 +54,10 @@ const tools: any[] = [
         name: 'register_patient',
         description: 'Registra un nuevo paciente',
         parameters: {
-          type: SchemaType.OBJECT,
+          type: 'OBJECT',
           properties: {
-            name: { type: SchemaType.STRING, description: 'Nombre completo' },
-            phone: { type: SchemaType.STRING, description: 'Telefono' },
-            email: { type: SchemaType.STRING, description: 'Email' },
-            notes: { type: SchemaType.STRING, description: 'Notas generales (alergias, condiciones, etc)' },
+            name: { type: 'STRING', description: 'Nombre completo' },
+            phone: { type: 'STRING', description: 'Telefono' },
           },
           required: ['name', 'phone'],
         },
@@ -69,43 +66,56 @@ const tools: any[] = [
         name: 'get_today_appointments',
         description: 'Obtiene los turnos de hoy o de una fecha especifica',
         parameters: {
-          type: SchemaType.OBJECT,
+          type: 'OBJECT',
           properties: {
-            date: { type: SchemaType.STRING, description: 'Fecha YYYY-MM-DD (por defecto hoy)' },
+            date: { type: 'STRING', description: 'Fecha YYYY-MM-DD (por defecto hoy)' },
           },
           required: [],
         },
       },
       {
         name: 'play_music',
-        description: 'Controla la musica ambiente. Puede reproducir, pausar o buscar una track especifica entre las que tiene guardadas el usuario.',
+        description: 'Controla la musica ambiente. Puede reproducir, pausar o buscar una track especifica.',
         parameters: {
-          type: SchemaType.OBJECT,
+          type: 'OBJECT',
           properties: {
-            action: { type: SchemaType.STRING, description: 'Accion: play, pause, next' },
-            query: { type: SchemaType.STRING, description: 'Nombre de la cancion o genero a buscar (opcional)' },
+            action: { type: 'STRING', description: 'Accion: play, pause, next' },
+            query: { type: 'STRING', description: 'Nombre de la cancion o genero a buscar (opcional)' },
           },
           required: ['action'],
         },
       },
       {
         name: 'cancel_appointment',
-        description: 'Cancela una cita existente. Busca por nombre del cliente y fecha, o por ID de la cita.',
+        description: 'Cancela una cita existente.',
         parameters: {
-          type: SchemaType.OBJECT,
+          type: 'OBJECT',
           properties: {
-            appointmentId: { type: SchemaType.STRING, description: 'ID de la cita (si se conoce)' },
-            clientName: { type: SchemaType.STRING, description: 'Nombre del cliente (para buscar la cita)' },
-            date: { type: SchemaType.STRING, description: 'Fecha de la cita YYYY-MM-DD (para buscar)' },
+            appointmentId: { type: 'STRING', description: 'ID de la cita (si se conoce)' },
+            clientName: { type: 'STRING', description: 'Nombre del cliente (para buscar la cita)' },
+            date: { type: 'STRING', description: 'Fecha de la cita YYYY-MM-DD (para buscar)' },
           },
           required: [],
+        },
+      },
+      {
+        name: 'reschedule_appointment',
+        description: 'Reprograma un turno existente a una nueva fecha y hora.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            appointmentId: { type: 'STRING', description: 'ID del turno a reprogramar' },
+            newDate: { type: 'STRING', description: 'Nueva fecha YYYY-MM-DD' },
+            newTime: { type: 'STRING', description: 'Nuevas hora HH:MM' },
+          },
+          required: ['appointmentId', 'newDate', 'newTime'],
         },
       },
     ],
   },
 ];
 
-async function executeFunction(name: string, args: Record<string, string>) {
+async function executeFunction(name: string, args: Record<string, string>, actions: any[]) {
   if (name === 'search_patients') {
     const q = args.query.toLowerCase();
     const clients = await prisma.client.findMany({
@@ -118,7 +128,7 @@ async function executeFunction(name: string, args: Record<string, string>) {
       },
       take: 10,
     });
-    return { patients: clients.map(c => ({ id: c.id, name: c.name, phone: c.phone, notes: c.notes })) };
+    return { patients: clients.map(c => ({ id: c.id, name: c.name, phone: c.phone })) };
   }
 
   if (name === 'get_patient_history') {
@@ -134,7 +144,7 @@ async function executeFunction(name: string, args: Record<string, string>) {
       take: 10,
     });
     return {
-      patient: { name: client.name, phone: client.phone, notes: client.notes },
+      patient: { name: client.name, phone: client.phone },
       records: records.map(r => ({ date: r.date, reason: r.reason, symptoms: r.symptoms, areas: r.areas, treatment: r.treatment, observations: r.observations, nextSession: r.nextSession })),
       appointments: appointments.map(a => ({ date: a.date, time: a.time, service: a.service, status: a.status })),
     };
@@ -159,14 +169,16 @@ async function executeFunction(name: string, args: Record<string, string>) {
   if (name === 'register_patient') {
     const client = await prisma.client.upsert({
       where: { phone_business: { phone: args.phone, business: 'damian' } },
-      update: { name: args.name, email: args.email || null, notes: args.notes || null },
-      create: { name: args.name, phone: args.phone, email: args.email || null, business: 'damian', notes: args.notes || null },
+      update: { name: args.name },
+      create: { name: args.name, phone: args.phone, business: 'damian' },
     });
     return { success: true, clientId: client.id, name: client.name };
   }
 
   if (name === 'play_music') {
-    return { action: args.action || 'play', query: args.query || null, type: 'music_command' };
+    const cmd = { type: 'music_command', action: args.action || 'play', query: args.query || null };
+    actions.push(cmd);
+    return cmd;
   }
 
   if (name === 'cancel_appointment') {
@@ -203,6 +215,38 @@ async function executeFunction(name: string, args: Record<string, string>) {
     return { date, appointments: appointments.map(a => ({ time: a.time, clientName: a.clientName, clientPhone: a.clientPhone, service: a.service, status: a.status })) };
   }
 
+  if (name === 'reschedule_appointment') {
+    try {
+      const { appointmentId, newDate, newTime } = args;
+      const appointment = await prisma.appointment.findUnique({ where: { id: appointmentId } });
+      if (!appointment) return { error: 'No encontre el turno original' };
+
+      // Check availability (ignoring the current appointment)
+      const existing = await prisma.appointment.findFirst({
+        where: {
+          date: newDate,
+          time: newTime,
+          status: { not: 'cancelado' },
+          id: { not: appointmentId },
+        }
+      });
+
+      if (existing) {
+        return { error: `El horario ${newTime} del ${newDate} ya esta ocupado por ${existing.clientName}.` };
+      }
+
+      await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: { date: newDate, time: newTime }
+      });
+
+      return { success: true, rescheduled: { id: appointmentId, newDate, newTime } };
+    } catch (error) {
+      console.error('Agent Reschedule error:', error);
+      return { error: 'Error tecnico al reprogramar' };
+    }
+  }
+
   return { error: 'Funcion no encontrada' };
 }
 
@@ -211,43 +255,17 @@ router.post('/', async (req, res) => {
     const { message, history } = req.body;
     if (!message) return res.status(400).json({ error: 'Mensaje requerido' });
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.json({ reply: 'API key no configurada' });
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: SYSTEM_PROMPT,
+    const actions: any[] = [];
+    
+    const result = await chatWithFallback({
+      systemPrompt: SYSTEM_PROMPT,
+      message,
+      history: history || [],
       tools,
+      onFunctionCall: (name, args) => executeFunction(name, args, actions),
     });
 
-    const chat = model.startChat({ history: history || [] });
-    let response = await chat.sendMessage(message);
-    let result = response.response;
-
-    const actions: Array<{ type: string; [key: string]: unknown }> = [];
-    let maxRounds = 5;
-    while (maxRounds-- > 0) {
-      const functionCalls = result.functionCalls();
-      if (!functionCalls || functionCalls.length === 0) break;
-
-      const functionResponses = [];
-      for (const fc of functionCalls) {
-        const fnResult = await executeFunction(fc.name, fc.args as Record<string, string>);
-        if (fnResult && typeof fnResult === 'object' && 'type' in fnResult && fnResult.type === 'music_command') {
-          actions.push(fnResult as { type: string; action: string; query: string | null });
-        }
-        functionResponses.push({
-          functionResponse: { name: fc.name, response: fnResult },
-        });
-      }
-
-      response = await chat.sendMessage(functionResponses);
-      result = response.response;
-    }
-
-    const reply = result.text();
-    res.json({ reply, ...(actions.length > 0 && { actions }) });
+    res.json({ reply: result.reply, actions });
   } catch (error) {
     console.error('Agent Damian error:', error);
     res.json({ reply: 'Hubo un error, intenta de nuevo.' });

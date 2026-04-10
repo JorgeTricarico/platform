@@ -33,11 +33,18 @@ function AuthGate() {
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Default visible on desktop
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { isPlaying, currentTrackTitle } = useMusicCommand();
   const toast = useToast();
   const { user, authRequired, logout } = useAuth();
+
+  useEffect(() => {
+    // Initial state based on screen size
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
+  }, []);
 
   useEffect(() => {
     const cleanup = setupOnlineSync((count) => {
@@ -48,24 +55,26 @@ function AppContent() {
 
   const navigate = (tab: typeof activeTab) => {
     setActiveTab(tab);
-    setSidebarOpen(false);
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
   };
 
   const toggleSidebar = () => {
-    if (window.innerWidth > 768) {
-      setIsCollapsed(!isCollapsed);
-    } else {
-      setSidebarOpen(!sidebarOpen);
-    }
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
     <div className="app-container">
       <OfflineIndicator />
-      <div className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
+      <div className={`sidebar-overlay ${sidebarOpen && window.innerWidth <= 768 ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
+      <aside className={`sidebar ${sidebarOpen ? 'open' : 'hidden'} ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-logo">
-          <img src={logoUrl} alt={`${BUSINESS.name} Logo`} style={{ width: 48, height: 48, borderRadius: '12px', objectFit: 'cover' }} />
+          <img src={logoUrl} alt={`${BUSINESS.name} Logo`} style={{ width: 44, height: 44, borderRadius: '12px', objectFit: 'cover' }} />
           <span className="logo-text">{BUSINESS.brandLabel}<span>{BUSINESS.brandSuffix}</span></span>
         </div>
 
@@ -97,9 +106,9 @@ function AppContent() {
             title={isPlaying && currentTrackTitle ? `Reproduciendo: ${currentTrackTitle}` : undefined}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-            <span>Musica Ambiente</span>
+            <span>Musica</span>
             {isPlaying && (
-              <span style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--success-color, #22c55e)', animation: 'pulse 2s infinite', flexShrink: 0 }} />
+              <span className="music-pulse" style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--success-color, #22c55e)', animation: 'pulse 2s infinite', flexShrink: 0 }} />
             )}
           </div>
           <div
@@ -114,23 +123,32 @@ function AppContent() {
             onClick={() => navigate('patients')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            <span>Fichas Clinicas</span>
+            <span>Fichas</span>
           </div>
           <div
             className={`nav-link ${activeTab === 'agent' ? 'active' : ''}`}
             onClick={() => navigate('agent')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            <span>Asistente IA</span>
+            <span>AI</span>
           </div>
           <div
             className={`nav-link ${activeTab === 'chat' ? 'active' : ''}`}
             onClick={() => navigate('chat')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            <span>Chat Bot Demo</span>
+            <span>Chat</span>
           </div>
         </nav>
+
+        <div className="sidebar-footer">
+          <button className="collapse-btn" onClick={toggleCollapse}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Colapsar</span>
+          </button>
+        </div>
       </aside>
 
       <main className="main-content">

@@ -61,11 +61,9 @@ describe('generatePatientPdf', () => {
     expect(blob.size).toBeGreaterThan(0);
   });
 
-  it('works with minimal patient data (no email/notes)', () => {
+  it('works with minimal patient data', () => {
     const minimal: DBPatient = {
       ...mockPatient,
-      email: undefined,
-      notes: undefined,
     };
     const doc = generatePatientPdf({ patient: minimal, records: mockRecords });
     const blob = doc.output('blob');

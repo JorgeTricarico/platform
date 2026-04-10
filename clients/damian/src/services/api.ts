@@ -127,9 +127,7 @@ export interface DBClient {
   name: string;
   phone: string;
   altPhone?: string;
-  email?: string;
   business: string;
-  notes?: string;
   createdAt: string;
 }
 

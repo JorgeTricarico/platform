@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Appointments from './Appointments';
 import { ToastProvider } from '../components/ToastContext';
+import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('../services/api', () => ({
   fetchAppointments: vi.fn(),
@@ -13,13 +14,13 @@ vi.mock('../services/api', () => ({
 const mockAppointments = [
   {
     id: 'APT-001', clientName: 'Laura B.', clientPhone: '11-2222-3333',
-    service: 'Masaje Descontracturante', duration: 60,
-    date: '2026-04-05', time: '10:00', status: 'pendiente', price: 8000
+    service: 'Descontracturante Cuello y Espalda', duration: 40,
+    date: '2026-04-05', time: '10:00', status: 'pendiente', price: 30000
   },
   {
     id: 'APT-002', clientName: 'Pedro R.', clientPhone: '11-4444-5555',
-    service: 'Masaje Relajante', duration: 45,
-    date: '2026-04-05', time: '14:00', status: 'confirmado', price: 6000
+    service: 'Descontracturante Cuerpo Entero', duration: 60,
+    date: '2026-04-05', time: '14:00', status: 'confirmado', price: 50000
   }
 ];
 
@@ -32,17 +33,17 @@ describe('Appointments', () => {
   });
 
   it('renders appointments table with data', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
       expect(screen.getByText('Pedro R.')).toBeDefined();
-      expect(screen.getByText('Masaje Descontracturante')).toBeDefined();
-      expect(screen.getByText('Masaje Relajante')).toBeDefined();
+      expect(screen.getByText('Descontracturante Cuello y Espalda')).toBeDefined();
+      expect(screen.getByText('Descontracturante Cuerpo Entero')).toBeDefined();
     });
   });
 
   it('renders search input with correct CSS class', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -51,7 +52,7 @@ describe('Appointments', () => {
   });
 
   it('opens create modal on button click', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -62,7 +63,7 @@ describe('Appointments', () => {
   });
 
   it('modal uses responsive CSS classes', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -75,7 +76,7 @@ describe('Appointments', () => {
   });
 
   it('form uses CSS utility classes', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -95,7 +96,7 @@ describe('D18 — Edit appointment', () => {
   });
 
   it('renders Editar button per appointment row', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -104,7 +105,7 @@ describe('D18 — Edit appointment', () => {
   });
 
   it('opens edit modal pre-populated with appointment data', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -119,7 +120,7 @@ describe('D18 — Edit appointment', () => {
   });
 
   it('calls updateAppointment on edit submit', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -141,23 +142,23 @@ describe('D18 — Edit appointment', () => {
 const d23Appointments = [
   {
     id: 'APT-T1', clientName: 'Hoy Cliente', clientPhone: '11-0001-0001',
-    service: 'Masaje Hoy', duration: 60,
-    date: '2026-04-07', time: '09:00', status: 'pendiente', price: 5000
+    service: 'Descontracturante Cuello y Espalda', duration: 40,
+    date: '2026-04-07', time: '09:00', status: 'pendiente', price: 30000
   },
   {
     id: 'APT-T2', clientName: 'Semana Cliente', clientPhone: '11-0002-0002',
-    service: 'Masaje Semana', duration: 60,
-    date: '2026-04-10', time: '11:00', status: 'pendiente', price: 5000
+    service: 'Descontracturante Piernas', duration: 30,
+    date: '2026-04-10', time: '11:00', status: 'pendiente', price: 25000
   },
   {
     id: 'APT-T3', clientName: 'Mes Cliente', clientPhone: '11-0003-0003',
-    service: 'Masaje Mes', duration: 60,
-    date: '2026-04-22', time: '15:00', status: 'pendiente', price: 5000
+    service: 'Descontracturante Cuerpo Entero', duration: 60,
+    date: '2026-04-22', time: '15:00', status: 'pendiente', price: 50000
   },
   {
     id: 'APT-T4', clientName: 'Otro Mes', clientPhone: '11-0004-0004',
-    service: 'Masaje Pasado', duration: 60,
-    date: '2026-03-15', time: '10:00', status: 'completado', price: 5000
+    service: 'Drenaje por Zona', duration: 60,
+    date: '2026-03-15', time: '10:00', status: 'completado', price: 45000
   }
 ];
 
@@ -173,7 +174,7 @@ describe('D23 — Date filter chips', () => {
   });
 
   it('renders date filter chips: Todos, Hoy, Esta semana, Este mes', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Hoy Cliente')).toBeDefined();
     });
@@ -184,7 +185,7 @@ describe('D23 — Date filter chips', () => {
   });
 
   it('"Todos" chip shows all appointments by default', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Hoy Cliente')).toBeDefined();
     });
@@ -194,7 +195,7 @@ describe('D23 — Date filter chips', () => {
   });
 
   it('"Hoy" chip filters to only today\'s appointments', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Hoy Cliente')).toBeDefined();
     });
@@ -208,7 +209,7 @@ describe('D23 — Date filter chips', () => {
   });
 
   it('"Esta semana" chip filters to this week\'s appointments', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Hoy Cliente')).toBeDefined();
     });
@@ -222,7 +223,7 @@ describe('D23 — Date filter chips', () => {
   });
 
   it('"Este mes" chip filters to this month\'s appointments', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Hoy Cliente')).toBeDefined();
     });
@@ -248,7 +249,7 @@ describe('D24 — Próximas / Historial filter', () => {
   });
 
   it('renders Próximas and Historial chips', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Hoy Cliente')).toBeDefined();
     });
@@ -257,7 +258,7 @@ describe('D24 — Próximas / Historial filter', () => {
   });
 
   it('"Próximas" shows only today and future appointments', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Hoy Cliente')).toBeDefined();
     });
@@ -271,7 +272,7 @@ describe('D24 — Próximas / Historial filter', () => {
   });
 
   it('"Historial" shows only past appointments', async () => {
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Hoy Cliente')).toBeDefined();
     });
@@ -295,7 +296,7 @@ describe('D20 — Conflict display', () => {
     const conflictError = Object.assign(new Error('Conflicto de horario'), { status: 409 });
     (createAppointment as ReturnType<typeof vi.fn>).mockRejectedValue(conflictError);
 
-    render(<ToastProvider><Appointments /></ToastProvider>);
+    render(<MemoryRouter><ToastProvider><Appointments /></ToastProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('Laura B.')).toBeDefined();
     });
@@ -309,7 +310,7 @@ describe('D20 — Conflict display', () => {
     fireEvent.change(screen.getByPlaceholderText('Teléfono'), { target: { name: 'clientPhone', value: '11-1111-1111' } });
     // Select a service to pass HTML required validation
     const serviceSelect = document.querySelector('select[name="service"]') as HTMLSelectElement;
-    fireEvent.change(serviceSelect, { target: { name: 'service', value: 'Masaje Relajante' } });
+    fireEvent.change(serviceSelect, { target: { name: 'service', value: 'Masaje Deportivo' } });
     fireEvent.change(screen.getByPlaceholderText('Duración (min)'), { target: { name: 'duration', value: '60' } });
     fireEvent.change(screen.getByPlaceholderText('Precio ($)'), { target: { name: 'price', value: '5000' } });
     // Set a date and time

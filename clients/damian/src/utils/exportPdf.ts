@@ -23,11 +23,10 @@ export function generatePatientPdf({ patient, records }: ExportPdfOptions): jsPD
   doc.setFontSize(10);
   doc.text(`Nombre: ${patient.name}`, 14, 50);
   doc.text(`Teléfono: ${patient.phone}`, 14, 56);
-  if (patient.email) doc.text(`Email: ${patient.email}`, 14, 62);
-  if (patient.notes) doc.text(`Notas: ${patient.notes}`, 14, patient.email ? 68 : 62);
+  if (patient.altPhone) doc.text(`Alternativo: ${patient.altPhone}`, 14, 62);
 
   // Records table
-  const startY = patient.notes ? 78 : patient.email ? 72 : 66;
+  const startY = 70;
   doc.setFontSize(12);
   doc.text(`Historial de sesiones (${records.length})`, 14, startY);
 

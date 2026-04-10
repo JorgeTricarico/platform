@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { fetchPatients, fetchPatientRecords, createPatientRecord, fetchNextAppointment } from '../services/api';
 import type { DBPatient, DBPatientRecord, DBAppointment } from '../services/api';
 import { downloadPatientPdf } from '../utils/exportPdf';
@@ -8,6 +9,7 @@ const EMPTY_RECORD = { date: new Date().toISOString().split('T')[0], reason: '',
 
 export default function Patients() {
   const toast = useToast();
+  const [searchParams] = useSearchParams();
   const [patients, setPatients] = useState<DBPatient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,11 +22,29 @@ export default function Patients() {
   const [nextAppointment, setNextAppointment] = useState<DBAppointment | null>(null);
   const [loadingNextAppointment, setLoadingNextAppointment] = useState(false);
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
-    fetchPatients()
-      .then(data => { setPatients(data); setLoading(false); })
-      .catch(() => setLoading(false));
+    try {
+      const data = await fetchPatients();
+      setPatients(data);
+      
+      // Handle query params for auto-select
+      const selectId = searchParams.get('select');
+      const action = searchParams.get('action');
+      if (selectId) {
+        const p = data.find(item => item.id === selectId);
+        if (p) {
+          await openHistory(p);
+          if (action === 'new_record') {
+            setIsNewRecord(true);
+          }
+        }
+      }
+    } catch {
+      toast.error('Error al cargar pacientes');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -64,7 +84,8 @@ export default function Patients() {
       const recs = await fetchPatientRecords(selectedPatient.id);
       setRecords(recs);
       toast.success('Ficha guardada correctamente');
-      load(); // refresh patient list too
+      const data = await fetchPatients(); // Refresh list
+      setPatients(data);
     } catch { toast.error('Error al guardar ficha'); }
     finally { setSubmitting(false); }
   };
@@ -87,9 +108,8 @@ export default function Patients() {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                   {selectedPatient.phone}
                 </span>
-                {selectedPatient.email ? `| Email: ${selectedPatient.email}` : ''}
+                {selectedPatient.altPhone ? `| Alternativo: ${selectedPatient.altPhone}` : ''}
               </p>
-              {selectedPatient.notes && <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Notas: {selectedPatient.notes}</p>}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button className="btn btn-small" onClick={() => downloadPatientPdf({ patient: selectedPatient, records })}>Exportar PDF</button>
@@ -99,7 +119,6 @@ export default function Patients() {
         </div>
 
         <div style={{ paddingRight: '8px' }}>
-          {/* D29: Próxima Cita widget */}
           <div className="card" style={{ padding: '20px 24px', marginBottom: '16px' }}>
             <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Próxima Cita</h3>
             {loadingNextAppointment ? (
@@ -143,7 +162,6 @@ export default function Patients() {
             <div className="card modal-card modal-lg" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
               <h2 style={{ marginTop: 0 }}>Nueva Ficha Clínica — {selectedPatient.name}</h2>
               <form onSubmit={handleNewRecord} className="form-group">
-                {/* Consultation Group */}
                 <div style={{ padding: '16px', backgroundColor: 'var(--surface-secondary)', borderRadius: '12px' }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Detalles de la Consulta</label>
                   <div className="form-row">
@@ -158,14 +176,12 @@ export default function Patients() {
                   </div>
                 </div>
 
-                {/* Symptoms & Diagnosis */}
                 <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#666', marginBottom: '8px', display: 'block' }}>Diagnóstico y Síntomas</label>
                   <textarea name="symptoms" placeholder="Síntomas reportados por el paciente" value={recordForm.symptoms} onChange={e => setRecordForm(p => ({ ...p, symptoms: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px' }} />
                   <textarea name="areas" placeholder="Zonas trabajadas (ej: cervical, lumbar, hombros)" value={recordForm.areas} onChange={e => setRecordForm(p => ({ ...p, areas: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical' }} />
                 </div>
 
-                {/* Treatment */}
                 <div style={{ padding: '16px', backgroundColor: '#f0fff4', border: '1px solid #c6f6d5', borderRadius: '12px' }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#2f855a', marginBottom: '8px', display: 'block' }}>Tratamiento Realizado</label>
                   <textarea name="treatment" placeholder="Tratamiento aplicado" value={recordForm.treatment} onChange={e => setRecordForm(p => ({ ...p, treatment: e.target.value }))} rows={2} className="input" style={{ fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px' }} />
@@ -241,12 +257,23 @@ export default function Patients() {
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{p.lastVisit ? new Date(p.lastVisit + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</td>
                   <td style={{ fontSize: '13px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.lastReason || '-'}</td>
                   <td>
-                    <button
-                      className="btn btn-primary btn-small"
-                      onClick={() => openHistory(p)}
-                    >
-                      Ver Historial
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        className="btn btn-primary btn-small"
+                        onClick={() => {
+                          openHistory(p);
+                          setIsNewRecord(true);
+                        }}
+                      >
+                        Crear Ficha
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-small"
+                        onClick={() => openHistory(p)}
+                      >
+                        Ver Historial
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

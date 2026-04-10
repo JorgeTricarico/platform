@@ -1,0 +1,536 @@
+
+[1m[46m RUN [49m[22m [36mv4.1.2 [39m[90m/home/jorge/Documents/Github/Platform[39m
+
+ [31m❯[39m [30m[46m damian [49m[39m src/pages/Appointments.test.tsx [2m([22m[2m17 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1666[2mms[22m[39m
+     [32m✓[39m renders appointments table with data[32m 91[2mms[22m[39m
+     [32m✓[39m renders search input with correct CSS class[32m 15[2mms[22m[39m
+     [32m✓[39m opens create modal on button click[32m 48[2mms[22m[39m
+     [32m✓[39m modal uses responsive CSS classes[32m 42[2mms[22m[39m
+     [32m✓[39m form uses CSS utility classes[32m 23[2mms[22m[39m
+     [32m✓[39m renders Editar button per appointment row[32m 16[2mms[22m[39m
+     [32m✓[39m opens edit modal pre-populated with appointment data[32m 20[2mms[22m[39m
+[31m     [31m×[31m calls updateAppointment on edit submit[39m[33m 1039[2mms[22m[39m
+     [32m✓[39m renders date filter chips: Todos, Hoy, Esta semana, Este mes[32m 28[2mms[22m[39m
+     [32m✓[39m "Todos" chip shows all appointments by default[32m 29[2mms[22m[39m
+     [32m✓[39m "Hoy" chip filters to only today's appointments[32m 47[2mms[22m[39m
+     [32m✓[39m "Esta semana" chip filters to this week's appointments[32m 44[2mms[22m[39m
+     [32m✓[39m "Este mes" chip filters to this month's appointments[32m 44[2mms[22m[39m
+     [32m✓[39m renders Próximas and Historial chips[32m 23[2mms[22m[39m
+     [32m✓[39m "Próximas" shows only today and future appointments[32m 44[2mms[22m[39m
+     [32m✓[39m "Historial" shows only past appointments[32m 44[2mms[22m[39m
+     [32m✓[39m shows conflict error when createAppointment returns 409[32m 64[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m [30m[46m damian [49m[39m src/pages/Appointments.test.tsx[2m > [22mD18 — Edit appointment[2m > [22mcalls updateAppointment on edit submit
+[31m[1mAssertionError[22m[39m: expected "vi.fn()" to be called with arguments: [ 'APT-001', ObjectContaining{…} ][90m
+
+Number of calls: [1m0[22m
+[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mstyle[39m=[32m"display: flex; flex-direction: column;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex-between"[39m
+          [33mstyle[39m=[32m"margin-bottom: 20px; flex-shrink: 0;"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<h1>[39m
+              [0mGestion de Citas[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"subtitle"[39m
+              [33mstyle[39m=[32m"margin: 0px; font-size: 14px;"[39m
+            [36m>[39m
+              [0mAdministra los turnos de tus clientes.[0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"btn btn-primary"[39m
+          [36m>[39m
+            [0m+ Nueva Cita[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card"[39m
+          [33mstyle[39m=[32m"padding: 0px; overflow: hidden; display: flex; flex-direction: column;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;"[39m
+          [36m>[39m
+            [36m<input[39m
+              [33mclass[39m=[32m"input-search"[39m
+              [33mplaceholder[39m=[32m"Buscar por cliente o servicio..."[39m
+              [33mtype[39m=[32m"text"[39m
+              [33mvalue[39m=[32m""[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mstyle[39m=[32m"display: flex; gap: 8px; flex-wrap: wrap;"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"chip chip-active"[39m
+              [36m>[39m
+                [0mTodos[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"chip"[39m
+              [36m>[39m
+                [0mPróximas[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"chip"[39m
+              [36m>[39m
+                [0mHistorial[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"chip"[39m
+              [36m>[39m
+                [0mHoy[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"chip"[39m
+              [36m>[39m
+                [0mEsta semana[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"chip"[39m
+              [36m>[39m
+                [0mEste mes[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"table-container"[39m
+          [36m>[39m
+            [36m<table>[39m
+              [36m<thead>[39m
+                [36m<tr>[39m
+                  [36m<th>[39m
+                    [0mCliente[0m
+                  [36m</th>[39m
+                  [36m<th>[39m
+                    [0mServicio[0m
+                  [36m</th>[39m
+                  [36m<th>[39m
+                    [0mFecha / Hora[0m
+                  [36m</th>[39m
+                  [36m<th>[39m
+                    [0mPrecio[0m
+                  [36m</th>[39m
+                  [36m<th>[39m
+                    [0mEstado[0m
+                  [36m</th>[39m
+                  [36m<th>[39m
+                    [0mAcciones[0m
+                  [36m</th>[39m
+                [36m</tr>[39m
+              [36m</thead>[39m
+              [36m<tbody>[39m
+                [36m<tr[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [36m<td>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"font-weight: 600; text-transform: uppercase;"[39m
+                    [36m>[39m
+                      [0mLaura B.[0m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;"[39m
+                    [36m>[39m
+                      [36m<svg[39m
+                        [33mfill[39m=[32m"none"[39m
+                        [33mheight[39m=[32m"12"[39m
+                        [33mstroke[39m=[32m"currentColor"[39m
+                        [33mstroke-linecap[39m=[32m"round"[39m
+                        [33mstroke-linejoin[39m=[32m"round"[39m
+                        [33mstroke-width[39m=[32m"2.5"[39m
+                        [33mviewBox[39m=[32m"0 0 24 24"[39m
+                        [33mwidth[39m=[32m"12"[39m
+                      [36m>[39m
+                        [36m<rect[39m
+                          [33mheight[39m=[32m"20"[39m
+                          [33mrx[39m=[32m"2"[39m
+                          [33mry[39m=[32m"2"[39m
+                          [33mwidth[39m=[32m"14"[39m
+                          [33mx[39m=[32m"5"[39m
+                          [33my[39m=[32m"2"[39m
+                        [36m/>[39m
+                        [36m<line[39m
+                          [33mx1[39m=[32m"12"[39m
+                          [33mx2[39m=[32m"12.01"[39m
+                          [33my1[39m=[32m"18"[39m
+                          [33my2[39m=[32m"18"[39m
+                        [36m/>[39m
+                      [36m</svg>[39m
+                      [0m11-2222-3333[0m
+                    [36m</div>[39m
+                  [36m</td>[39m
+                  [36m<td>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"font-weight: 600;"[39m
+                    [36m>[39m
+                      [0mMasaje Descontracturante[0m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"font-size: 13px; color: var(--text-secondary);"[39m
+                    [36m>[39m
+                      [0m60[0m
+                      [0m min[0m
+                    [36m</div>[39m
+                  [36m</td>[39m
+                  [36m<td[39m
+                    [33mstyle[39m=[32m"font-weight: 600;"[39m
+                  [36m>[39m
+                    [0m05/04/2026[0m
+                    [0m [0m
+                    [0m10:00[0m
+                  [36m</td>[39m
+                  [36m<td[39m
+                    [33mstyle[39m=[32m"font-weight: 600;"[39m
+                  [36m>[39m
+                    [0m$[0m
+                    [0m8,000[0m
+                  [36m</td>[39m
+                  [36m<td>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"badge pending"[39m
+                    [36m>[39m
+                      [0mPendiente[0m
+                    [36m</span>[39m
+                  [36m</td>[39m
+                  [36m<td>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"display: flex; gap: 8px; align-items: center;"[39m
+                    [36m>[39m
+                      [36m<select[39m
+                        [33mclass[39m=[32m"btn-small"[39m
+                        [33mstyle[39m=[32m"cursor: pointer;"[39m
+                      [36m>[39m
+                        [36m<option[39m
+                          [33mvalue[39m=[32m"pendiente"[39m
+                        [36m>[39m
+                          [0mPendiente[0m
+                        [36m</option>[39m
+                        [36m<option[39m
+                          [33mvalue[39m=[32m"confirmado"[39m
+                        [36m>[39m
+                          [0mConfirmado[0m
+                        [36m</option>[39m
+                        [36m<option[39m
+                          [33mvalue[39m=[32m"completado"[39m
+                        [36m>[39m
+                          [0mCompletado[0m
+                        [36m</option>[39m
+                        [36m<option[39m
+                          [33mvalue[39m=[32m"cancelado"[39m
+                        [36m>[39m
+                          [0mCancelado[0m
+                        [36m</option>[39m
+                      [36m</select>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"btn-small"[39m
+                        [33mstyle[39m=[32m"cursor: pointer;"[39m
+                        [33mtype[39m=[32m"button"[39m
+                      [36m>[39m
+                        [0mEditar[0m
+                      [36m</button>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"btn-small"[39m
+                        [33mstyle[39m=[32m"cursor: pointer; background: rgb(254, 226, 226); color: rgb(220, 38, 38); border: 1px solid rgb(252, 165, 165);"[39m
+                        [33mtype[39m=[32m"button"[39m
+                      [36m>[39m
+                        [0mEliminar[0m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                  [36m</td>[39m
+                [36m</tr>[39m
+                [36m<tr[39m
+                  [33mclass[39m=[32m""[39m
+                [36m>[39m
+                  [36m<td>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"font-weight: 600; text-transform: uppercase;"[39m
+                    [36m>[39m
+                      [0mPedro R.[0m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;"[39m
+                    [36m>[39m
+                      [36m<svg[39m
+                        [33mfill[39m=[32m"none"[39m
+                        [33mheight[39m=[32m"12"[39m
+                        [33mstroke[39m=[32m"currentColor"[39m
+                        [33mstroke-linecap[39m=[32m"round"[39m
+                        [33mstroke-linejoin[39m=[32m"round"[39m
+                        [33mstroke-width[39m=[32m"2.5"[39m
+                        [33mviewBox[39m=[32m"0 0 24 24"[39m
+                        [33mwidth[39m=[32m"12"[39m
+                      [36m>[39m
+                        [36m<rect[39m
+                          [33mheight[39m=[32m"20"[39m
+                          [33mrx[39m=[32m"2"[39m
+                          [33mry[39m=[32m"2"[39m
+                          [33mwidth[39m=[32m"14"[39m
+                          [33mx[39m=[32m"5"[39m
+                          [33my[39m=[32m"2"[39m
+                        [36m/>[39m
+                        [36m<line[39m
+                          [33mx1[39m=[32m"12"[39m
+                          [33mx2[39m=[32m"12.01"[39m
+                          [33my1[39m=[32m"18"[39m
+                          [33my2[39m=[32m"18"[39m
+                        [36m/>[39m
+                      [36m</svg>[39m
+                      [0m11-4444-5555[0m
+                    [36m</div>[39m
+                  [36m</td>[39m
+                  [36m<td>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"font-weight: 600;"[39m
+                    [36m>[39m
+                      [0mMasaje Relajante[0m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"font-size: 13px; color: var(--text-secondary);"[39m
+                    [36m>[39m
+                      [0m45[0m
+                      [0m min[0m
+                    [36m</div>[39m
+                  [36m</td>[39m
+                  [36m<td[39m
+                    [33mstyle[39m=[32m"font-weight: 600;"[39m
+                  [36m>[39m
+                    [0m05/04/2026[0m
+                    [0m [0m
+                    [0m14:00[0m
+                  [36m</td>[39m
+                  [36m<td[39m
+                    [33mstyle[39m=[32m"font-weight: 600;"[39m
+                  [36m>[39m
+                    [0m$[0m
+                    [0m6,000[0m
+                  [36m</td>[39m
+                  [36m<td>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"badge completed"[39m
+                    [36m>[39m
+                      [0mConfirmado[0m
+                    [36m</span>[39m
+                  [36m</td>[39m
+                  [36m<td>[39m
+                    [36m<div[39m
+                      [33mstyle[39m=[32m"display: flex; gap: 8px; align-items: center;"[39m
+                    [36m>[39m
+                      [36m<select[39m
+                        [33mclass[39m=[32m"btn-small"[39m
+                        [33mstyle[39m=[32m"cursor: pointer;"[39m
+                      [36m>[39m
+                        [36m<option[39m
+                          [33mvalue[39m=[32m"pendiente"[39m
+                        [36m>[39m
+                          [0mPendiente[0m
+                        [36m</option>[39m
+                        [36m<option[39m
+                          [33mvalue[39m=[32m"confirmado"[39m
+                        [36m>[39m
+                          [0mConfirmado[0m
+                        [36m</option>[39m
+                        [36m<option[39m
+                          [33mvalue[39m=[32m"completado"[39m
+                        [36m>[39m
+                          [0mCompletado[0m
+                        [36m</option>[39m
+                        [36m<option[39m
+                          [33mvalue[39m=[32m"cancelado"[39m
+                        [36m>[39m
+                          [0mCancelado[0m
+                        [36m</option>[39m
+                      [36m</select>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"btn-small"[39m
+                        [33mstyle[39m=[32m"cursor: pointer;"[39m
+                        [33mtype[39m=[32m"button"[39m
+                      [36m>[39m
+                        [0mEditar[0m
+                      [36m</button>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"btn-small"[39m
+                        [33mstyle[39m=[32m"cursor: pointer; background: rgb(254, 226, 226); color: rgb(220, 38, 38); border: 1px solid rgb(252, 165, 165);"[39m
+                        [33mtype[39m=[32m"button"[39m
+                      [36m>[39m
+                        [0mEliminar[0m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                  [36m</td>[39m
+                [36m</tr>[39m
+              [36m</tbody>[39m
+            [36m</table>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"modal-overlay"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"card modal-card modal-md"[39m
+          [36m>[39m
+            [36m<h2[39m
+              [33mstyle[39m=[32m"margin-top: 0px;"[39m
+            [36m>[39m
+              [0mEditar Cita[0m
+            [36m</h2>[39m
+            [36m<form[39m
+              [33mclass[39m=[32m"form-group"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"form-row"[39m
+              [36m>[39m
+                [36m<input[39m
+                  [33mclass[39m=[32m"input"[39m
+                  [33mname[39m=[32m"clientName"[39m
+                  [33mplaceholder[39m=[32m"Nombre completo"[39m
+                  [33mrequired[39m=[32m""[39m
+                  [33mstyle[39m=[32m"flex: 1 1 0%;"[39m
+                  [33mvalue[39m=[32m"Laura B."[39m
+                [36m/>[39m
+                [36m<input[39m
+                  [33mclass[39m=[32m"input"[39m
+                  [33mname[39m=[32m"clientPhone"[39m
+                  [33mplaceholder[39m=[32m"Teléfono"[39m
+                  [33mrequired[39m=[32m""[39m
+                  [33mstyle[39m=[32m"flex: 1 1 0%;"[39m
+                  [33mvalue[39m=[32m"11-2222-3333"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<select[39m
+                [33mclass[39m=[32m"input"[39m
+                [33mname[39m=[32m"service"[39m
+                [33mrequired[39m=[32m""[39m
+              [36m>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m""[39m
+                [36m>[39m
+                  [0mTipo de Masaje...[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"Descontracturante Cuello y Espalda"[39m
+                [36m>[39m
+                  [0mDescontracturante Cuello y Espalda[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"Descontracturante Piernas"[39m
+                [36m>[39m
+                  [0mDescontracturante Piernas[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"Descontracturante Cuerpo Entero"[39m
+                [36m>[39m
+                  [0mDescontracturante Cuerpo Entero[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"Drenaje por Zona"[39m
+                [36m>[39m
+                  [0mDrenaje por Zona[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"Masaje Deportivo"[39m
+                [36m>[39m
+                  [0mMasaje Deportivo[0m
+                [36m</option>[39m
+              [36m</select>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"form-row"[39m
+              [36m>[39m
+                [36m<input[39m
+                  [33mclass[39m=[32m"input"[39m
+                  [33mname[39m=[32m"duration"[39m
+                  [33mplaceholder[39m=[32m"Duración (min)"[39m
+                  [33mrequired[39m=[32m""[39m
+                  [33mstyle[39m=[32m"flex: 1 1 0%;"[39m
+                  [33mtype[39m=[32m"number"[39m
+                  [33mvalue[39m=[32m"60"[39m
+                [36m/>[39m
+                [36m<input[39m
+                  [33mclass[39m=[32m"input"[39m
+                  [33mname[39m=[32m"price"[39m
+                  [33mplaceholder[39m=[32m"Precio ($)"[39m
+                  [33mrequired[39m=[32m""[39m
+                  [33mstyle[39m=[32m"flex: 1 1 0%;"[39m
+                  [33mtype[39m=[32m"number"[39m
+                  [33mvalue[39m=[32m"8000"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"form-row"[39m
+              [36m>[39m
+                [36m<input[39m
+                  [33mclass[39m=[32m"input"[39m
+                  [33mname[39m=[32m"date"[39m
+                  [33mrequired[39m=[32m""[39m
+                  [33mstyle[39m=[32m"flex: 1 1 0%;"[39m
+                  [33mtype[39m=[32m"date"[39m
+                  [33mvalue[39m=[32m"2026-04-05"[39m
+                [36m/>[39m
+                [36m<input[39m
+                  [33mclass[39m=[32m"input"[39m
+                  [33mname[39m=[32m"time"[39m
+                  [33mrequired[39m=[32m""[39m
+                  [33mstyle[39m=[32m"flex: 1 1 0%;"[39m
+                  [33mtype[39m=[32m"time"[39m
+                  [33mvalue[39m=[32m"10:00"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<input[39m
+                [33mclass[39m=[32m"input"[39m
+                [33mname[39m=[32m"notes"[39m
+                [33mplaceholder[39m=[32m"Notas (opcional)..."[39m
+                [33mvalue[39m=[32m""[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"form-actions"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"btn-secondary"[39m
+                  [33mtype[39m=[32m"button"[39m
+                [36m>[39m
+                  [0mCancelar[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"btn btn-primary"[39m
+                  [33mtype[39m=[32m"submit"[39m
+                [36m>[39m
+                  [0mGuardar Cambios[0m
+                [36m</button>[39m
+              [36m</div>[39m
+            [36m</form>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+[36m [2m❯[22m src/pages/Appointments.test.tsx:[2m133:61[22m[39m
+    [90m131|[39m     fireEvent[33m.[39m[34mclick[39m(screen[33m.[39m[34mgetByText[39m([32m'Guardar Cambios'[39m))[33m;[39m
+    [90m132|[39m     [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m133|[39m       expect(updateAppointment as ReturnType<typeof vi.fn>).toHaveBeen…
+    [90m   |[39m                                                             [31m^[39m
+    [90m134|[39m         [32m'APT-001'[39m[33m,[39m
+    [90m135|[39m         expect[33m.[39m[34mobjectContaining[39m({ clientName[33m:[39m [32m'Laura B.'[39m })
+[90m [2m❯[22m runWithExpensiveErrorDiagnosticsDisabled ../../node_modules/@testing-library/dom/dist/config.js:[2m47:12[22m[39m
+[90m [2m❯[22m checkCallback ../../node_modules/@testing-library/dom/dist/wait-for.js:[2m124:77[22m[39m
+[90m [2m❯[22m Timeout.checkRealTimersCallback ../../node_modules/@testing-library/dom/dist/wait-for.js:[2m118:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m16 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m 14:37:55
+[2m   Duration [22m 2.42s[2m (transform 160ms, setup 58ms, import 243ms, tests 1.67s, environment 326ms)[22m
+
