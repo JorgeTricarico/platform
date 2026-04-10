@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchGarmentPhotos, uploadGarmentPhoto, deleteGarmentPhoto, type DBGarmentPhoto } from '../services/api';
 import { useToast } from './ToastContext';
+import { Spinner } from './SkeletonLoader';
 
 import { API_BASE } from '../services/config';
 const BASE_URL = API_BASE;
@@ -55,7 +56,7 @@ export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
 
   const getPhotoUrl = (photo: DBGarmentPhoto) => `${BASE_URL}${photo.url}`;
 
-  if (loading) return <div style={{ padding: '12px 0', color: 'var(--text-secondary)', fontSize: '14px' }}>Cargando fotos...</div>;
+  if (loading) return <div className="flex-center" style={{ padding: '16px' }}><Spinner /></div>;
 
   return (
     <div className="photo-gallery" data-testid="photo-gallery">

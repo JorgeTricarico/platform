@@ -1506,3 +1506,14 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 .clients-modal-title {
   margin-top: 0;
 }
+
+.spinner-inline {
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchClients, searchClients, createClient, updateClient, deleteClient, fetchClientOrders } from '../services/api';
 import type { DBClient, DBGarment, ClientOrdersResponse } from '../services/api';
 import { useToast } from '../components/ToastContext';
+import { SkeletonLoader, Spinner } from '../components/SkeletonLoader';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
 
@@ -79,7 +80,7 @@ export default function Clients() {
     } catch { toast.error('Error al eliminar cliente'); }
   };
 
-  if (loading && clients.length === 0) return <div>Cargando clientes...</div>;
+  if (loading && clients.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
     <div className="clients-page clients-page-full">
@@ -182,7 +183,7 @@ export default function Clients() {
               <button className="btn-secondary" onClick={() => setHistorialTarget(null)}>Cerrar</button>
             </div>
             {clientOrders === null ? (
-              <p>Cargando historial...</p>
+              <div className="flex-center" style={{ padding: '16px' }}><Spinner /></div>
             ) : (
               <>
                 <p className="clients-historial-summary">

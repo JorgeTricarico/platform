@@ -3,6 +3,7 @@ import { fetchFinances, createFinance, updateFinance, deleteFinance } from '../s
 import type { DBFinance } from '../services/api';
 import { BUSINESS } from '../config';
 import { useToast } from '../components/ToastContext';
+import { SkeletonLoader } from '../components/SkeletonLoader';
 
 const EMPTY_FORM = {
   date: new Date().toISOString().split('T')[0],
@@ -104,7 +105,7 @@ export default function Finances() {
     }
   };
 
-  if (loading && finances.length === 0) return <div>Cargando registros financieros...</div>;
+  if (loading && finances.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>

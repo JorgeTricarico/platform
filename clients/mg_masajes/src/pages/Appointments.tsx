@@ -3,6 +3,7 @@ import { fetchAppointments, updateAppointmentStatus, createAppointment, updateAp
 import type { DBAppointment } from '../services/api';
 import { BUSINESS } from '../config';
 import { useToast } from '../components/ToastContext';
+import { SkeletonLoader } from '../components/SkeletonLoader';
 
 export default function Appointments() {
   const toast = useToast();
@@ -152,7 +153,7 @@ export default function Appointments() {
     });
   }, [appointments, searchTerm, dateFilter]);
 
-  if (loading) return <div>Cargando lista de citas...</div>;
+  if (loading) return <SkeletonLoader rows={5} />;
 
   const getStatusBadge = (status: string) => {
     switch (status) {

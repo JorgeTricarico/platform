@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchStaleGarments } from '../services/api';
 import type { StaleGarment } from '../services/api';
 import { BUSINESS } from '../config';
+import { SkeletonCard } from './SkeletonLoader';
 
 export default function StaleGarmentsWidget() {
   const [garments, setGarments] = useState<StaleGarment[]>([]);
@@ -14,7 +15,7 @@ export default function StaleGarmentsWidget() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="card"><p>Cargando prendas...</p></div>;
+  if (loading) return <SkeletonCard />;
 
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short' };

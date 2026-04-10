@@ -25,11 +25,7 @@ function AuthGate() {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p>Cargando...</p>
-      </div>
-    );
+    return <div className="page-loading" />;
   }
 
   if (!isAuthenticated) return <ErrorBoundary><Suspense fallback={<div className="page-loading" />}><Login /></Suspense></ErrorBoundary>;

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchDashboardAppointments } from '../services/api';
 import type { DBAppointment } from '../services/api';
 import { useDashboardRefresh } from './DashboardRefreshContext';
+import { SkeletonCard } from './SkeletonLoader';
 
 function UpcomingAppointmentsWidget() {
   const [appointments, setAppointments] = useState<DBAppointment[]>([]);
@@ -16,7 +17,7 @@ function UpcomingAppointmentsWidget() {
       .finally(() => setLoading(false));
   }, [refreshKey]);
 
-  if (loading) return <div className="card"><p>Cargando agenda...</p></div>;
+  if (loading) return <SkeletonCard />;
 
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short' };

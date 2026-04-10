@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchDashboardMonthlyIncome } from '../services/api';
 import type { MonthlyIncomeData } from '../services/api';
 import { useDashboardRefresh } from './DashboardRefreshContext';
+import { SkeletonCard } from './SkeletonLoader';
 
 function MonthlyIncomeWidget() {
   const [data, setData] = useState<MonthlyIncomeData | null>(null);
@@ -16,7 +17,7 @@ function MonthlyIncomeWidget() {
       .finally(() => setLoading(false));
   }, [refreshKey]);
 
-  if (loading) return <div className="card"><p>Cargando ingresos...</p></div>;
+  if (loading) return <SkeletonCard />;
 
   const income = data?.monthlyIncome ?? 0;
   const expenses = data?.monthlyExpenses ?? 0;

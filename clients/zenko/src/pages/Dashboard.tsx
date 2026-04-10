@@ -5,6 +5,7 @@ import { useToast } from '../components/ToastContext';
 import GarmentModal, { EMPTY_FORM } from '../components/GarmentModal';
 import StaleGarmentsWidget from '../components/StaleGarmentsWidget';
 import type { GarmentFormState } from '../components/GarmentModal';
+import { SkeletonLoader } from '../components/SkeletonLoader';
 
 export default function Dashboard() {
   const toast = useToast();
@@ -69,7 +70,7 @@ export default function Dashboard() {
     return { monthlyIncome: income, monthlyExpenses: expenses, balance: income - expenses };
   }, [dashData]);
 
-  if (loading && garments.length === 0) return <div>Cargando dashboard...</div>;
+  if (loading && garments.length === 0) return <SkeletonLoader rows={5} />;
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });

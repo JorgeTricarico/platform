@@ -5,6 +5,7 @@ import { generateTicket } from '../services/generateTicket';
 import { useToast } from '../components/ToastContext';
 import { BUSINESS } from '../config';
 import GarmentModal, { EMPTY_FORM } from '../components/GarmentModal';
+import { SkeletonLoader } from '../components/SkeletonLoader';
 
 export default function Garments() {
   const toast = useToast();
@@ -120,7 +121,7 @@ export default function Garments() {
     }
   };
 
-  if (loading && garments.length === 0) return <div>Cargando lista de prendas...</div>;
+  if (loading && garments.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

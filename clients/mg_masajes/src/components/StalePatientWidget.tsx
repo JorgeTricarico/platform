@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchDashboardStalePatients } from '../services/api';
 import type { DashboardStalePatient } from '../services/api';
+import { SkeletonCard } from './SkeletonLoader';
 
 export default function StalePatientWidget() {
   const [patients, setPatients] = useState<DashboardStalePatient[]>([]);
@@ -20,7 +21,7 @@ export default function StalePatientWidget() {
     return () => window.removeEventListener('dashboard-refresh', onRefresh);
   }, []);
 
-  if (loading) return <div className="card"><p>Cargando pacientes...</p></div>;
+  if (loading) return <SkeletonCard />;
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'Sin ficha';

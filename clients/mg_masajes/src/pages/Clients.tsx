@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchClients, searchClients, createClient, updateClient, fetchClientHistory } from '../services/api';
 import type { DBClient, ClientHistoryResponse } from '../services/api';
 import { useToast } from '../components/ToastContext';
+import { SkeletonLoader, Spinner } from '../components/SkeletonLoader';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '' };
 
@@ -78,7 +79,7 @@ export default function Clients() {
     navigate(`/damian/patients?select=${c.id}&action=new_record`);
   };
 
-  if (loading && clients.length === 0) return <div>Cargando clientes...</div>;
+  if (loading && clients.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
     <div className="clients-page">
@@ -172,7 +173,7 @@ export default function Clients() {
             </div>
 
             {!history ? (
-              <p>Cargando historial...</p>
+              <div className="flex-center" style={{ padding: '16px' }}><Spinner /></div>
             ) : (
               <div className="clients-history-body">
                 <div className="clients-history-summary-row">

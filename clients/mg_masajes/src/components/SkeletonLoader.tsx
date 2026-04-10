@@ -2,6 +2,12 @@ interface SkeletonLoaderProps {
   rows?: number;
 }
 
+export function Spinner({ size = 20 }: { size?: number }) {
+  return (
+    <div style={{ width: size, height: size }} className="spinner-inline" />
+  );
+}
+
 export function SkeletonLoader({ rows = 5 }: SkeletonLoaderProps) {
   return (
     <div className="skeleton-loader-wrapper">

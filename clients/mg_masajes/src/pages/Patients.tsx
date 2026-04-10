@@ -4,6 +4,7 @@ import { fetchPatients, fetchPatientRecords, createPatientRecord, fetchNextAppoi
 import type { DBPatient, DBPatientRecord, DBAppointment } from '../services/api';
 import { downloadPatientPdf } from '../utils/exportPdf';
 import { useToast } from '../components/ToastContext';
+import { SkeletonLoader, Spinner } from '../components/SkeletonLoader';
 
 const EMPTY_RECORD = { date: new Date().toISOString().split('T')[0], reason: '', symptoms: '', areas: '', treatment: '', observations: '', nextSession: '' };
 
@@ -90,7 +91,7 @@ export default function Patients() {
     finally { setSubmitting(false); }
   };
 
-  if (loading && patients.length === 0) return <div>Cargando pacientes...</div>;
+  if (loading && patients.length === 0) return <SkeletonLoader rows={5} />;
 
   // Detail view
   if (selectedPatient) {
@@ -122,7 +123,7 @@ export default function Patients() {
           <div className="card patients-next-appt-card">
             <h3 className="patients-next-appt-title">Próxima Cita</h3>
             {loadingNextAppointment ? (
-              <div className="patients-next-appt-loading">Cargando...</div>
+              <div className="patients-next-appt-loading"><Spinner size={16} /></div>
             ) : nextAppointment ? (
               <div className="patients-next-appt-info">
                 <span>{new Date(nextAppointment.date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
@@ -135,7 +136,7 @@ export default function Patients() {
             )}
           </div>
 
-          {loadingRecords ? <div>Cargando historial...</div> : (
+          {loadingRecords ? <div className="flex-center" style={{ padding: '16px' }}><Spinner /></div> : (
             <div className="patients-records-list">
               {records.length === 0 && <div className="card patients-record-empty">Sin fichas clinicas registradas.</div>}
               {records.map(r => (
