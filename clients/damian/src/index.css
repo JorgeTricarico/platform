@@ -508,15 +508,34 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   .sidebar {
     position: fixed;
     top: 0;
-    left: -300px;
+    left: -280px;
     width: 280px;
     height: 100vh;
     z-index: 1000;
-    transition: left 0.3s ease;
-    overflow-y: auto;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-lg);
   }
+
+  /* Reset collapse and width on mobile */
+  .sidebar.collapsed {
+    width: 280px;
+    padding: 32px 20px;
+  }
+  
+  .sidebar.collapsed .logo-text,
+  .sidebar.collapsed .nav-link span:not(.music-pulse),
+  .sidebar.collapsed .collapse-btn span {
+    display: block;
+  }
+
   .sidebar.open {
     left: 0;
+  }
+
+  .sidebar.hidden {
+    left: -280px;
+    width: 280px;
+    transform: none;
   }
 
   .sidebar-overlay {
