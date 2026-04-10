@@ -135,8 +135,8 @@ export default function Appointments() {
     if (dateFilter === 'hoy') return a.date === todayStr;
     if (dateFilter === 'semana') return a.date >= weekStartStr && a.date <= weekEndStr;
     if (dateFilter === 'mes') return a.date.startsWith(yearMonth);
-    if (dateFilter === 'proximas') return a.date >= todayStr;
-    if (dateFilter === 'historial') return a.date < todayStr;
+    if (dateFilter === 'proximas') return a.date >= todayStr && a.status !== 'cancelado';
+    if (dateFilter === 'historial') return a.date < todayStr || a.status === 'cancelado';
     return true;
   });
 
@@ -198,7 +198,7 @@ export default function Appointments() {
             </thead>
             <tbody>
               {filtered.map(a => (
-                <tr key={a.id}>
+                <tr key={a.id} className={a.status === 'cancelado' ? 'row-cancelled' : ''} style={a.status === 'cancelado' ? { opacity: 0.5, textDecoration: 'line-through' } : {}}>
                   <td>
                     <div style={{ fontWeight: 600, textTransform: 'uppercase' }}>{a.clientName}</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>

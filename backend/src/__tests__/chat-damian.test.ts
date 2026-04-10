@@ -173,4 +173,25 @@ describe('POST /api/damian/chat — Conversación con contexto pre-cargado', () 
     // But 'ocupado 18:00' should be there
     expect(systemPromptUsed).toContain('ocupado 18:00');
   });
+
+  it('onFunctionCall: cancel_appointment marks as cancelled', async () => {
+    mockPrisma.appointment.findUnique.mockResolvedValue({ id: 'APT-123', status: 'pendiente' });
+    mockPrisma.appointment.update.mockResolvedValue({ id: 'APT-123', status: 'cancelado' });
+
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({ message: 'cancela mi turno APT-123' });
+
+    expect(res.status).toBe(200);
+    expect(mockChat).toHaveBeenCalled();
+    const onFunctionCall = mockChat.mock.calls[0][0].onFunctionCall;
+    const result = await onFunctionCall('cancel_appointment', { appointmentId: 'APT-123' });
+
+    expect(result.success).toBe(true);
+    expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
+      where: { id: 'APT-123' },
+      data: { status: 'cancelado' },
+    });
+  });
 });
