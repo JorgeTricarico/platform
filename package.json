@@ -4,11 +4,10 @@
   "private": true,
   "workspaces": [
     "clients/zenko",
-    "clients/damian",
     "backend"
   ],
   "scripts": {
-    "type-check": "npm run type-check -w clients/zenko && npm run type-check -w clients/damian && npm run type-check -w backend",
+    "type-check": "npm run type-check -w clients/zenko && npm run type-check -w backend",
     "test": "npm run type-check && vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

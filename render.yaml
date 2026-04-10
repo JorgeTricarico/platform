@@ -46,20 +46,3 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
-
-  # ─────────────────────────────────────────────
-  # CLIENTE: DAMIAN — Masajes y Bienestar
-  # ─────────────────────────────────────────────
-  - type: web
-    name: damian-app
-    runtime: static
-    rootDir: clients/damian
-    buildCommand: npm install --legacy-peer-deps && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        sync: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
