@@ -42,6 +42,7 @@ export default function ChatDemo() {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setLoading(true);
 
+    const AI_UNAVAILABLE = 'Lo siento, el asistente de IA no está disponible en este momento. Por favor contactá al administrador para configurar la conexión.';
     try {
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
@@ -49,7 +50,12 @@ export default function ChatDemo() {
         body: JSON.stringify({ message: userMsg, history: currentHistory, sessionId: currentSessionId })
       });
       const data = await res.json();
-      const botReply = data.reply || 'No pude procesar tu mensaje.';
+      if (!res.ok || data.error) {
+        setMessages(prev => [...prev, { role: 'bot', text: AI_UNAVAILABLE }]);
+        setLoading(false);
+        return;
+      }
+      const botReply = data.reply || AI_UNAVAILABLE;
       setMessages(prev => [...prev, { role: 'bot', text: botReply }]);
       setHistory(prev => [
         ...prev,
@@ -57,7 +63,7 @@ export default function ChatDemo() {
         { role: 'model', parts: [{ text: botReply }] },
       ]);
     } catch {
-      setMessages(prev => [...prev, { role: 'bot', text: 'Ups, tuve un problema. Intenta de nuevo en un momento.' }]);
+      setMessages(prev => [...prev, { role: 'bot', text: AI_UNAVAILABLE }]);
     }
     setLoading(false);
   }, []);

@@ -43,12 +43,6 @@ vi.mock('../db.js', () => {
       update: vi.fn(),
       delete: vi.fn(),
     },
-    damianFinance: {
-      findMany: vi.fn().mockResolvedValue([]),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
     mgMasajesFinance: {
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),

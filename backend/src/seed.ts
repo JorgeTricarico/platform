@@ -96,7 +96,7 @@ async function main() {
     skipDuplicates: true
   });
 
-  await prisma.damianFinance.createMany({
+  await prisma.mgMasajesFinance.createMany({
     data: [
       { id: 'FIN-D1', date: '2026-04-01', type: 'income', category: 'Masajes', amount: 8000, description: 'Sesión Roberto G.' },
       { id: 'FIN-D2', date: '2026-04-02', type: 'expense', category: 'Insumos', amount: 4500, description: 'Aceites esenciales de Lavanda' }
