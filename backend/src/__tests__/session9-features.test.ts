@@ -16,7 +16,7 @@ vi.mock('../services/whatsapp.js', () => ({
 const mockPrisma = prisma as unknown as {
   order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
   zencoFinance: { findMany: ReturnType<typeof vi.fn> };
-  damianFinance: { findMany: ReturnType<typeof vi.fn> };
+  mgMasajesFinance: { findMany: ReturnType<typeof vi.fn> };
 };
 
 beforeEach(() => {
@@ -124,21 +124,21 @@ describe('Finance month filter', () => {
   });
 
   // Damian finances
-  it('GET /api/damian/finances?month=2026-04 filters by month', async () => {
-    mockPrisma.damianFinance.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/finances?month=2026-04').set('Authorization', authHeader('damian'));
+  it('GET /api/mg_masajes/finances?month=2026-04 filters by month', async () => {
+    mockPrisma.mgMasajesFinance.findMany.mockResolvedValue([]);
+    const res = await request(app).get('/api/mg_masajes/finances?month=2026-04').set('Authorization', authHeader('mg_masajes'));
     expect(res.status).toBe(200);
-    const callArgs = mockPrisma.damianFinance.findMany.mock.calls[0][0];
+    const callArgs = mockPrisma.mgMasajesFinance.findMany.mock.calls[0][0];
     expect(callArgs.where).toEqual({
       date: { gte: '2026-04-01', lte: '2026-04-30' },
     });
   });
 
-  it('GET /api/damian/finances without month returns all', async () => {
-    mockPrisma.damianFinance.findMany.mockResolvedValue([]);
-    const res = await request(app).get('/api/damian/finances').set('Authorization', authHeader('damian'));
+  it('GET /api/mg_masajes/finances without month returns all', async () => {
+    mockPrisma.mgMasajesFinance.findMany.mockResolvedValue([]);
+    const res = await request(app).get('/api/mg_masajes/finances').set('Authorization', authHeader('mg_masajes'));
     expect(res.status).toBe(200);
-    expect(mockPrisma.damianFinance.findMany).toHaveBeenCalledWith({
+    expect(mockPrisma.mgMasajesFinance.findMany).toHaveBeenCalledWith({
       where: {},
       orderBy: { date: 'desc' },
     });

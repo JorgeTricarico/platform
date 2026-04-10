@@ -72,22 +72,22 @@ describe('GET /api/:business/chat/history', () => {
 
   it('queries with correct business filter', async () => {
     mockPrisma.chatMessage.findMany.mockResolvedValue([]);
-    await request(app).get('/api/damian/chat/history?sessionId=sess-1').set('Authorization', authHeader('damian'));
+    await request(app).get('/api/mg_masajes/chat/history?sessionId=sess-1').set('Authorization', authHeader('mg_masajes'));
 
     expect(mockPrisma.chatMessage.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { business: 'damian', sessionId: 'sess-1' },
+        where: { business: 'mg_masajes', sessionId: 'sess-1' },
         orderBy: { createdAt: 'asc' },
       })
     );
   });
 
-  it('works for damian business', async () => {
+  it('works for mg_masajes business', async () => {
     mockPrisma.chatMessage.findMany.mockResolvedValue([
-      { id: '1', business: 'damian', role: 'user', content: 'Quiero un turno', sessionId: 's1', createdAt: new Date() },
+      { id: '1', business: 'mg_masajes', role: 'user', content: 'Quiero un turno', sessionId: 's1', createdAt: new Date() },
     ]);
 
-    const res = await request(app).get('/api/damian/chat/history?sessionId=s1').set('Authorization', authHeader('damian'));
+    const res = await request(app).get('/api/mg_masajes/chat/history?sessionId=s1').set('Authorization', authHeader('mg_masajes'));
     expect(res.status).toBe(200);
     expect(res.body.messages).toHaveLength(1);
   });
@@ -123,12 +123,12 @@ describe('POST /api/:business/chat — persists messages to DB', () => {
     expect(mockPrisma.chatMessage.createMany).not.toHaveBeenCalled();
   });
 
-  it('persists messages for damian business too', async () => {
+  it('persists messages for mg_masajes business too', async () => {
     mockPrisma.chatMessage.createMany.mockResolvedValue({ count: 2 });
 
     const res = await request(app)
-      .post('/api/damian/chat')
-      .set('Authorization', authHeader('damian'))
+      .post('/api/mg_masajes/chat')
+      .set('Authorization', authHeader('mg_masajes'))
       .send({
         message: 'Quiero un turno',
         sessionId: 'sess-abc',
@@ -137,8 +137,8 @@ describe('POST /api/:business/chat — persists messages to DB', () => {
     expect(res.status).toBe(200);
     expect(mockPrisma.chatMessage.createMany).toHaveBeenCalledWith({
       data: [
-        expect.objectContaining({ business: 'damian', role: 'user', content: 'Quiero un turno', sessionId: 'sess-abc' }),
-        expect.objectContaining({ business: 'damian', role: 'assistant', sessionId: 'sess-abc' }),
+        expect.objectContaining({ business: 'mg_masajes', role: 'user', content: 'Quiero un turno', sessionId: 'sess-abc' }),
+        expect.objectContaining({ business: 'mg_masajes', role: 'assistant', sessionId: 'sess-abc' }),
       ],
     });
   });

@@ -240,14 +240,14 @@ describe('Auth Middleware', () => {
     expect(res.body.error).toBe('Credenciales invalidas');
   });
 
-  it('should block zenco user from damian routes', async () => {
+  it('should block zenco user from mg_masajes routes', async () => {
     const token = jwt.sign(
       { userId: 'user-1', email: 'ana@zenco.com', role: 'admin', business: 'zenco' },
       JWT_SECRET,
       { expiresIn: '7d' },
     );
     const res = await request(app)
-      .get('/api/damian/appointments')
+      .get('/api/mg_masajes/appointments')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(403);
     expect(res.body.error).toBe('No tenes acceso a este negocio');
@@ -265,9 +265,9 @@ describe('Auth Middleware', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(zencoRes.status).toBe(200);
 
-    const damianRes = await request(app)
-      .get('/api/damian/appointments')
+    const mgMasajesRes = await request(app)
+      .get('/api/mg_masajes/appointments')
       .set('Authorization', `Bearer ${token}`);
-    expect(damianRes.status).toBe(200);
+    expect(mgMasajesRes.status).toBe(200);
   });
 });

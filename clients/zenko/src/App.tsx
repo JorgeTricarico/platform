@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import Dashboard from './pages/Dashboard';
-import Garments from './pages/Garments';
-import Finances from './pages/Finances';
-import Clients from './pages/Clients';
-import ChatDemo from './pages/ChatDemo';
-import Login from './pages/Login';
-import PublicStatus from './pages/PublicStatus';
+import { useState, useEffect, lazy, Suspense } from 'react';
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Garments = lazy(() => import('./pages/Garments'));
+const Finances = lazy(() => import('./pages/Finances'));
+const Clients = lazy(() => import('./pages/Clients'));
+const ChatDemo = lazy(() => import('./pages/ChatDemo'));
+const Login = lazy(() => import('./pages/Login'));
+const PublicStatus = lazy(() => import('./pages/PublicStatus'));
 import NotificationBell from './components/NotificationBell';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ToastProvider, useToast } from './components/ToastContext';
@@ -25,8 +25,8 @@ function AuthGate() {
     );
   }
 
-  if (isPublicView) return <PublicStatus />;
-  if (!isAuthenticated) return <Login />;
+  if (isPublicView) return <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}><p>Cargando...</p></div>}><PublicStatus /></Suspense>;
+  if (!isAuthenticated) return <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}><p>Cargando...</p></div>}><Login /></Suspense>;
   return <AppContent />;
 }
 
@@ -143,11 +143,13 @@ function AppContent() {
         </header>
 
         <div className="page-content">
-          {activeTab === 'dashboard' && <Dashboard />}
-          {activeTab === 'garments' && <Garments />}
-          {activeTab === 'finances' && <Finances />}
-          {activeTab === 'clients' && <Clients />}
-          {activeTab === 'chat' && <ChatDemo />}
+          <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><p>Cargando...</p></div>}>
+            {activeTab === 'dashboard' && <Dashboard />}
+            {activeTab === 'garments' && <Garments />}
+            {activeTab === 'finances' && <Finances />}
+            {activeTab === 'clients' && <Clients />}
+            {activeTab === 'chat' && <ChatDemo />}
+          </Suspense>
         </div>
       </main>
     </div>

@@ -10,7 +10,9 @@ router.get('/', async (req, res) => {
     return res.status(400).json({ error: 'sessionId es requerido' });
   }
 
-  const business = req.baseUrl.includes('/zenco/') ? 'zenco' : 'damian';
+  // Extract business from baseUrl: /api/mg_masajes/chat/history → 'mg_masajes'
+  const match = req.baseUrl.match(/\/api\/([^/]+)\//);
+  const business = match ? match[1] : 'zenco';
 
   try {
     const messages = await prisma.chatMessage.findMany({
