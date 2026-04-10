@@ -212,7 +212,7 @@ function AppContent() {
               {activeTab === 'clients' && <Clients />}
               {activeTab === 'patients' && <Patients />}
               {activeTab === 'agent' && <Agent />}
-              <div style={{ display: activeTab === 'ambient' ? 'block' : 'none' }}><Ambient /></div>
+              <div style={{ display: activeTab === 'ambient' ? 'flex' : 'none', flexDirection: 'column', height: '100%', minHeight: 0 }}><Ambient /></div>
               {activeTab === 'chat' && <ChatDemo />}
             </Suspense>
           </ErrorBoundary>
