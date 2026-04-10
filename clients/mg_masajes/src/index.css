@@ -46,6 +46,52 @@
   --warning-text: #d97706;
 }
 
+/* === DARK THEME === */
+[data-theme="dark"] {
+  --bg-color: #1A1108;
+  --surface-color: #2A1A0D;
+  --surface-secondary: #221508;
+  --text-primary: #F5EDE0;
+  --text-secondary: #B89B7A;
+  --border-color: #3D2A18;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  --error-bg: #2d1212;
+  --error-text: #f87171;
+  --error-border: #7f1d1d;
+  --warning-bg: #2d2007;
+  --warning-text: #fbbf24;
+}
+
+/* Transición suave al cambiar tema */
+*, *::before, *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease;
+}
+
+/* Botón toggle de tema */
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--space-md);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  background: var(--surface-secondary);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  transform: rotate(20deg);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
