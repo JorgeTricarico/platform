@@ -53,19 +53,21 @@ Todo ese flujo = service messages = **$0.00**
 | Recordatorios de turno (utility, proactivo) | ~40 mensajes | **$1.04** |
 | Promos mensuales (marketing) | ~20 mensajes | **$1.24** |
 | **Subtotal WhatsApp API (Meta)** | | **~$2–3** |
-| LLM — Gemini API (gratuito hasta cuota) | ~200 conv. | **$0–3** |
-| Hosting backend (Render) | 1 servicio | **$7** |
-| Base de datos (Supabase free tier) | | **$0** |
-| **TOTAL COSTO TÉCNICO** | | **~$9–13/mes** |
+| LLM — Gemini 2.5 Flash (free tier cubre hasta 40 negocios) | ~200 conv. | **$0** |
+| Hosting (Hetzner CX32 + Coolify / 15 clientes) | 1 servicio | **€0.55** |
+| Base de datos (Supabase free tier por proyecto) | | **$0** |
+| **TOTAL COSTO TÉCNICO** | | **~€1–4/mes por cliente** |
+
+> Detalles de hosting en `INFRA-DOCKER-POR-CLIENTE.md`. Detalles de LLM en `AI-COSTS-LLM-SELECTION.md`.
 
 ### Escenario agresivo: 500 conversaciones/mes + campañas
 
 | Componente | Costo USD/mes |
 |---|---|
 | WhatsApp API (100 mensajes marketing) | $6.18 |
-| LLM (Gemini Flash, ~500 conv. × 2K tokens) | ~$5 |
-| Hosting (Render paid plan) | $25 |
-| **TOTAL** | **~$36/mes** |
+| LLM (Gemini 2.5 Flash paid, ~500 conv.) | ~$0.54 |
+| Hosting (Hetzner CX32 prorrateado) | €0.55 |
+| **TOTAL** | **~$7–8/mes por cliente** |
 
 ---
 
@@ -89,8 +91,9 @@ Todo ese flujo = service messages = **$0.00**
 ### Estructura de costos por cliente/negocio
 
 ```
-Costo técnico real:     $9–13/mes (escenario normal)
-Costo con margen:       $9–13 × 3x = $27–39/mes (margen de operación)
+Costo técnico real (Coolify + Gemini free + Supabase free):   ~€1–4/mes
+Costo técnico real (Fly.io + Gemini paid):                    ~$6–8/mes
+Margen operativo sugerido:                                     10–20x
 ```
 
 ### Propuesta de precios (en ARS o USD)
