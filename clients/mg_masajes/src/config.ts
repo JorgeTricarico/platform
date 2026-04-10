@@ -2,8 +2,8 @@
 // Cambiar estos valores para personalizar toda la app
 export const BUSINESS = {
   name: 'Centro de Bienestar',
-  brandLabel: 'MgMasajes',
-  brandSuffix: 'Core',
+  brandLabel: 'MG Masajes',
+  brandSuffix: '',
   ownerName: 'Administrador',
   greeting: 'Bienvenido',
   subtitle: 'Resumen de actividad diaria.',

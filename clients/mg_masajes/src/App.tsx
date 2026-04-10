@@ -36,7 +36,7 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true); // Default visible on desktop
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { isPlaying, currentTrackTitle } = useMusicCommand();
+  const { isPlaying, currentTrackTitle, sendMusicCommand } = useMusicCommand();
   const toast = useToast();
   const { user, authRequired, logout } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -175,6 +175,27 @@ function AppContent() {
           <button className="hamburger-btn" onClick={toggleSidebar}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
+          {currentTrackTitle && (
+            <div className="topbar-music">
+              <button className="topbar-music-btn" onClick={() => sendMusicCommand({ action: isPlaying ? 'pause' : 'play' })} title={isPlaying ? 'Pausar' : 'Reproducir'}>
+                {isPlaying ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5,3 19,12 5,21"/>
+                  </svg>
+                )}
+              </button>
+              <span className="topbar-music-title">{currentTrackTitle}</span>
+              <button className="topbar-music-btn" onClick={() => sendMusicCommand({ action: 'next' })} title="Siguiente">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5,4 15,12 5,20"/><rect x="16" y="4" width="3" height="16"/>
+                </svg>
+              </button>
+            </div>
+          )}
           <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}>
             {theme === 'light' ? (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

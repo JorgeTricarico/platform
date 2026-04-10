@@ -153,7 +153,7 @@ export default function Ambient() {
   const [tracks, setTracks] = useState<LocalTrack[]>([]);
   const [activeTrack, setActiveTrack] = useState<LocalTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.7);
+  const [volume, setVolume] = useState(0.1);
   const [loop, setLoop] = useState(true);
   const [shuffle, setShuffle] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -447,13 +447,6 @@ export default function Ambient() {
             <div className="ambient-artwork-inner">
               <MusicNoteIcon size={48} />
             </div>
-            {isPlaying && (
-              <>
-                <div className="ambient-artwork-ring ambient-artwork-ring-1"></div>
-                <div className="ambient-artwork-ring ambient-artwork-ring-2"></div>
-                <div className="ambient-artwork-ring ambient-artwork-ring-3"></div>
-              </>
-            )}
           </div>
 
           {/* Track info */}
@@ -465,19 +458,6 @@ export default function Ambient() {
               {isPlaying ? 'Reproduciendo' : activeTrack ? 'En pausa' : 'Esperando'}
             </p>
           </div>
-
-          {/* Wave bars */}
-          {isPlaying && (
-            <div className="ambient-wave-bars">
-              {[0, 1, 2, 3, 4, 5, 6].map(i => (
-                <div
-                  key={i}
-                  className="ambient-wave-bar"
-                  style={{ animationDelay: `${i * 0.12}s` }}
-                />
-              ))}
-            </div>
-          )}
 
           {/* Controls */}
           <div className="ambient-controls">
