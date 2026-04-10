@@ -151,4 +151,26 @@ describe('POST /api/damian/chat — Conversación con contexto pre-cargado', () 
     expect(res.status).toBe(200);
     expect(res.body.reply).toContain('error');
   });
+
+  it('Privacy: buildContext does not leak names in availability', async () => {
+    // Mock existing appointments for today
+    const today = new Date().toISOString().slice(0, 10);
+    mockPrisma.appointment.findMany.mockResolvedValue([
+      { id: 'APT-1', clientName: 'Perez', time: '18:00', status: 'confirmado' }
+    ]);
+
+    const res = await request(app)
+      .post('/api/damian/chat')
+      .set('Authorization', authHeader('damian'))
+      .send({ message: 'hay lugar a las 18?' });
+
+    expect(res.status).toBe(200);
+    expect(mockChat).toHaveBeenCalled();
+    const systemPromptUsed = mockChat.mock.calls[0][0].systemPrompt;
+    
+    // The name 'Perez' should NOT be in the system prompt context
+    expect(systemPromptUsed).not.toContain('Perez');
+    // But 'ocupado 18:00' should be there
+    expect(systemPromptUsed).toContain('ocupado 18:00');
+  });
 });

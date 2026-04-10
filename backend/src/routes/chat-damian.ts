@@ -199,24 +199,12 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
         parts.push(`  ${label} ${dateStr}: libres ${free.join(', ')}`);
         if (dayAppts.length > 0) {
           for (const a of dayAppts) {
-            parts.push(`    ocupado ${a.time} → ${a.clientName} — ${a.service}`);
+            parts.push(`    ocupado ${a.time}`);
           }
         }
       }
     }
 
-    // 5. If no client identified, show recent clients for awareness
-    if (!senderPhone && parts.filter(p => p.includes('CLIENTE')).length === 0) {
-      parts.push('\nCLIENTE NO IDENTIFICADO. Si te dice su nombre o telefono, fijate si coincide con estos clientes recientes:');
-      const recentClients = await prisma.client.findMany({
-        where: { business: 'damian' },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-      });
-      for (const c of recentClients) {
-        parts.push(`  - ${c.name} (${c.phone})`);
-      }
-    }
 
   } catch {
     parts.push('(No se pudo acceder a la base de datos)');
