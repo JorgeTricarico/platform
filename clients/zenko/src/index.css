@@ -1573,3 +1573,132 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ========================= */
+/* GARMENT CARDS (mobile)    */
+/* ========================= */
+.garment-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.garment-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.garment-card.overdue {
+  border-left: 3px solid #d32f2f;
+  background-color: #fff8f0;
+}
+
+.garment-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface-secondary);
+  border-bottom: 1px solid var(--border-color);
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.garment-card-ord {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.garment-card-body {
+  padding: 12px 14px;
+}
+
+.garment-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--surface-secondary);
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.garment-card-actions .btn-small {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  justify-content: center;
+}
+
+/* ========================= */
+/* FILTER PANEL              */
+/* ========================= */
+.filter-panel {
+  padding: 16px 20px;
+  background: var(--surface-secondary);
+  border-bottom: 1px solid var(--border-color);
+  animation: filter-panel-in 0.15s ease;
+}
+
+@keyframes filter-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filter-chip {
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: capitalize;
+}
+
+.filter-chip:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: #fff7f2;
+}
+
+.filter-chip.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 8px rgba(214, 109, 38, 0.2);
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] .garment-card.overdue {
+  background-color: #2d1c0e;
+}
+
+[data-theme="dark"] .filter-chip:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: var(--surface-secondary);
+}
+
+[data-theme="dark"] .filter-chip.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
