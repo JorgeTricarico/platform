@@ -6,8 +6,33 @@ import { SkeletonLoader, Spinner } from '../components/SkeletonLoader';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+}
+
+const PhoneIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+  </svg>
+);
+
+const AltPhoneIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+  </svg>
+);
+
 export default function Clients() {
   const toast = useToast();
+  const isMobile = useIsMobile();
   const [clients, setClients] = useState<DBClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,69 +127,92 @@ export default function Clients() {
             className="input-search"
           />
         </div>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Telefono</th>
-                <th>Email</th>
-                <th>Notas</th>
-                <th>Registrado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clients.map(c => (
-                <tr key={c.id}>
-                  <td className="clients-td-name clients-td-name-upper">{c.name}</td>
-                  <td>
+        {isMobile ? (
+          <div className="client-cards">
+            {clients.length === 0 ? (
+              <p className="clients-td-empty">No se encontraron clientes.</p>
+            ) : (
+              clients.map(c => (
+                <div key={c.id} className="client-card">
+                  <div className="client-card-name">{c.name}</div>
+                  <div className="client-card-info">
                     <div className="clients-phone-row">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                      <PhoneIcon />
                       {c.phone}
                     </div>
-                    {c.altPhone && <div className="clients-td-secondary clients-phone-row">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                      {c.altPhone}
-                    </div>}
-                  </td>
-                  <td className={c.email ? '' : 'clients-td-muted'}>{c.email || '-'}</td>
-                  <td className={`clients-td-notes ${c.notes ? '' : 'clients-td-muted'}`}>{c.notes || '-'}</td>
-                  <td className="clients-td-secondary">{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                  <td>
-                    <div className="clients-actions-row clients-actions-row-sm">
-                      <button
-                        className="btn btn-small clients-btn-edit"
-                        onClick={() => openEdit(c)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="btn btn-small clients-btn-historial"
-                        onClick={() => openHistorial(c)}
-                      >
-                        Ver historial
-                      </button>
-                      <button
-                        className="btn btn-small clients-btn-delete"
-                        onClick={() => handleDelete(c)}
-                      >
-                        Eliminar
-                      </button>
+                    {c.altPhone && (
+                      <div className="clients-phone-row clients-td-secondary">
+                        <AltPhoneIcon />
+                        {c.altPhone}
+                      </div>
+                    )}
+                    {c.email && <div>{c.email}</div>}
+                    {c.notes && <div className="client-card-notes">{c.notes}</div>}
+                    <div className="clients-td-secondary">
+                      {new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </div>
-                  </td>
-                </tr>
-              ))}
-              {clients.length === 0 && (
+                  </div>
+                  <div className="client-card-actions">
+                    <button className="btn btn-small clients-btn-edit" onClick={() => openEdit(c)}>Editar</button>
+                    <button className="btn btn-small clients-btn-historial" onClick={() => openHistorial(c)}>Ver historial</button>
+                    <button className="btn btn-small clients-btn-delete" onClick={() => handleDelete(c)}>Eliminar</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          <div className="table-container">
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan={6} className="clients-td-empty">
-                    No se encontraron clientes.
-                  </td>
+                  <th>Nombre</th>
+                  <th>Telefono</th>
+                  <th>Email</th>
+                  <th>Notas</th>
+                  <th>Registrado</th>
+                  <th>Acciones</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {clients.map(c => (
+                  <tr key={c.id}>
+                    <td className="clients-td-name clients-td-name-upper">{c.name}</td>
+                    <td>
+                      <div className="clients-phone-row">
+                        <PhoneIcon />
+                        {c.phone}
+                      </div>
+                      {c.altPhone && (
+                        <div className="clients-td-secondary clients-phone-row">
+                          <AltPhoneIcon />
+                          {c.altPhone}
+                        </div>
+                      )}
+                    </td>
+                    <td className={c.email ? '' : 'clients-td-muted'}>{c.email || '-'}</td>
+                    <td className={`clients-td-notes ${c.notes ? '' : 'clients-td-muted'}`}>{c.notes || '-'}</td>
+                    <td className="clients-td-secondary">{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                    <td>
+                      <div className="clients-actions-row clients-actions-row-sm">
+                        <button className="btn btn-small clients-btn-edit" onClick={() => openEdit(c)}>Editar</button>
+                        <button className="btn btn-small clients-btn-historial" onClick={() => openHistorial(c)}>Ver historial</button>
+                        <button className="btn btn-small clients-btn-delete" onClick={() => handleDelete(c)}>Eliminar</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {clients.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="clients-td-empty">
+                      No se encontraron clientes.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {isCreateOpen && (
@@ -191,6 +239,20 @@ export default function Clients() {
                 </p>
                 {clientOrders.orders.length === 0 ? (
                   <p className="clients-td-muted">Sin órdenes registradas.</p>
+                ) : isMobile ? (
+                  <div className="client-cards">
+                    {clientOrders.orders.map((o: DBGarment) => (
+                      <div key={o.id} className="client-card">
+                        <div className="client-card-name">{o.garmentName} <span style={{ fontWeight: 400, textTransform: 'none', fontSize: '13px' }}>({o.repairType})</span></div>
+                        <div className="client-card-info">
+                          <div><span className="clients-td-secondary">Ingreso:</span> {o.intakeDate ? new Date(o.intakeDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</div>
+                          <div><span className="clients-td-secondary">Entrega:</span> {o.deliveryDate ? new Date(o.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</div>
+                          <div><span className="clients-td-secondary">Estado:</span> {o.status}</div>
+                          <div style={{ fontWeight: 600 }}>${o.price.toLocaleString('es-AR')}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="table-container">
                     <table>
