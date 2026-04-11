@@ -29,3 +29,4 @@
 - [Session 23 Reflection](project_session23_reflection.md) — Finance normalization, statusChangedAt, Z26 Avisar, D29 Próxima Cita, 371 tests
 - [Session 24 Reflection](project_session24_reflection.md) — 7 audit fixes (UUID, randomUUID, indexes, enum, logging, guards, submitting), 377 tests
 - [Session 25 Reflection](project_session25_reflection.md) — Google Fonts, CSS vars spacing/error, lazy loading, React.memo, useMemo, DashboardRefreshContext, 385 tests
+- [Session 26 Reflection](project_session26_reflection.md) — Tailwind+shadcn migration, orderNumber, mobile responsive, JWT refresh, dynamic config, 390 tests

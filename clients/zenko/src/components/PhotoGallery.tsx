@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { Upload, X, Image } from 'lucide-react';
 import { fetchGarmentPhotos, uploadGarmentPhoto, deleteGarmentPhoto, type DBGarmentPhoto } from '../services/api';
 import { useToast } from './ToastContext';
 import { Spinner } from './SkeletonLoader';
+import { Button } from '@/components/ui/button';
 
 import { API_BASE } from '../services/config';
 const BASE_URL = API_BASE;
@@ -56,47 +58,67 @@ export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
 
   const getPhotoUrl = (photo: DBGarmentPhoto) => `${BASE_URL}${photo.url}`;
 
-  if (loading) return <div className="flex-center" style={{ padding: '16px' }}><Spinner /></div>;
+  if (loading) return (
+    <div className="flex items-center justify-center p-4">
+      <Spinner />
+    </div>
+  );
 
   return (
-    <div className="photo-gallery" data-testid="photo-gallery">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-secondary)' }}>
+    <div className="border-t border-border pt-3 mt-3" data-testid="photo-gallery">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+          <Image className="w-4 h-4" />
           Fotos ({photos.length})
         </span>
-        <label className="btn" style={{ padding: '6px 14px', fontSize: '13px', backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)', cursor: 'pointer' }}>
-          {uploading ? 'Subiendo...' : '+ Agregar Foto'}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleUpload}
-            disabled={uploading}
-            style={{ display: 'none' }}
-            data-testid="photo-upload-input"
-          />
-        </label>
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="cursor-pointer"
+          disabled={uploading}
+        >
+          <label>
+            <Upload className="w-3.5 h-3.5 mr-1" />
+            {uploading ? 'Subiendo...' : 'Agregar Foto'}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleUpload}
+              disabled={uploading}
+              className="hidden"
+              data-testid="photo-upload-input"
+            />
+          </label>
+        </Button>
       </div>
 
+      {/* Empty state */}
       {photos.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
+        <div className="text-center py-5 text-sm text-muted-foreground">
           Sin fotos. Agrega fotos del arreglo.
         </div>
       ) : (
-        <div className="photo-grid" data-testid="photo-grid">
+        <div className="grid grid-cols-3 gap-2" data-testid="photo-grid">
           {photos.map(photo => (
-            <div key={photo.id} className="photo-thumb">
+            <div
+              key={photo.id}
+              className="group relative aspect-square rounded-md overflow-hidden border border-border"
+            >
               <img
                 src={getPhotoUrl(photo)}
                 alt={photo.filename}
+                className="w-full h-full object-cover cursor-pointer transition-transform duration-200 hover:scale-105"
                 onClick={() => setLightbox(getPhotoUrl(photo))}
               />
               <button
-                className="photo-delete-btn"
+                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white border-none cursor-pointer text-base leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                 onClick={() => handleDelete(photo.id)}
                 aria-label={`Eliminar ${photo.filename}`}
               >
-                &times;
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           ))}
@@ -106,12 +128,22 @@ export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
       {/* Lightbox */}
       {lightbox && (
         <div
-          className="photo-lightbox"
+          className="fixed inset-0 bg-black/85 flex items-center justify-center z-[2000] cursor-pointer"
           data-testid="photo-lightbox"
           onClick={() => setLightbox(null)}
         >
-          <img src={lightbox} alt="Vista ampliada" onClick={e => e.stopPropagation()} />
-          <button className="photo-lightbox-close" onClick={() => setLightbox(null)}>&times;</button>
+          <img
+            src={lightbox}
+            alt="Vista ampliada"
+            className="max-w-[90vw] max-h-[90vh] rounded-md cursor-default"
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            className="absolute top-5 right-5 bg-transparent border-none text-white text-4xl cursor-pointer leading-none flex items-center justify-center"
+            onClick={() => setLightbox(null)}
+          >
+            <X className="w-8 h-8" />
+          </button>
         </div>
       )}
     </div>

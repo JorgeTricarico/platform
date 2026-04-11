@@ -5,7 +5,10 @@ import { useToast } from '../components/ToastContext';
 import { SkeletonLoader } from '../components/SkeletonLoader';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, DollarSign, Edit2, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { TrendingUp, TrendingDown, DollarSign, Edit2, Trash2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const EMPTY_FORM = {
@@ -118,26 +121,27 @@ export default function Finances() {
           <h1 className="text-2xl font-bold text-foreground">Control Financiero</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Registro de ingresos y gastos del taller.</p>
         </div>
-        <button className="btn btn-primary shrink-0" onClick={() => setIsModalOpen(true)}>
+        <Button onClick={() => setIsModalOpen(true)} className="shrink-0">
+          <Plus className="h-4 w-4" />
           Nuevo Registro
-        </button>
+        </Button>
       </div>
 
       {/* Month filter */}
       <div className="flex items-center gap-3">
-        <input
+        <Input
           type="month"
           value={filterMonth}
           onChange={e => setFilterMonth(e.target.value)}
-          className="input"
+          className="w-auto"
         />
         {filterMonth && (
-          <button
-            className="btn btn-filter"
+          <Button
+            variant="outline"
             onClick={() => setFilterMonth('')}
           >
             Todos
-          </button>
+          </Button>
         )}
       </div>
 
@@ -230,118 +234,120 @@ export default function Finances() {
         </div>
       </div>
 
-      {/* Modal Nuevo Registro */}
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-md">
-            <h2 className="mt-0 mb-4 text-lg font-semibold">Nuevo Registro Financiero</h2>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div className="flex gap-3">
-                <div className="flex flex-col gap-1.5 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground">Tipo</label>
-                  <select name="type" value={form.type} onChange={handle} className="input">
-                    <option value="income">Ingreso</option>
-                    <option value="expense">Gasto</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground">Fecha</label>
-                  <input required name="date" type="date" value={form.date} onChange={handle} className="input" />
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex flex-col gap-1.5 flex-[2]">
-                  <label className="text-xs font-medium text-muted-foreground">Categoría / Concepto</label>
-                  <input
-                    required
-                    name="category"
-                    placeholder={form.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'}
-                    value={form.category}
-                    onChange={handle}
-                    className="input"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground">Monto ($)</label>
-                  <input required name="amount" type="number" placeholder="0" value={form.amount || ''} onChange={handle} className="input" />
-                </div>
-              </div>
-
-              <input name="description" placeholder="Descripción adicional (opcional)" value={form.description} onChange={handle} className="input" />
-
-              <div className="flex justify-end gap-3 mt-2">
-                <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="btn-secondary">Cancelar</button>
-                <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Editar Registro */}
-      {editTarget && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-sm">
-            <h2 className="mt-0 mb-4 text-lg font-semibold">Editar Registro</h2>
-            <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
-              <div className="flex gap-3">
-                <select
-                  name="type"
-                  value={editForm.type}
-                  onChange={handleEditChange}
-                  className="input flex-1"
-                >
+      {/* Dialog Nuevo Registro */}
+      <Dialog open={isModalOpen} onOpenChange={open => { if (!open) { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nuevo Registro Financiero</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex gap-3">
+              <div className="flex flex-col gap-1.5 flex-1">
+                <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+                <Select name="type" value={form.type} onChange={handle}>
                   <option value="income">Ingreso</option>
                   <option value="expense">Gasto</option>
-                </select>
-                <input
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5 flex-1">
+                <label className="text-xs font-medium text-muted-foreground">Fecha</label>
+                <Input required name="date" type="date" value={form.date} onChange={handle} />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex flex-col gap-1.5 flex-[2]">
+                <label className="text-xs font-medium text-muted-foreground">Categoría / Concepto</label>
+                <Input
                   required
-                  name="date"
-                  type="date"
-                  value={editForm.date}
-                  onChange={handleEditChange}
-                  className="input flex-1"
+                  name="category"
+                  placeholder={form.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'}
+                  value={form.category}
+                  onChange={handle}
                 />
               </div>
-              <input
-                required
-                name="category"
-                placeholder={editForm.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'}
-                value={editForm.category}
-                onChange={handleEditChange}
-                className="input"
-              />
-              <input
-                required
-                name="amount"
-                type="number"
-                placeholder="Monto ($)"
-                value={editForm.amount || ''}
-                onChange={handleEditChange}
-                className="input"
-              />
-              <input
-                name="description"
-                placeholder="Descripción adicional (opcional)"
-                value={editForm.description}
-                onChange={handleEditChange}
-                className="input"
-              />
-              <div className="flex justify-end gap-3 mt-2">
-                <button
-                  type="button"
-                  onClick={() => setEditTarget(null)}
-                  className="btn-secondary"
-                >
-                  Cancelar
-                </button>
-                <button type="submit" disabled={editSubmitting} className="btn btn-primary">{editSubmitting ? 'Guardando...' : 'Guardar'}</button>
+              <div className="flex flex-col gap-1.5 flex-1">
+                <label className="text-xs font-medium text-muted-foreground">Monto ($)</label>
+                <Input required name="amount" type="number" placeholder="0" value={form.amount || ''} onChange={handle} />
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+
+            <Input name="description" placeholder="Descripción adicional (opcional)" value={form.description} onChange={handle} />
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Guardando...' : 'Guardar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Editar Registro */}
+      <Dialog open={!!editTarget} onOpenChange={open => { if (!open) setEditTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Registro</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
+            <div className="flex gap-3">
+              <Select
+                name="type"
+                value={editForm.type}
+                onChange={handleEditChange}
+                className="flex-1"
+              >
+                <option value="income">Ingreso</option>
+                <option value="expense">Gasto</option>
+              </Select>
+              <Input
+                required
+                name="date"
+                type="date"
+                value={editForm.date}
+                onChange={handleEditChange}
+                className="flex-1"
+              />
+            </div>
+            <Input
+              required
+              name="category"
+              placeholder={editForm.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'}
+              value={editForm.category}
+              onChange={handleEditChange}
+            />
+            <Input
+              required
+              name="amount"
+              type="number"
+              placeholder="Monto ($)"
+              value={editForm.amount || ''}
+              onChange={handleEditChange}
+            />
+            <Input
+              name="description"
+              placeholder="Descripción adicional (opcional)"
+              value={editForm.description}
+              onChange={handleEditChange}
+            />
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditTarget(null)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={editSubmitting}>
+                {editSubmitting ? 'Guardando...' : 'Guardar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
