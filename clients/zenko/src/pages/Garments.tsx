@@ -260,14 +260,14 @@ export default function Garments() {
     <div className={cn('flex flex-col', isMobile ? 'h-auto' : 'h-full')}>
 
       {/* ── Encabezado ─────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between mb-5 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Gestión de Prendas</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestión de Prendas</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Administra los arreglos de tus clientes detalladamente.
           </p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>
+        <Button onClick={() => setIsCreateOpen(true)} className="shrink-0 self-start">
           + Registrar Ingreso
         </Button>
       </div>

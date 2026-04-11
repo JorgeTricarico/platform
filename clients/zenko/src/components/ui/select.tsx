@@ -6,7 +6,7 @@ const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HT
     <select
       ref={ref}
       className={cn(
-        'flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm',
+        'flex h-11 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-base sm:text-sm sm:h-10 sm:py-2',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         'disabled:cursor-not-allowed disabled:opacity-50',
         'cursor-pointer appearance-none',

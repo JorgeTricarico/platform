@@ -127,15 +127,15 @@ describe('Z18 — Historial de órdenes por cliente', () => {
     await waitFor(() => {
       expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
-    expect(screen.getByText('Ver historial')).toBeInTheDocument();
+    expect(screen.getAllByText('Historial').length).toBeGreaterThan(0);
   });
 
-  it('calls fetchClientOrders when "Ver historial" is clicked', async () => {
+  it('calls fetchClientOrders when "Historial" is clicked', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
       expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Ver historial'));
+    fireEvent.click(screen.getAllByText('Historial')[0]);
     await waitFor(() => {
       expect(fetchClientOrders).toHaveBeenCalledWith('c1');
     });
@@ -146,7 +146,7 @@ describe('Z18 — Historial de órdenes por cliente', () => {
     await waitFor(() => {
       expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Ver historial'));
+    fireEvent.click(screen.getAllByText('Historial')[0]);
     await waitFor(() => {
       // Orders appear in both mobile cards and desktop table; use getAllByText
       expect(screen.getAllByText('Campera (cierre)').length).toBeGreaterThan(0);
@@ -159,7 +159,7 @@ describe('Z18 — Historial de órdenes por cliente', () => {
     await waitFor(() => {
       expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Ver historial'));
+    fireEvent.click(screen.getAllByText('Historial')[0]);
     await waitFor(() => {
       expect(screen.getByText(/2 órdenes/i)).toBeInTheDocument();
     });
@@ -175,7 +175,7 @@ describe('Z20 — Eliminar cliente', () => {
     await waitFor(() => {
       expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Eliminar'));
+    fireEvent.click(screen.getAllByText('Eliminar')[0]);
     expect(window.confirm).toHaveBeenCalledWith('¿Eliminar a Ana Lopez? Esta acción no se puede deshacer.');
     await waitFor(() => {
       expect(deleteClient).toHaveBeenCalledWith('c1');

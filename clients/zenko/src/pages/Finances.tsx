@@ -116,12 +116,12 @@ export default function Finances() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Control Financiero</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Control Financiero</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Registro de ingresos y gastos del taller.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="shrink-0">
+        <Button onClick={() => setIsModalOpen(true)} className="shrink-0 self-start">
           <Plus className="h-4 w-4" />
           Nuevo Registro
         </Button>
@@ -172,66 +172,100 @@ export default function Finances() {
         </div>
       </div>
 
-      {/* Movements table */}
+      {/* Movements */}
       <div>
         <h2 className="text-lg font-semibold mb-3">Últimos Movimientos</h2>
-        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/40">
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Fecha</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Tipo</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Concepto / Descripción</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Monto</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {finances.map(f => (
-                  <tr key={f.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 font-semibold whitespace-nowrap">
-                      {new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant={f.type === 'income' ? 'listo' : 'overdue'}>
-                        {f.type === 'income' ? 'Ingreso' : 'Gasto'}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-semibold">{f.category}</div>
-                      {f.description && (
-                        <div className="text-xs text-muted-foreground">{f.description}</div>
-                      )}
-                    </td>
-                    <td className={cn('px-4 py-3 font-bold whitespace-nowrap', f.type === 'income' ? 'text-emerald-600' : 'text-red-600')}>
-                      {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEdit(f)}>
-                          <Edit2 className="h-3.5 w-3.5" />
-                          Editar
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => handleDelete(f.id)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Eliminar
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {finances.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="text-center py-10 text-muted-foreground">
-                      No hay registros financieros.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+
+        {finances.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">
+            No hay registros financieros.
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Mobile: cards */}
+            <div className="flex flex-col gap-3 md:hidden">
+              {finances.map(f => (
+                <div key={f.id} className="rounded-xl border border-border bg-card shadow-sm p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant={f.type === 'income' ? 'listo' : 'overdue'}>
+                      {f.type === 'income' ? 'Ingreso' : 'Gasto'}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
+                    </span>
+                  </div>
+                  <div className="font-semibold text-sm">{f.category}</div>
+                  {f.description && <div className="text-xs text-muted-foreground">{f.description}</div>}
+                  <div className={cn('text-lg font-bold mt-2', f.type === 'income' ? 'text-emerald-600' : 'text-red-600')}>
+                    {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
+                  </div>
+                  <div className="flex gap-2 mt-3 pt-2 border-t border-border">
+                    <Button variant="outline" size="sm" onClick={() => openEdit(f)}>
+                      <Edit2 className="h-3.5 w-3.5" />
+                      Editar
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(f.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Eliminar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40">
+                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Fecha</th>
+                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Tipo</th>
+                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Concepto / Descripción</th>
+                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Monto</th>
+                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {finances.map(f => (
+                      <tr key={f.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-semibold whitespace-nowrap">
+                          {new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge variant={f.type === 'income' ? 'listo' : 'overdue'}>
+                            {f.type === 'income' ? 'Ingreso' : 'Gasto'}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-semibold">{f.category}</div>
+                          {f.description && (
+                            <div className="text-xs text-muted-foreground">{f.description}</div>
+                          )}
+                        </td>
+                        <td className={cn('px-4 py-3 font-bold whitespace-nowrap', f.type === 'income' ? 'text-emerald-600' : 'text-red-600')}>
+                          {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={() => openEdit(f)}>
+                              <Edit2 className="h-3.5 w-3.5" />
+                              Editar
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={() => handleDelete(f.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Eliminar
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Dialog Nuevo Registro */}
@@ -241,7 +275,7 @@ export default function Finances() {
             <DialogTitle>Nuevo Registro Financiero</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex flex-col gap-1.5 flex-1">
                 <label className="text-xs font-medium text-muted-foreground">Tipo</label>
                 <Select name="type" value={form.type} onChange={handle}>
@@ -255,8 +289,8 @@ export default function Finances() {
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <div className="flex flex-col gap-1.5 flex-[2]">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-1.5 sm:flex-[2]">
                 <label className="text-xs font-medium text-muted-foreground">Categoría / Concepto</label>
                 <Input
                   required
@@ -293,7 +327,7 @@ export default function Finances() {
             <DialogTitle>Editar Registro</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Select
                 name="type"
                 value={editForm.type}

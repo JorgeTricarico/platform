@@ -89,40 +89,80 @@ export default function Clients() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Base de datos de clientes de Zenko.</p>
         </div>
-        <button className="btn btn-primary shrink-0" onClick={() => setIsCreateOpen(true)}>
+        <Button className="shrink-0 self-start" onClick={() => setIsCreateOpen(true)}>
           + Nuevo Cliente
-        </button>
+        </Button>
       </div>
 
-      {/* Search + Table Card */}
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-        {/* Search bar */}
-        <div className="p-4 border-b border-border">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Buscar por nombre, teléfono..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </div>
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Buscar por nombre, teléfono..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
-        {/* Responsive table */}
+      {/* Mobile: cards */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {clients.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">
+            No se encontraron clientes.
+          </div>
+        ) : clients.map(c => (
+          <div key={c.id} className="rounded-xl border border-border bg-card shadow-sm p-4">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <div className="font-bold text-sm uppercase tracking-wide text-foreground">{c.name}</div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                  <Phone className="h-3 w-3 shrink-0" />
+                  {c.phone}
+                </div>
+                {c.altPhone && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                    <PhoneCall className="h-3 w-3 shrink-0" />
+                    {c.altPhone}
+                  </div>
+                )}
+              </div>
+            </div>
+            {c.email && <div className="text-xs text-muted-foreground mb-1">{c.email}</div>}
+            {c.notes && <div className="text-xs text-muted-foreground truncate mb-2">{c.notes}</div>}
+            <div className="flex gap-2 flex-wrap pt-2 border-t border-border">
+              <Button variant="outline" size="sm" onClick={() => openEdit(c)}>
+                <Edit2 className="h-3.5 w-3.5" />
+                Editar
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => openHistorial(c)}>
+                <ClipboardList className="h-3.5 w-3.5" />
+                Historial
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(c)}>
+                <Trash2 className="h-3.5 w-3.5" />
+                Eliminar
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden md:block rounded-xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Nombre</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden sm:table-cell">Teléfono</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden md:table-cell">Email</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Teléfono</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Email</th>
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Notas</th>
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Registrado</th>
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Acciones</th>
@@ -133,12 +173,8 @@ export default function Clients() {
                 <tr key={c.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3">
                     <div className="font-semibold uppercase tracking-wide">{c.name}</div>
-                    <div className="sm:hidden flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                      <Phone className="h-3 w-3 shrink-0" />
-                      {c.phone}
-                    </div>
                   </td>
-                  <td className="px-4 py-3 hidden sm:table-cell">
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-sm">
                       <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       {c.phone}
@@ -150,7 +186,7 @@ export default function Clients() {
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm hidden md:table-cell">
+                  <td className="px-4 py-3 text-sm hidden lg:table-cell">
                     {c.email ? c.email : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="px-4 py-3 text-sm max-w-[200px] truncate hidden lg:table-cell">
@@ -167,7 +203,7 @@ export default function Clients() {
                       </Button>
                       <Button variant="secondary" size="sm" onClick={() => openHistorial(c)}>
                         <ClipboardList className="h-3.5 w-3.5" />
-                        Ver historial
+                        Historial
                       </Button>
                       <Button variant="destructive" size="sm" onClick={() => handleDelete(c)}>
                         <Trash2 className="h-3.5 w-3.5" />
@@ -314,7 +350,7 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
       <div className="flex flex-col gap-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Datos de Contacto</p>
         <Input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} />
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Input
             required
             name="phone"

@@ -175,7 +175,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
               )}
             </div>
           ) : (
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input required name="clientName" placeholder="Nombre y Apellido" value={form.clientName} onChange={handle} className="pl-9" />
@@ -187,7 +187,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Shirt className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="pl-9" />
@@ -211,7 +211,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
             />
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
                 <CalendarDays className="h-3.5 w-3.5" />
@@ -228,7 +228,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
                 <DollarSign className="h-3.5 w-3.5" />

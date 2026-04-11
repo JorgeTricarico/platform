@@ -31,7 +31,7 @@ export default function ChatDemo() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const sessionIdRef = useRef(`${activeScenario}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
+  const sessionIdRef = useRef(`${activeScenario}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -74,7 +74,7 @@ export default function ChatDemo() {
     setMessages([]);
     setHistory([]);
     setInput('');
-    const newSessionId = `${scenarioId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+    const newSessionId = `${scenarioId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     sessionIdRef.current = newSessionId;
 
     if (scenario.firstMessage) {

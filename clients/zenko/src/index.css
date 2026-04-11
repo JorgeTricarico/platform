@@ -30,56 +30,33 @@
   --color-border: #3D2A18;
 }
 
-/* ─── Legacy CSS Variables (keeping for backward compat) ─────────── */
+/* ─── Legacy CSS Variables (only for ChatDemo) ─────────────────────── */
 :root {
-  /* Zenko Brand Colors based on Logo */
-  --bg-color: #F6F1EA; /* Soft beige/cream from background */
+  --bg-color: #F6F1EA;
   --surface-color: #FFFFFF;
   --surface-secondary: #FAFAF8;
-  
-  --text-primary: #382416; /* Deep dark brown */
-  --text-secondary: #7A604D; /* Lighter brown / earthy */
-  
-  --primary-color: #D66D26; /* Fox vibrant orange */
+  --text-primary: #382416;
+  --text-secondary: #7A604D;
+  --primary-color: #D66D26;
   --primary-hover: #C55E1C;
-  
-  --accent-color: #A34E17; /* Darker orange/brown */
-  --accent-hover: #8D4112;
-  
-  --urgent-color: #D14949; /* Red that fits the warm palette */
-  --success-color: #5B8255; /* Earthy green */
+  --accent-color: #A34E17;
+  --urgent-color: #D14949;
+  --success-color: #5B8255;
   --border-color: #E2D5C8;
-  
   --shadow-sm: 0 2px 4px rgba(56, 36, 22, 0.05);
   --shadow-md: 0 4px 8px rgba(56, 36, 22, 0.08);
   --shadow-lg: 0 8px 16px rgba(56, 36, 22, 0.1);
-  
   --radius-md: 8px;
   --radius-lg: 16px;
   --radius-full: 9999px;
-  
   --font-sans: 'Outfit', 'Inter', -apple-system, sans-serif;
-
-  /* Spacing scale */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 24px;
-  --space-2xl: 32px;
-  --space-3xl: 48px;
-
-  /* Error UI */
   --error-bg: #fef2f2;
   --error-text: #dc2626;
   --error-border: #fecaca;
-
-  /* Warning / Info UI */
   --warning-bg: #fffbeb;
   --warning-text: #d97706;
 }
 
-/* === DARK THEME === */
 [data-theme="dark"] {
   --bg-color: #1A1108;
   --surface-color: #2A1A0D;
@@ -97,65 +74,21 @@
   --warning-text: #fbbf24;
 }
 
-/* Transición suave al cambiar tema */
-*, *::before, *::after {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* ─── Global body ─────────────────────────────────────────────────── */
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-color);
-  color: var(--text-primary);
-  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Typography */
+/* ─── Legacy classes (only used by ChatDemo) ──────────────────────── */
 .subtitle { color: var(--text-secondary); font-size: 16px; margin-bottom: 8px; font-weight: 500;}
 
-/* Legacy card — only used by ChatDemo */
 .legacy-card {
   background: var(--surface-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   padding: 32px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.legacy-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 99px; /* Pill shape */
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-.btn-primary { 
-  background-color: var(--primary-color); 
-  color: white; 
-  box-shadow: 0 4px 12px rgba(214, 109, 38, 0.25);
-}
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(214, 109, 38, 0.3);
 }
 
 .badge {
@@ -171,80 +104,7 @@ body {
 
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
 
-
-/* ========================= */
-/* FORMS & MODALS            */
-/* ========================= */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 24px 16px;
-}
-
-.modal-card {
-  background: var(--surface-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: 24px;
-  width: min(480px, 90vw);
-  max-height: 100%;
-  overflow-y: auto;
-}
-.modal-card.modal-sm { width: min(420px, 90vw); }
-.modal-card.modal-md { width: min(450px, 90vw); }
-.modal-card.modal-lg { width: min(540px, 90vw); }
-
-.input {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  font-family: inherit;
-  font-size: 14px;
-  outline: none;
-  width: 100%;
-}
-.input:focus {
-  border-color: var(--primary-color);
-}
-
-.btn-secondary {
-  padding: 10px 16px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-weight: 600;
-  font-family: inherit;
-  font-size: 14px;
-  color: var(--text-secondary);
-  border-radius: var(--radius-md);
-}
-.btn-secondary:hover {
-  background-color: var(--surface-secondary);
-}
-
-.btn-filter {
-  padding: 10px 16px;
-  background-color: var(--surface-secondary);
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  font-family: inherit;
-  font-size: 14px;
-  color: var(--text-primary);
-}
-.btn-filter:hover {
-  background-color: var(--bg-color);
-}
-
+/* ─── Spinner ─────────────────────────────────────────────────────── */
 .spinner-inline {
   border: 2px solid var(--border-color);
   border-top-color: var(--primary-color);
@@ -255,4 +115,3 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-

@@ -72,27 +72,27 @@ export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
           <Image className="w-4 h-4" />
           Fotos ({photos.length})
         </span>
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className="cursor-pointer"
-          disabled={uploading}
-        >
-          <label>
+        <label className="cursor-pointer">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={uploading}
+            type="button"
+            onClick={() => fileRef.current?.click()}
+          >
             <Upload className="w-3.5 h-3.5 mr-1" />
             {uploading ? 'Subiendo...' : 'Agregar Foto'}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleUpload}
-              disabled={uploading}
-              className="hidden"
-              data-testid="photo-upload-input"
-            />
-          </label>
-        </Button>
+          </Button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleUpload}
+            disabled={uploading}
+            className="hidden"
+            data-testid="photo-upload-input"
+          />
+        </label>
       </div>
 
       {/* Empty state */}
