@@ -35,12 +35,12 @@ export default function StaleGarmentsWidget() {
       ) : (
         <div style={{ marginTop: '12px' }}>
           {garments.map(g => (
-            <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border-color, #eee)' }}>
-              <div>
+            <div key={g.id} className="stale-garment-item">
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600 }}>{g.clientName}</div>
                 <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{g.garmentName} — {g.repairType}</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="stale-garment-actions">
                 <span className="badge urgent" style={{ fontSize: '12px' }}>{daysOverdue(g.deliveryDate)} dias — {formatDate(g.deliveryDate)}</span>
                 <a
                   className="btn btn-small"

@@ -830,6 +830,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   .subtitle { font-size: 14px; margin-bottom: 20px; }
   .stat-value { font-size: 28px; }
 
+  .grid-cols-4 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .grid-cols-3 { grid-template-columns: 1fr; }
   .grid-cols-2 { grid-template-columns: 1fr; }
 
@@ -1701,4 +1702,34 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   background: var(--primary-color);
   border-color: var(--primary-color);
   color: white;
+}
+
+/* ========================= */
+/* STALE GARMENTS WIDGET     */
+/* ========================= */
+.stale-garment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color, #eee);
+  gap: 8px;
+}
+.stale-garment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .stale-garment-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .stale-garment-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
 }

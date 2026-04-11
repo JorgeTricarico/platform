@@ -7,8 +7,22 @@ import StaleGarmentsWidget from '../components/StaleGarmentsWidget';
 import type { GarmentFormState } from '../components/GarmentModal';
 import { SkeletonLoader } from '../components/SkeletonLoader';
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+}
+
 export default function Dashboard() {
   const toast = useToast();
+  const isMobile = useIsMobile();
   const [garments, setGarments] = useState<DBGarment[]>([]);
   const [dashData, setDashData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,46 +129,72 @@ export default function Dashboard() {
       </div>
 
       <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Prioritarios: Arreglos Pendientes</h2>
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Prenda</th>
-                <th>Arreglo</th>
-                <th>Estado</th>
-                <th>Entrega</th>
-              </tr>
-            </thead>
-            <tbody>
-              {urgentGarments.map(g => (
-                <tr key={g.id}>
-                  <td>
-                    <div style={{ fontWeight: 600, textTransform: 'uppercase' }}>{g.clientName}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                      {g.clientPhone}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '2px', fontFamily: 'monospace' }}>ORD-{String(g.orderNumber).padStart(3, '0')}</div>
-                  </td>
-                  <td>{g.garmentName}</td>
-                  <td style={{ textTransform: 'capitalize' }}>{g.repairType}</td>
-                  <td>{getStatusBadge(g.status)}</td>
-                  <td style={{ fontWeight: 600, color: 'var(--urgent-color)' }}>{formatDate(g.deliveryDate)}</td>
-                </tr>
-              ))}
-              {urgentGarments.length === 0 && (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
-                    No hay entregas urgentes proximas.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {urgentGarments.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
+          No hay entregas urgentes próximas.
         </div>
-      </div>
+      ) : isMobile ? (
+        /* Mobile: cards */
+        <div className="garment-cards" style={{ padding: 0, gap: '10px' }}>
+          {urgentGarments.map(g => (
+            <div key={g.id} className="garment-card">
+              <div className="garment-card-header">
+                <span className="garment-card-ord">ORD-{String(g.orderNumber).padStart(3, '0')}</span>
+                {getStatusBadge(g.status)}
+              </div>
+              <div className="garment-card-body">
+                <div style={{ fontWeight: 700, fontSize: '15px', textTransform: 'uppercase' }}>{g.clientName}</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  {g.clientPhone}
+                </div>
+                <div style={{ marginTop: '6px', fontSize: '14px' }}>
+                  <span style={{ fontWeight: 600 }}>{g.garmentName}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}> — {g.repairType}</span>
+                </div>
+                <div style={{ marginTop: '6px', fontSize: '13px', fontWeight: 700, color: 'var(--urgent-color)' }}>
+                  Entrega: {formatDate(g.deliveryDate)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Desktop: table */
+        <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Prenda</th>
+                  <th>Arreglo</th>
+                  <th>Estado</th>
+                  <th>Entrega</th>
+                </tr>
+              </thead>
+              <tbody>
+                {urgentGarments.map(g => (
+                  <tr key={g.id}>
+                    <td>
+                      <div style={{ fontWeight: 600, textTransform: 'uppercase' }}>{g.clientName}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                        {g.clientPhone}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '2px', fontFamily: 'monospace' }}>ORD-{String(g.orderNumber).padStart(3, '0')}</div>
+                    </td>
+                    <td>{g.garmentName}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{g.repairType}</td>
+                    <td>{getStatusBadge(g.status)}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--urgent-color)' }}>{formatDate(g.deliveryDate)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div style={{ marginTop: '24px' }}>
         <StaleGarmentsWidget />
