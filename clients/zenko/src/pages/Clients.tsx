@@ -3,36 +3,15 @@ import { fetchClients, searchClients, createClient, updateClient, deleteClient, 
 import type { DBClient, DBGarment, ClientOrdersResponse } from '../services/api';
 import { useToast } from '../components/ToastContext';
 import { SkeletonLoader, Spinner } from '../components/SkeletonLoader';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Search, Edit2, Trash2, ClipboardList, Phone, PhoneCall } from 'lucide-react';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return isMobile;
-}
-
-const PhoneIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-    <line x1="12" y1="18" x2="12.01" y2="18"></line>
-  </svg>
-);
-
-const AltPhoneIcon = () => (
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-  </svg>
-);
-
 export default function Clients() {
   const toast = useToast();
-  const isMobile = useIsMobile();
   const [clients, setClients] = useState<DBClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,182 +87,197 @@ export default function Clients() {
   if (loading && clients.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
-    <div className="clients-page clients-page-full">
-      <div className="flex-between clients-header">
+    <div className="flex flex-col gap-5">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h1>Clientes</h1>
-          <p className="subtitle clients-subtitle">Base de datos de clientes de Zenko.</p>
+          <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Base de datos de clientes de Zenko.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)}>+ Nuevo Cliente</button>
+        <button className="btn btn-primary shrink-0" onClick={() => setIsCreateOpen(true)}>
+          + Nuevo Cliente
+        </button>
       </div>
 
-      <div className="card clients-table-card clients-table-card-full">
-        <div className="clients-search-bar clients-search-bar-shrink">
-          <input
-            type="text"
-            placeholder="Buscar por nombre, telefono..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-search"
-          />
+      {/* Search + Table Card */}
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        {/* Search bar */}
+        <div className="p-4 border-b border-border">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Buscar por nombre, teléfono..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
-        {isMobile ? (
-          <div className="client-cards">
-            {clients.length === 0 ? (
-              <p className="clients-td-empty">No se encontraron clientes.</p>
-            ) : (
-              clients.map(c => (
-                <div key={c.id} className="client-card">
-                  <div className="client-card-name">{c.name}</div>
-                  <div className="client-card-info">
-                    <div className="clients-phone-row">
-                      <PhoneIcon />
+
+        {/* Responsive table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/40">
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Nombre</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden sm:table-cell">Teléfono</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden md:table-cell">Email</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Notas</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Registrado</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {clients.map(c => (
+                <tr key={c.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="font-semibold uppercase tracking-wide">{c.name}</div>
+                    <div className="sm:hidden flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                      <Phone className="h-3 w-3 shrink-0" />
+                      {c.phone}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       {c.phone}
                     </div>
                     {c.altPhone && (
-                      <div className="clients-phone-row clients-td-secondary">
-                        <AltPhoneIcon />
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                        <PhoneCall className="h-3 w-3 shrink-0" />
                         {c.altPhone}
                       </div>
                     )}
-                    {c.email && <div>{c.email}</div>}
-                    {c.notes && <div className="client-card-notes">{c.notes}</div>}
-                    <div className="clients-td-secondary">
-                      {new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </td>
+                  <td className="px-4 py-3 text-sm hidden md:table-cell">
+                    {c.email ? c.email : <span className="text-muted-foreground">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-sm max-w-[200px] truncate hidden lg:table-cell">
+                    {c.notes ? c.notes : <span className="text-muted-foreground">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap hidden lg:table-cell">
+                    {new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Button variant="outline" size="sm" onClick={() => openEdit(c)}>
+                        <Edit2 className="h-3.5 w-3.5" />
+                        Editar
+                      </Button>
+                      <Button variant="secondary" size="sm" onClick={() => openHistorial(c)}>
+                        <ClipboardList className="h-3.5 w-3.5" />
+                        Ver historial
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(c)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Eliminar
+                      </Button>
                     </div>
-                  </div>
-                  <div className="client-card-actions">
-                    <button className="btn btn-small clients-btn-edit" onClick={() => openEdit(c)}>Editar</button>
-                    <button className="btn btn-small clients-btn-historial" onClick={() => openHistorial(c)}>Ver historial</button>
-                    <button className="btn btn-small clients-btn-delete" onClick={() => handleDelete(c)}>Eliminar</button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Telefono</th>
-                  <th>Email</th>
-                  <th>Notas</th>
-                  <th>Registrado</th>
-                  <th>Acciones</th>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {clients.map(c => (
-                  <tr key={c.id}>
-                    <td className="clients-td-name clients-td-name-upper">{c.name}</td>
-                    <td>
-                      <div className="clients-phone-row">
-                        <PhoneIcon />
-                        {c.phone}
-                      </div>
-                      {c.altPhone && (
-                        <div className="clients-td-secondary clients-phone-row">
-                          <AltPhoneIcon />
-                          {c.altPhone}
-                        </div>
-                      )}
-                    </td>
-                    <td className={c.email ? '' : 'clients-td-muted'}>{c.email || '-'}</td>
-                    <td className={`clients-td-notes ${c.notes ? '' : 'clients-td-muted'}`}>{c.notes || '-'}</td>
-                    <td className="clients-td-secondary">{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                    <td>
-                      <div className="clients-actions-row clients-actions-row-sm">
-                        <button className="btn btn-small clients-btn-edit" onClick={() => openEdit(c)}>Editar</button>
-                        <button className="btn btn-small clients-btn-historial" onClick={() => openHistorial(c)}>Ver historial</button>
-                        <button className="btn btn-small clients-btn-delete" onClick={() => handleDelete(c)}>Eliminar</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {clients.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="clients-td-empty">
-                      No se encontraron clientes.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+              {clients.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="text-center py-10 text-muted-foreground">
+                    No se encontraron clientes.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {isCreateOpen && (
-        <ClientModal title="Nuevo Cliente" form={createForm} setForm={setCreateForm} onSubmit={handleCreate} onClose={() => { setIsCreateOpen(false); setCreateForm({ ...EMPTY_FORM }); }} />
-      )}
+      {/* Create modal */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent onClose={() => { setIsCreateOpen(false); setCreateForm({ ...EMPTY_FORM }); }}>
+          <ClientModal
+            title="Nuevo Cliente"
+            form={createForm}
+            setForm={setCreateForm}
+            onSubmit={handleCreate}
+            onClose={() => { setIsCreateOpen(false); setCreateForm({ ...EMPTY_FORM }); }}
+          />
+        </DialogContent>
+      </Dialog>
 
-      {editTarget && (
-        <ClientModal title={`Editar: ${editTarget.name}`} form={editForm} setForm={setEditForm} onSubmit={handleEdit} onClose={() => setEditTarget(null)} phoneDisabled />
-      )}
+      {/* Edit modal */}
+      <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>
+        <DialogContent onClose={() => setEditTarget(null)}>
+          <ClientModal
+            title={`Editar: ${editTarget?.name ?? ''}`}
+            form={editForm}
+            setForm={setEditForm}
+            onSubmit={handleEdit}
+            onClose={() => setEditTarget(null)}
+            phoneDisabled
+          />
+        </DialogContent>
+      </Dialog>
 
-      {historialTarget && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-lg">
-            <div className="clients-history-modal-header">
-              <h2 className="clients-modal-h2">Historial — {historialTarget.name}</h2>
-              <button className="btn-secondary" onClick={() => setHistorialTarget(null)}>Cerrar</button>
+      {/* Historial modal */}
+      <Dialog open={!!historialTarget} onOpenChange={(open) => { if (!open) setHistorialTarget(null); }}>
+        <DialogContent
+          className="w-[min(95vw,56rem)]"
+          onClose={() => setHistorialTarget(null)}
+        >
+          <DialogHeader>
+            <DialogTitle>Historial — {historialTarget?.name}</DialogTitle>
+          </DialogHeader>
+
+          {clientOrders === null ? (
+            <div className="flex justify-center py-8">
+              <Spinner />
             </div>
-            {clientOrders === null ? (
-              <div className="flex-center" style={{ padding: '16px' }}><Spinner /></div>
-            ) : (
-              <>
-                <p className="clients-historial-summary">
-                  {clientOrders.summary.totalOrders} órdenes en total
-                </p>
-                {clientOrders.orders.length === 0 ? (
-                  <p className="clients-td-muted">Sin órdenes registradas.</p>
-                ) : isMobile ? (
-                  <div className="client-cards">
-                    {clientOrders.orders.map((o: DBGarment) => (
-                      <div key={o.id} className="client-card">
-                        <div className="client-card-name">{o.garmentName} <span style={{ fontWeight: 400, textTransform: 'none', fontSize: '13px' }}>({o.repairType})</span></div>
-                        <div className="client-card-info">
-                          <div><span className="clients-td-secondary">Ingreso:</span> {o.intakeDate ? new Date(o.intakeDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</div>
-                          <div><span className="clients-td-secondary">Entrega:</span> {o.deliveryDate ? new Date(o.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</div>
-                          <div><span className="clients-td-secondary">Estado:</span> {o.status}</div>
-                          <div style={{ fontWeight: 600 }}>${o.price.toLocaleString('es-AR')}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="table-container">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Prenda</th>
-                          <th>Ingreso</th>
-                          <th>Entrega</th>
-                          <th>Estado</th>
-                          <th>Precio</th>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground mb-4">
+                {clientOrders.summary.totalOrders} órdenes en total
+              </p>
+
+              {clientOrders.orders.length === 0 ? (
+                <p className="text-muted-foreground text-sm">Sin órdenes registradas.</p>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border border-border">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/40">
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Prenda</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden sm:table-cell">Ingreso</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden sm:table-cell">Entrega</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Estado</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Precio</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {clientOrders.orders.map((o: DBGarment) => (
+                        <tr key={o.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="px-4 py-3 font-medium">
+                            {o.garmentName} ({o.repairType})
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap hidden sm:table-cell">
+                            {o.intakeDate ? new Date(o.intakeDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap hidden sm:table-cell">
+                            {o.deliveryDate ? new Date(o.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
+                          </td>
+                          <td className="px-4 py-3">{o.status}</td>
+                          <td className="px-4 py-3 font-bold">${o.price.toLocaleString('es-AR')}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {clientOrders.orders.map((o: DBGarment) => (
-                          <tr key={o.id}>
-                            <td className="clients-td-name">{o.garmentName} ({o.repairType})</td>
-                            <td className="clients-td-sm">{o.intakeDate ? new Date(o.intakeDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</td>
-                            <td className="clients-td-sm">{o.deliveryDate ? new Date(o.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}</td>
-                            <td>{o.status}</td>
-                            <td>${o.price.toLocaleString('es-AR')}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHistorialTarget(null)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -312,35 +306,47 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="card modal-card modal-md">
-        <h2 className="clients-modal-title">{title}</h2>
-        <form onSubmit={handleSubmit} className="form-group">
-          {/* Contact Details Group */}
-          <div className="clients-modal-section">
-            <label className="clients-modal-section-label clients-modal-section-label-lg">Datos de Contacto</label>
-            <div className="form-group clients-modal-fields">
-              <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className="input" />
-              <div className="form-row">
-                <input required name="phone" placeholder="Teléfono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input clients-input-flex" style={{ opacity: phoneDisabled ? 0.6 : 1 }} />
-                <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className="input clients-input-flex" />
-              </div>
-              <input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} className="input" />
-            </div>
-          </div>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <DialogHeader>
+        <DialogTitle>{title}</DialogTitle>
+      </DialogHeader>
 
-          {/* Info Group */}
-          <div className="clients-modal-section clients-modal-section-border">
-            <label className="clients-modal-section-label">Información Adicional</label>
-            <textarea name="notes" placeholder="Notas sobre el cliente, preferencias, etc..." value={form.notes} onChange={handle} rows={3} className="input clients-textarea" />
-          </div>
-
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
-            <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
-          </div>
-        </form>
+      <div className="flex flex-col gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Datos de Contacto</p>
+        <Input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} />
+        <div className="flex gap-3">
+          <Input
+            required
+            name="phone"
+            placeholder="Teléfono principal"
+            value={form.phone}
+            onChange={handle}
+            disabled={phoneDisabled}
+            className={phoneDisabled ? 'opacity-60' : ''}
+          />
+          <Input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} />
+        </div>
+        <Input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} />
       </div>
-    </div>
+
+      <div className="flex flex-col gap-2 pt-3 border-t border-border">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Información Adicional</p>
+        <textarea
+          name="notes"
+          placeholder="Notas sobre el cliente, preferencias, etc..."
+          value={form.notes}
+          onChange={handle}
+          rows={3}
+          className="flex w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+        />
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+        <Button type="submit" disabled={submitting}>
+          {submitting ? 'Guardando...' : 'Guardar'}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }

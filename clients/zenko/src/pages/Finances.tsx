@@ -3,6 +3,10 @@ import { fetchFinances, createFinance, updateFinance, deleteFinance } from '../s
 import type { DBFinance } from '../services/api';
 import { useToast } from '../components/ToastContext';
 import { SkeletonLoader } from '../components/SkeletonLoader';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, TrendingDown, DollarSign, Edit2, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const EMPTY_FORM = {
   date: new Date().toISOString().split('T')[0],
@@ -107,16 +111,20 @@ export default function Finances() {
   if (loading && finances.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
+    <div className="flex flex-col gap-5">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h1>Control Financiero</h1>
-          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Registro de ingresos y gastos del taller.</p>
+          <h1 className="text-2xl font-bold text-foreground">Control Financiero</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Registro de ingresos y gastos del taller.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nuevo Registro</button>
+        <button className="btn btn-primary shrink-0" onClick={() => setIsModalOpen(true)}>
+          Nuevo Registro
+        </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
+      {/* Month filter */}
+      <div className="flex items-center gap-3">
         <input
           type="month"
           value={filterMonth}
@@ -133,77 +141,92 @@ export default function Finances() {
         )}
       </div>
 
-      <div className="grid grid-cols-3" style={{ marginBottom: '16px', flexShrink: 0 }}>
-        <div className="card" style={{ borderTop: '4px solid var(--success-color)' }}>
-          <div className="stat-title">Ingresos Totales</div>
-          <div className="stat-value" style={{ color: 'var(--success-color)' }}>${totalIncome.toLocaleString()}</div>
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-xl border border-border bg-card shadow-sm p-4 border-t-4 border-t-emerald-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+            <TrendingUp className="h-4 w-4 text-emerald-500" />
+            Ingresos Totales
+          </div>
+          <div className="text-2xl font-bold text-emerald-600">${totalIncome.toLocaleString()}</div>
         </div>
-        <div className="card" style={{ borderTop: '4px solid var(--urgent-color)' }}>
-          <div className="stat-title">Gastos del Taller</div>
-          <div className="stat-value" style={{ color: 'var(--urgent-color)' }}>${totalExpenses.toLocaleString()}</div>
+        <div className="rounded-xl border border-border bg-card shadow-sm p-4 border-t-4 border-t-red-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+            <TrendingDown className="h-4 w-4 text-red-500" />
+            Gastos del Taller
+          </div>
+          <div className="text-2xl font-bold text-red-600">${totalExpenses.toLocaleString()}</div>
         </div>
-        <div className="card" style={{ borderTop: '4px solid var(--primary-color)' }}>
-          <div className="stat-title">Ganancia Neta</div>
-          <div className="stat-value">${netIncome.toLocaleString()}</div>
+        <div className="rounded-xl border border-border bg-card shadow-sm p-4 border-t-4 border-t-primary">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+            <DollarSign className="h-4 w-4 text-primary" />
+            Ganancia Neta
+          </div>
+          <div className={cn('text-2xl font-bold', netIncome >= 0 ? 'text-foreground' : 'text-red-600')}>
+            ${netIncome.toLocaleString()}
+          </div>
         </div>
       </div>
 
-      <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Últimos Movimientos</h2>
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Concepto / Descripción</th>
-                <th>Monto</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {finances.map(f => (
-                <tr key={f.id}>
-                  <td style={{ fontWeight: 600 }}>{new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}</td>
-                  <td>
-                    <span className={`badge ${f.type === 'income' ? 'completed' : 'pending'}`}>
-                      {f.type === 'income' ? 'Ingreso' : 'Gasto'}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{f.category}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{f.description}</div>
-                  </td>
-                  <td style={{ fontWeight: 800, color: f.type === 'income' ? 'var(--success-color)' : 'var(--urgent-color)' }}>
-                    {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        className="btn btn-small"
-                        style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
-                        onClick={() => openEdit(f)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="btn btn-small"
-                        style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
-                        onClick={() => handleDelete(f.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
+      {/* Movements table */}
+      <div>
+        <h2 className="text-lg font-semibold mb-3">Últimos Movimientos</h2>
+        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/40">
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Fecha</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Tipo</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Concepto / Descripción</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Monto</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Acciones</th>
                 </tr>
-              ))}
-              {finances.length === 0 && (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px' }}>No hay registros financieros.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {finances.map(f => (
+                  <tr key={f.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-semibold whitespace-nowrap">
+                      {new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant={f.type === 'income' ? 'listo' : 'overdue'}>
+                        {f.type === 'income' ? 'Ingreso' : 'Gasto'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold">{f.category}</div>
+                      {f.description && (
+                        <div className="text-xs text-muted-foreground">{f.description}</div>
+                      )}
+                    </td>
+                    <td className={cn('px-4 py-3 font-bold whitespace-nowrap', f.type === 'income' ? 'text-emerald-600' : 'text-red-600')}>
+                      {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEdit(f)}>
+                          <Edit2 className="h-3.5 w-3.5" />
+                          Editar
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleDelete(f.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Eliminar
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {finances.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-center py-10 text-muted-foreground">
+                      No hay registros financieros.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -211,36 +234,43 @@ export default function Finances() {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="card modal-card modal-md">
-            <h2 style={{ marginTop: 0 }}>Nuevo Registro Financiero</h2>
-            <form onSubmit={handleSubmit} className="form-group">
-              <div className="form-row">
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Tipo</label>
+            <h2 className="mt-0 mb-4 text-lg font-semibold">Nuevo Registro Financiero</h2>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex gap-3">
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Tipo</label>
                   <select name="type" value={form.type} onChange={handle} className="input">
                     <option value="income">Ingreso</option>
                     <option value="expense">Gasto</option>
                   </select>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha</label>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Fecha</label>
                   <input required name="date" type="date" value={form.date} onChange={handle} className="input" />
                 </div>
               </div>
 
-              <div className="form-row">
-                <div style={{ flex: 2 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Categoría / Concepto</label>
-                  <input required name="category" placeholder={form.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'} value={form.category} onChange={handle} className="input" />
+              <div className="flex gap-3">
+                <div className="flex flex-col gap-1.5 flex-[2]">
+                  <label className="text-xs font-medium text-muted-foreground">Categoría / Concepto</label>
+                  <input
+                    required
+                    name="category"
+                    placeholder={form.type === 'income' ? 'Ej: Arreglo Pantalón' : 'Ej: Hilo y Agujas'}
+                    value={form.category}
+                    onChange={handle}
+                    className="input"
+                  />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Monto ($)</label>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Monto ($)</label>
                   <input required name="amount" type="number" placeholder="0" value={form.amount || ''} onChange={handle} className="input" />
                 </div>
               </div>
 
               <input name="description" placeholder="Descripción adicional (opcional)" value={form.description} onChange={handle} className="input" />
 
-              <div className="form-actions">
+              <div className="flex justify-end gap-3 mt-2">
                 <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="btn-secondary">Cancelar</button>
                 <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
               </div>
@@ -253,15 +283,14 @@ export default function Finances() {
       {editTarget && (
         <div className="modal-overlay">
           <div className="card modal-card modal-sm">
-            <h2 style={{ marginTop: 0 }}>Editar Registro</h2>
-            <form onSubmit={handleEditSubmit} className="form-group">
-              <div className="form-row">
+            <h2 className="mt-0 mb-4 text-lg font-semibold">Editar Registro</h2>
+            <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
+              <div className="flex gap-3">
                 <select
                   name="type"
                   value={editForm.type}
                   onChange={handleEditChange}
-                  className="input"
-                  style={{ flex: 1 }}
+                  className="input flex-1"
                 >
                   <option value="income">Ingreso</option>
                   <option value="expense">Gasto</option>
@@ -272,8 +301,7 @@ export default function Finances() {
                   type="date"
                   value={editForm.date}
                   onChange={handleEditChange}
-                  className="input"
-                  style={{ flex: 1 }}
+                  className="input flex-1"
                 />
               </div>
               <input
@@ -300,7 +328,7 @@ export default function Finances() {
                 onChange={handleEditChange}
                 className="input"
               />
-              <div className="form-actions">
+              <div className="flex justify-end gap-3 mt-2">
                 <button
                   type="button"
                   onClick={() => setEditTarget(null)}

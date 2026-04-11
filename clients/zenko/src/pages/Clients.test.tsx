@@ -93,8 +93,8 @@ describe('Clients page (zenko)', () => {
       expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
     fireEvent.click(screen.getByText('+ Nuevo Cliente'));
+    // Dialog opens with the "Nuevo Cliente" title
     expect(screen.getByText('Nuevo Cliente')).toBeInTheDocument();
-    expect(document.querySelector('.modal-overlay')).toBeInTheDocument();
   });
 });
 

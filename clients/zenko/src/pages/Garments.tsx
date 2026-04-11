@@ -6,6 +6,12 @@ import { useToast } from '../components/ToastContext';
 import { BUSINESS } from '../config';
 import GarmentModal, { EMPTY_FORM } from '../components/GarmentModal';
 import { SkeletonLoader } from '../components/SkeletonLoader';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import { Search, SlidersHorizontal, X, Smartphone } from 'lucide-react';
 
 // ─── Hook mobile ────────────────────────────────────────────────────────────
 function useIsMobile() {
@@ -37,6 +43,17 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'precio_mayor', label: 'Precio mayor' },
   { value: 'precio_menor', label: 'Precio menor' },
 ];
+
+// ─── Status badge helper ─────────────────────────────────────────────────────
+function getStatusBadge(status: string) {
+  switch (status) {
+    case 'recibido':   return <Badge variant="recibido">● Recibido</Badge>;
+    case 'en_proceso': return <Badge variant="en_proceso">⚙ En Proceso</Badge>;
+    case 'listo':      return <Badge variant="listo">✓ Listo</Badge>;
+    case 'entregado':  return <Badge variant="entregado">✔ Entregado</Badge>;
+    default:           return null;
+  }
+}
 
 export default function Garments() {
   const toast = useToast();
@@ -93,7 +110,6 @@ export default function Garments() {
       COMMON_REPAIR_TYPES.forEach(c => { if (t === c) types.add(c); });
       if (!COMMON_REPAIR_TYPES.some(c => c === t)) types.add('otro');
     });
-    // Siempre mostrar los comunes + los que aparezcan en los datos
     const all = new Set([...COMMON_REPAIR_TYPES]);
     types.forEach(t => all.add(t));
     return [...all];
@@ -199,22 +215,6 @@ export default function Garments() {
     }
   };
 
-  const badgeStyle = (bg: string, fg: string, bd: string): React.CSSProperties => ({
-    background: bg, color: fg, border: `1px solid ${bd}`, whiteSpace: 'nowrap',
-    display: 'inline-block', fontSize: '12px', padding: '4px 10px',
-    borderRadius: '12px', fontWeight: 600
-  });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'recibido':   return <span style={badgeStyle('#fff3e0', '#e65100', '#ffcc80')}>● Recibido</span>;
-      case 'en_proceso': return <span style={badgeStyle('#e3f2fd', '#1565c0', '#90caf9')}>⚙ En Proceso</span>;
-      case 'listo':      return <span style={badgeStyle('#e8f5e9', '#2e7d32', '#a5d6a7')}>✓ Listo</span>;
-      case 'entregado':  return <span style={badgeStyle('#f5f5f5', '#757575', '#e0e0e0')}>✔ Entregado</span>;
-      default:           return null;
-    }
-  };
-
   const formatDate = (dateStr: string | undefined, withTime = false) => {
     if (!dateStr) return '-';
     if (dateStr.length <= 10) return new Date(dateStr + 'T12:00:00').toLocaleDateString('es-AR');
@@ -225,136 +225,128 @@ export default function Garments() {
 
   const ActionButtons = ({ g }: { g: DBGarment }) => (
     <>
-      <button
-        className="btn btn-small"
-        style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
-        onClick={() => openEdit(g)}
-      >
+      <Button variant="outline" size="sm" onClick={() => openEdit(g)}>
         Editar
-      </button>
+      </Button>
       {g.status === 'listo' && (
         <a
-          className="btn btn-small"
           href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReadyMsg(g.clientName, g.garmentName))}`}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ backgroundColor: '#f0fff4', border: '1px solid #9ae6b4', color: '#276749', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+          className={cn(buttonVariants({ variant: 'success', size: 'sm' }), 'no-underline')}
         >
           Avisar
         </a>
       )}
-      <button
-        className="btn btn-small"
-        style={{ backgroundColor: '#f0f5ff', border: '1px solid #cce0ff', color: '#0055cc' }}
+      <Button
+        variant="secondary"
+        size="sm"
+        className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
         onClick={() => generateTicket(g)}
       >
         Ticket
-      </button>
-      <button
-        className="btn btn-small"
-        style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
-        onClick={() => handleDelete(g.id)}
-      >
+      </Button>
+      <Button variant="destructive" size="sm" onClick={() => handleDelete(g.id)}>
         Eliminar
-      </button>
+      </Button>
     </>
   );
 
   if (loading && garments.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: isMobile ? 'auto' : '100%' }}>
+    <div className={cn('flex flex-col', isMobile ? 'h-auto' : 'h-full')}>
 
       {/* ── Encabezado ─────────────────────────────────────────────── */}
-      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
+      <div className="flex items-start justify-between mb-5 shrink-0">
         <div>
-          <h1>Gestión de Prendas</h1>
-          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>
+          <h1 className="text-2xl font-bold text-foreground">Gestión de Prendas</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Administra los arreglos de tus clientes detalladamente.
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)}>
+        <Button onClick={() => setIsCreateOpen(true)}>
           + Registrar Ingreso
-        </button>
+        </Button>
       </div>
 
       {/* ── Filtros de estado ──────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap', flexShrink: 0 }}>
+      <div className="flex gap-2 mb-4 flex-wrap shrink-0">
         {[
-          { key: 'all',        label: 'Todos',     count: garments.length },
-          { key: 'recibido',   label: 'Recibido',  count: statusCounts['recibido']   || 0 },
+          { key: 'all',        label: 'Todos',      count: garments.length },
+          { key: 'recibido',   label: 'Recibido',   count: statusCounts['recibido']   || 0 },
           { key: 'en_proceso', label: 'En Proceso', count: statusCounts['en_proceso'] || 0 },
-          { key: 'listo',      label: 'Listo',     count: statusCounts['listo']      || 0 },
-          { key: 'entregado',  label: 'Entregado', count: statusCounts['entregado']  || 0 },
+          { key: 'listo',      label: 'Listo',      count: statusCounts['listo']      || 0 },
+          { key: 'entregado',  label: 'Entregado',  count: statusCounts['entregado']  || 0 },
         ].map(({ key, label, count }) => (
-          <button
+          <Button
             key={key}
             type="button"
+            size="sm"
+            variant={statusFilter === key ? 'default' : 'outline'}
             onClick={() => setStatusFilter(key)}
-            className={`btn btn-small${statusFilter === key ? ' btn-primary' : ''}`}
-            style={statusFilter !== key ? { backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' } : {}}
           >
             {label} ({count})
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* ── Card contenedor ───────────────────────────────────────── */}
-      <div className="card" style={{ padding: '0', overflow: isMobile ? 'visible' : 'hidden', display: 'flex', flexDirection: 'column', flex: isMobile ? 'none' : 1, minHeight: 0 }}>
+      <div className={cn(
+        'rounded-xl border border-border bg-card shadow-sm flex flex-col',
+        isMobile ? 'overflow-visible' : 'overflow-hidden flex-1 min-h-0'
+      )}>
 
         {/* Barra de búsqueda + botón Filtros */}
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '12px', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Buscar por cliente, prenda o nro orden..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-search"
-            style={{ flex: 1, minWidth: '180px' }}
-          />
-          <button
+        <div className="flex gap-3 p-4 border-b border-border shrink-0 items-center flex-wrap">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Buscar por cliente, prenda o nro orden..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button
             type="button"
-            className="btn btn-small"
+            size="sm"
+            variant={activeFilterCount > 0 ? 'default' : 'outline'}
+            className="relative shrink-0"
             onClick={() => setShowFilters(f => !f)}
-            style={{
-              backgroundColor: activeFilterCount > 0 ? 'var(--primary-color)' : 'var(--surface-secondary)',
-              color: activeFilterCount > 0 ? 'white' : 'var(--text-primary)',
-              border: activeFilterCount > 0 ? 'none' : '1px solid var(--border-color)',
-              position: 'relative',
-              flexShrink: 0,
-            }}
           >
-            ⚙ Filtros
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtros
             {activeFilterCount > 0 && (
-              <span style={{
-                position: 'absolute', top: '-6px', right: '-6px',
-                background: '#fff', color: 'var(--primary-color)',
-                border: '1.5px solid var(--primary-color)',
-                borderRadius: '99px', fontSize: '11px', fontWeight: 700,
-                lineHeight: 1, padding: '1px 5px', minWidth: '16px', textAlign: 'center',
-              }}>
+              <span className="absolute -top-1.5 -right-1.5 bg-background text-primary border border-primary rounded-full text-[11px] font-bold leading-none px-1.5 py-0.5 min-w-[18px] text-center">
                 {activeFilterCount}
               </span>
             )}
-          </button>
+          </Button>
         </div>
 
         {/* Panel de filtros avanzados */}
         {showFilters && (
-          <div className="filter-panel">
+          <div className="p-4 border-b border-border bg-muted/40 shrink-0">
             {/* Tipo de arreglo */}
-            <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+            <div className="mb-4">
+              <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-2">
                 Tipo de arreglo
               </div>
-              <div className="filter-chips">
+              <div className="flex flex-wrap gap-2">
                 {availableRepairTypes.map(type => (
                   <button
                     key={type}
                     type="button"
-                    className={`filter-chip${repairTypeFilter.includes(type) ? ' active' : ''}`}
                     onClick={() => setRepairTypeFilter(prev =>
                       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+                    )}
+                    className={cn(
+                      'px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer',
+                      repairTypeFilter.includes(type)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-background text-foreground border-border hover:bg-muted'
                     )}
                   >
                     {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -364,68 +356,67 @@ export default function Garments() {
             </div>
 
             {/* Rango de fechas + Vencidos */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '14px' }}>
+            <div className="flex gap-3 flex-wrap items-end mb-4">
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">
                   Entrega desde
                 </label>
-                <input
+                <Input
                   type="date"
-                  className="input"
-                  style={{ width: '150px', padding: '7px 10px', fontSize: '13px' }}
+                  className="w-[150px] h-9 text-sm"
                   value={dateFrom}
                   onChange={e => setDateFrom(e.target.value)}
                 />
               </div>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">
                   Entrega hasta
                 </label>
-                <input
+                <Input
                   type="date"
-                  className="input"
-                  style={{ width: '150px', padding: '7px 10px', fontSize: '13px' }}
+                  className="w-[150px] h-9 text-sm"
                   value={dateTo}
                   onChange={e => setDateTo(e.target.value)}
                 />
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, paddingBottom: '2px' }}>
+              <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold pb-0.5">
                 <input
                   type="checkbox"
                   checked={onlyOverdue}
                   onChange={e => setOnlyOverdue(e.target.checked)}
-                  style={{ accentColor: 'var(--primary-color)', width: '16px', height: '16px' }}
+                  className="accent-primary w-4 h-4"
                 />
                 Solo vencidos
               </label>
             </div>
 
             {/* Ordenar por + Limpiar */}
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+            <div className="flex gap-3 items-center flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                   Ordenar por
                 </label>
-                <select
-                  className="input"
-                  style={{ width: 'auto', padding: '7px 10px', fontSize: '13px', cursor: 'pointer' }}
+                <Select
+                  className="w-auto h-9 text-sm"
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value as SortOption)}
                 >
                   {SORT_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
-                </select>
+                </Select>
               </div>
               {activeFilterCount > 0 && (
-                <button
+                <Button
                   type="button"
-                  className="btn btn-small"
+                  size="sm"
+                  variant="destructive"
                   onClick={clearFilters}
-                  style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                  className="bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
                 >
+                  <X className="h-3 w-3" />
                   Limpiar filtros
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -434,84 +425,88 @@ export default function Garments() {
         {/* ── Vista: Cards (mobile) vs Tabla (desktop) ─────────────── */}
         {isMobile ? (
           /* ── MOBILE: tarjetas ──────────────────────────────────────── */
-          <div className="garment-cards">
+          <div className="flex flex-col gap-3 p-3">
             {filtered.length === 0 ? (
-              <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              <div className="py-8 text-center text-muted-foreground">
                 No se encontraron órdenes.
               </div>
             ) : filtered.map(g => (
-              <div key={g.id} className={`garment-card${isOverdue(g) ? ' overdue' : ''}`}>
-
+              <div
+                key={g.id}
+                className={cn(
+                  'rounded-xl border bg-card shadow-sm overflow-hidden',
+                  isOverdue(g) ? 'border-red-200 bg-red-50/30' : 'border-border'
+                )}
+              >
                 {/* Header: ORD + badge */}
-                <div className="garment-card-header">
-                  <span className="garment-card-ord">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/30">
+                  <span className="font-mono text-xs font-bold text-muted-foreground">
                     ORD-{String(g.orderNumber).padStart(3, '0')}
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="flex items-center gap-1.5">
                     {getStatusBadge(g.status)}
                     {isOverdue(g) && (
-                      <span style={{ fontSize: '11px', color: '#d32f2f', fontWeight: 700, background: '#fff0f0', border: '1px solid #ffcccc', borderRadius: '8px', padding: '2px 7px' }}>
-                        Vencido
-                      </span>
+                      <Badge variant="overdue">Vencido</Badge>
                     )}
                   </span>
                 </div>
 
                 {/* Body */}
-                <div className="garment-card-body">
+                <div className="px-4 py-3">
                   {/* Cliente */}
-                  <div style={{ marginBottom: '6px' }}>
-                    <div style={{ fontWeight: 700, fontSize: '15px', textTransform: 'uppercase', color: 'var(--text-primary)' }}>
+                  <div className="mb-2">
+                    <div className="font-bold text-sm uppercase tracking-wide text-foreground">
                       {g.clientName}
                     </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12.01" y2="18" />
-                      </svg>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <Smartphone className="h-3 w-3" />
                       {g.clientPhone}
                     </div>
                   </div>
 
                   {/* Prenda */}
-                  <div style={{ marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>
-                      {g.garmentName} <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>({g.repairType})</span>
+                  <div className="mb-2 pb-2 border-b border-border">
+                    <div className="font-semibold text-sm text-foreground">
+                      {g.garmentName}{' '}
+                      <span className="text-muted-foreground font-normal">({g.repairType})</span>
                     </div>
                     {g.description && (
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      <div className="text-xs text-muted-foreground mt-0.5">
                         {g.description}
                       </div>
                     )}
                   </div>
 
                   {/* Fechas */}
-                  <div style={{ display: 'flex', gap: '16px', marginBottom: '8px', fontSize: '13px' }}>
+                  <div className="flex gap-4 mb-2 text-xs">
                     <div>
-                      <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Ingreso: </span>
+                      <span className="text-muted-foreground font-semibold">Ingreso: </span>
                       <span>{formatDate(g.intakeDate, !!g.intakeDate && g.intakeDate.length > 10)}</span>
                     </div>
                     <div>
-                      <span style={{ color: isOverdue(g) ? '#d32f2f' : 'var(--text-secondary)', fontWeight: 600 }}>Entrega: </span>
-                      <span style={{ color: isOverdue(g) ? '#d32f2f' : 'inherit', fontWeight: isOverdue(g) ? 700 : 500 }}>
+                      <span className={cn('font-semibold', isOverdue(g) ? 'text-red-600' : 'text-muted-foreground')}>
+                        Entrega:{' '}
+                      </span>
+                      <span className={cn(isOverdue(g) && 'text-red-600 font-bold')}>
                         {formatDate(g.deliveryDate)}
                       </span>
                     </div>
                   </div>
 
                   {/* Precios */}
-                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '13px' }}>
-                    <div style={{ fontWeight: 700 }}>Total: ${g.price.toLocaleString()}</div>
+                  <div className="flex gap-3 flex-wrap text-xs">
+                    <div className="font-bold">Total: ${g.price.toLocaleString()}</div>
                     {g.deposit !== undefined && g.deposit > 0 && (
                       <>
-                        <div style={{ color: '#689f38', fontWeight: 600 }}>Seña: ${g.deposit.toLocaleString()}</div>
-                        <div style={{ color: '#d32f2f', fontWeight: 700 }}>Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
+                        <div className="text-emerald-700 font-semibold">Seña: ${g.deposit.toLocaleString()}</div>
+                        <div className="text-red-600 font-bold">Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
                       </>
                     )}
                   </div>
                 </div>
 
                 {/* Acciones */}
-                <div className="garment-card-actions">
+                <div className="flex gap-2 flex-wrap px-4 py-3 border-t border-border bg-muted/20">
                   <ActionButtons g={g} />
                 </div>
               </div>
@@ -519,65 +514,69 @@ export default function Garments() {
           </div>
         ) : (
           /* ── DESKTOP: tabla ────────────────────────────────────────── */
-          <div className="table-container">
-            <table>
+          <div className="overflow-auto flex-1">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Prenda & Detalle</th>
-                  <th>Ingreso</th>
-                  <th>Entrega</th>
-                  <th>Costo / Saldo</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Cliente</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Prenda & Detalle</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Ingreso</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Entrega</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Costo / Saldo</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Estado</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(g => (
-                  <tr key={g.id} style={isOverdue(g) ? { backgroundColor: '#fff8f0' } : undefined}>
-                    <td>
-                      <div style={{ fontWeight: 600, textTransform: 'uppercase' }}>{g.clientName}</div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12.01" y2="18" />
-                        </svg>
+                  <tr
+                    key={g.id}
+                    className={cn(
+                      'border-b border-border hover:bg-muted/30 transition-colors',
+                      isOverdue(g) && 'bg-amber-50/50'
+                    )}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="font-semibold uppercase text-foreground">{g.clientName}</div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Smartphone className="h-3 w-3" />
                         {g.clientPhone}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '2px', fontFamily: 'monospace' }}>
+                      <div className="text-[11px] text-muted-foreground/60 mt-0.5 font-mono">
                         ORD-{String(g.orderNumber).padStart(3, '0')}
                       </div>
                     </td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{g.garmentName} ({g.repairType})</div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '280px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-foreground">{g.garmentName} ({g.repairType})</div>
+                      <div className="text-xs text-muted-foreground max-w-[280px] truncate">
                         {g.description}
                       </div>
                     </td>
-                    <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
                       {formatDate(g.intakeDate, !!g.intakeDate && g.intakeDate.length > 10)}
                     </td>
-                    <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
                       {formatDate(g.deliveryDate)}
                     </td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>Total: ${g.price.toLocaleString()}</div>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-foreground">Total: ${g.price.toLocaleString()}</div>
                       {g.deposit !== undefined && g.deposit > 0 && (
-                        <div style={{ fontSize: '12px', color: '#689f38' }}>Seña: ${g.deposit.toLocaleString()}</div>
+                        <div className="text-xs text-emerald-700">Seña: ${g.deposit.toLocaleString()}</div>
                       )}
                       {g.deposit !== undefined && g.deposit > 0 && (
-                        <div style={{ fontSize: '12px', color: '#d32f2f', fontWeight: 600 }}>Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
+                        <div className="text-xs text-red-600 font-semibold">Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
                       )}
                     </td>
-                    <td>
-                      {getStatusBadge(g.status)}
-                      {isOverdue(g) && (
-                        <span style={{ display: 'block', fontSize: '11px', color: '#d32f2f', fontWeight: 600, marginTop: '2px' }}>
-                          Vencido
-                        </span>
-                      )}
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1 items-start">
+                        {getStatusBadge(g.status)}
+                        {isOverdue(g) && (
+                          <Badge variant="overdue">Vencido</Badge>
+                        )}
+                      </div>
                     </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2 flex-wrap">
                         <ActionButtons g={g} />
                       </div>
                     </td>
@@ -585,7 +584,7 @@ export default function Garments() {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
+                    <td colSpan={7} className="text-center py-8 text-muted-foreground">
                       No se encontraron órdenes.
                     </td>
                   </tr>
