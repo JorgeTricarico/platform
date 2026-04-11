@@ -34,6 +34,7 @@ const mockClient = {
 const mockOrders = [
   {
     id: 'ORD-3',
+    orderNumber: 1,
     clientName: 'Ana Garcia',
     clientPhone,
     garmentName: 'Blazer',
@@ -47,6 +48,7 @@ const mockOrders = [
   },
   {
     id: 'ORD-2',
+    orderNumber: 2,
     clientName: 'Ana Garcia',
     clientPhone,
     garmentName: 'Vestido',
@@ -60,6 +62,7 @@ const mockOrders = [
   },
   {
     id: 'ORD-1',
+    orderNumber: 3,
     clientName: 'Ana Garcia',
     clientPhone,
     garmentName: 'Pantalon',

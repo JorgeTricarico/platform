@@ -27,6 +27,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
 
     const createdOrder = {
       id: 'uuid-mock-001',
+      orderNumber: 1,
       ...input,
       price: 4500, // number after conversion
       status: 'recibido',
@@ -67,7 +68,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
       clientName: 'Test', clientPhone: '0000', garmentName: 'Remera',
       repairType: 'estampar', description: 'logo', deliveryDate: '2026-04-20', price: 2000,
     };
-    mockPrisma.order.create.mockResolvedValue({ id: '0002', ...input, intakeDate: '2026-04-05', status: 'recibido' });
+    mockPrisma.order.create.mockResolvedValue({ id: '0002', orderNumber: 2, ...input, intakeDate: '2026-04-05', status: 'recibido' });
 
     await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
@@ -78,7 +79,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
 
   it('full CRUD cycle: create → update status → update full → delete', async () => {
     const garment = {
-      id: '0003', clientName: 'Test', clientPhone: '1111', garmentName: 'Jean',
+      id: '0003', orderNumber: 3, clientName: 'Test', clientPhone: '1111', garmentName: 'Jean',
       repairType: 'parche', description: 'rodilla', intakeDate: '2026-04-05',
       deliveryDate: '2026-04-15', price: 3000, status: 'recibido',
     };

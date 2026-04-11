@@ -6,34 +6,47 @@ import { LOGO_BASE64 } from '../constants/assets';
 export async function generateTicket(order: DBGarment): Promise<void> {
   const doc = new jsPDF({ unit: 'mm', format: [80, 180] });
 
-  // Header Logo - Relocated to the right of data
-  doc.addImage(LOGO_BASE64, 'PNG', 52, 36, 22, 22);
+  // Header Logo - Positioned to the side
+  doc.addImage(LOGO_BASE64, 'PNG', 55, 10, 20, 20);
 
   // Header Text
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('ZENKO', 40, 25, { align: 'center' });
-  doc.setFontSize(8);
+  doc.text('ZENKO', 30, 20, { align: 'center' });
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Arreglos de Ropa — Ana & Ariel', 40, 30, { align: 'center' });
+  doc.text('Arreglos de Ropa', 30, 26, { align: 'center' });
+  
+  // WhatsApp Symbol & Number
+  doc.setFillColor(37, 211, 102);
+  doc.circle(18, 30, 1.6, 'F');
+  doc.setFontSize(5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('W', 18, 30.7, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(8);
+  doc.text('11 6574-9397', 34, 31, { align: 'center' });
+  
+  doc.setFontSize(7);
+  doc.text('Independencia 243, Morón', 30, 35, { align: 'center' });
 
   // Separator
   doc.setDrawColor(200);
-  doc.line(5, 33, 75, 33);
+  doc.line(5, 38, 75, 38);
 
   // Order info
-  const shortId = order.id.slice(-6).toUpperCase();
+  const orderLabel = `ORD-${String(order.orderNumber).padStart(3, '0')}`;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Orden: #${shortId}`, 5, 39);
+  doc.text(`Orden: ${orderLabel}`, 5, 44);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Cliente: ${order.clientName.toUpperCase()}`, 5, 45);
-  doc.text(`Tel: ${order.clientPhone}`, 5, 50);
-  doc.text(`Prenda: ${order.garmentName}`, 5, 55);
-  doc.text(`Arreglo: ${order.repairType}`, 5, 60);
-  doc.text(`Detalle: ${order.description.slice(0, 40)}`, 5, 65);
+  doc.text(`Cliente: ${order.clientName.toUpperCase()}`, 5, 50);
+  doc.text(`Tel: ${order.clientPhone}`, 5, 55);
+  doc.text(`Prenda: ${order.garmentName}`, 5, 60);
+  doc.text(`Arreglo: ${order.repairType}`, 5, 65);
+  doc.text(`Detalle: ${order.description.slice(0, 40)}`, 5, 70);
   
-  let y = 70;
+  let y = 75;
   const fmtDate = (d: string) => {
     if (!d) return '-';
     const date = new Date(d);
@@ -53,7 +66,7 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   // QR Code
   // Future URL: https://zenko.ar/orden/[shortId]
   const qrY = y + 5;
-  const trackingUrl = `${window.location.origin}/?view=status&order=${shortId}`;
+  const trackingUrl = `${window.location.origin}/?view=status&order=${order.orderNumber}`;
   const qrDataUrl = await QRCode.toDataURL(trackingUrl, { width: 200, margin: 1 });
   doc.addImage(qrDataUrl, 'PNG', 20, qrY, 40, 40);
 

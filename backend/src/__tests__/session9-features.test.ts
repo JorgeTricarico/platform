@@ -34,7 +34,7 @@ describe('Location field on Order', () => {
       repairType: 'dobladillo', description: 'acortar 5cm',
       deliveryDate: '2026-05-01', price: 3000, location: 'Estante 3',
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-LOC-1', ...input, status: 'recibido', intakeDate: '2026-04-05' });
+    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-LOC-1', orderNumber: 1, ...input, status: 'recibido', intakeDate: '2026-04-05' });
 
     const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
@@ -48,7 +48,7 @@ describe('Location field on Order', () => {
       repairType: 'cierre', description: 'cambiar cierre',
       deliveryDate: '2026-05-05', price: 5000,
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-LOC-2', ...input, status: 'recibido', intakeDate: '2026-04-05', location: null });
+    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-LOC-2', orderNumber: 2, ...input, status: 'recibido', intakeDate: '2026-04-05', location: null });
 
     const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
@@ -63,8 +63,8 @@ describe('Location field on Order', () => {
       deliveryDate: '2026-05-01', price: 3000,
       intakeDate: '2026-04-05', status: 'en_proceso', location: 'Perchero B',
     };
-    mockPrisma.order.update.mockResolvedValue({ id: 'ORD-LOC-1', ...input });
-    mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-LOC-1', status: 'recibido', deposit: 0, price: 3000 });
+    mockPrisma.order.update.mockResolvedValue({ id: 'ORD-LOC-1', orderNumber: 3, ...input });
+    mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-LOC-1', orderNumber: 3, status: 'recibido', deposit: 0, price: 3000 });
 
     const res = await request(app).put('/api/zenco/garments/ORD-LOC-1').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
@@ -156,7 +156,7 @@ describe('Location field schema validation', () => {
       repairType: 'diseño', description: 'estampar logo',
       deliveryDate: '2026-05-10', price: 2000, location: null,
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-V-1', ...input, status: 'recibido', intakeDate: '2026-04-05' });
+    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-V-1', orderNumber: 4, ...input, status: 'recibido', intakeDate: '2026-04-05' });
     const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
   });

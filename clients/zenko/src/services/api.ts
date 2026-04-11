@@ -43,6 +43,7 @@ async function mutationFetch(url: string, method: string, body?: unknown): Promi
 
 export interface DBGarment {
   id: string;
+  orderNumber: number;
   clientName: string;
   clientPhone: string;
   garmentName: string;
@@ -229,6 +230,7 @@ export const deleteGarmentPhoto = async (garmentId: string, photoId: string): Pr
 
 export interface PublicStatusResponse {
   id: string;
+  orderNumber: number;
   clientName: string;
   garmentName: string;
   repairType: string;

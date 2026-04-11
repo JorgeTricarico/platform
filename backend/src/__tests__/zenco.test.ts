@@ -43,8 +43,8 @@ describe('GET /api/zenco/garments', () => {
 
   it('returns garments sorted by deliveryDate', async () => {
     const garments = [
-      { id: 'ORD-1', clientName: 'Ana', clientPhone: '1234', garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar', status: 'recibido', intakeDate: '2026-04-01', deliveryDate: '2026-04-10', price: 3000 },
-      { id: 'ORD-2', clientName: 'Luis', clientPhone: '5678', garmentName: 'Campera', repairType: 'cierre', description: 'cambiar cierre', status: 'en_proceso', intakeDate: '2026-04-02', deliveryDate: '2026-04-12', price: 5000 },
+      { id: 'ORD-1', orderNumber: 1, clientName: 'Ana', clientPhone: '1234', garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar', status: 'recibido', intakeDate: '2026-04-01', deliveryDate: '2026-04-10', price: 3000 },
+      { id: 'ORD-2', orderNumber: 2, clientName: 'Luis', clientPhone: '5678', garmentName: 'Campera', repairType: 'cierre', description: 'cambiar cierre', status: 'en_proceso', intakeDate: '2026-04-02', deliveryDate: '2026-04-12', price: 5000 },
     ];
     mockPrisma.order.findMany.mockResolvedValue(garments);
     const res = await request(app).get('/api/zenco/garments').set('Authorization', authHeader('zenco'));
@@ -61,7 +61,7 @@ describe('POST /api/zenco/garments', () => {
       repairType: 'entalle', description: 'achicar cintura',
       intakeDate: '2026-04-05', deliveryDate: '2026-04-15', price: 4500,
     };
-    const created = { id: 'ORD-123', ...input, status: 'recibido', createdAt: new Date().toISOString() };
+    const created = { id: 'ORD-123', orderNumber: 3, ...input, status: 'recibido', createdAt: new Date().toISOString() };
     mockPrisma.order.create.mockResolvedValue(created);
     mockPrisma.client.upsert.mockResolvedValue({ id: 'client-123', name: 'Maria', phone: '1111', business: 'zenco' });
 
@@ -85,7 +85,7 @@ describe('POST /api/zenco/garments', () => {
       clientName: 'Pedro', clientPhone: '2222', garmentName: 'Camisa',
       repairType: 'dobladillo', description: 'mangas', deliveryDate: '2026-04-20', price: 2000,
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-456', ...input, intakeDate: '2026-04-05', status: 'recibido' });
+    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-456', orderNumber: 4, ...input, intakeDate: '2026-04-05', status: 'recibido' });
 
     await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
@@ -99,7 +99,7 @@ describe('POST /api/zenco/garments', () => {
       clientName: 'Test', clientPhone: '3333', garmentName: 'Remera',
       repairType: 'diseño', description: 'estampar', deliveryDate: '2026-04-20', price: '3000',
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-789', ...input, price: 3000, intakeDate: '2026-04-05', status: 'recibido' });
+    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-789', orderNumber: 5, ...input, price: 3000, intakeDate: '2026-04-05', status: 'recibido' });
 
     await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
@@ -120,7 +120,7 @@ describe('POST /api/zenco/garments', () => {
 
 describe('PUT /api/zenco/garments/:id/status', () => {
   const fullOrder = {
-    id: 'ORD-1', clientName: 'Ana', clientPhone: '5491112345678',
+    id: 'ORD-1', orderNumber: 6, clientName: 'Ana', clientPhone: '5491112345678',
     garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar',
     status: 'listo', intakeDate: '2026-04-01', deliveryDate: '2026-04-10', price: 3000, deposit: 0,
   };
@@ -233,7 +233,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
 describe('PUT /api/zenco/garments/:id', () => {
   beforeEach(() => {
-    mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-1', status: 'recibido' });
+    mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-1', orderNumber: 7, status: 'recibido' });
   });
 
   it('updates garment fully', async () => {
@@ -242,7 +242,7 @@ describe('PUT /api/zenco/garments/:id', () => {
       repairType: 'dobladillo', description: 'mas corto', status: 'en_proceso',
       intakeDate: '2026-04-01', deliveryDate: '2026-04-08', price: 3500,
     };
-    mockPrisma.order.update.mockResolvedValue({ id: 'ORD-1', ...update });
+    mockPrisma.order.update.mockResolvedValue({ id: 'ORD-1', orderNumber: 8, ...update });
     const res = await request(app).put('/api/zenco/garments/ORD-1').set('Authorization', authHeader('zenco')).send(update);
     expect(res.status).toBe(200);
     expect(res.body.clientName).toBe('Ana Updated');
@@ -362,7 +362,7 @@ describe('GET /api/zenco/dashboard', () => {
   it('returns today deliveries', async () => {
     const today = new Date().toISOString().split('T')[0];
     const todayOrders = [
-      { id: 'ORD-1', clientName: 'Ana', garmentName: 'Pantalon', status: 'listo', deliveryDate: today },
+      { id: 'ORD-1', orderNumber: 9, clientName: 'Ana', garmentName: 'Pantalon', status: 'listo', deliveryDate: today },
     ];
     mockPrisma.order.groupBy.mockResolvedValue([]);
     // First findMany call = todayDeliveries, second = upcomingDeliveries
@@ -379,7 +379,7 @@ describe('GET /api/zenco/dashboard', () => {
   it('returns upcoming deliveries (next 3 days, excluding today)', async () => {
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
     const upcomingOrders = [
-      { id: 'ORD-2', clientName: 'Luis', garmentName: 'Campera', status: 'en_proceso', deliveryDate: tomorrow },
+      { id: 'ORD-2', orderNumber: 10, clientName: 'Luis', garmentName: 'Campera', status: 'en_proceso', deliveryDate: tomorrow },
     ];
     mockPrisma.order.groupBy.mockResolvedValue([]);
     mockPrisma.order.findMany
@@ -451,7 +451,7 @@ describe('GET /api/zenco/dashboard/stale-garments', () => {
   it('returns garments with status listo and deliveryDate >7 days ago', async () => {
     const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
     const staleGarments = [
-      { id: '0001', clientName: 'María', clientPhone: '111', garmentName: 'Campera', repairType: 'cierre', description: 'Cambiar cierre', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, price: 5000 },
+      { id: '0001', orderNumber: 11, clientName: 'María', clientPhone: '111', garmentName: 'Campera', repairType: 'cierre', description: 'Cambiar cierre', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, price: 5000 },
     ];
     mockPrisma.order.findMany.mockResolvedValue(staleGarments);
 
@@ -482,7 +482,7 @@ describe('GET /api/zenco/dashboard/stale-garments', () => {
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
     // deliveryDate is in the future but statusChangedAt is >7 days ago — should be stale
     const staleByStatusChanged = [
-      { id: '0002', clientName: 'Luis', clientPhone: '222', garmentName: 'Saco', repairType: 'cierre', description: 'Cambiar cierre', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tomorrow, statusChangedAt: tenDaysAgo, price: 4000 },
+      { id: '0002', orderNumber: 12, clientName: 'Luis', clientPhone: '222', garmentName: 'Saco', repairType: 'cierre', description: 'Cambiar cierre', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tomorrow, statusChangedAt: tenDaysAgo, price: 4000 },
     ];
     mockPrisma.order.findMany.mockResolvedValue(staleByStatusChanged);
 
@@ -495,7 +495,7 @@ describe('GET /api/zenco/dashboard/stale-garments', () => {
   it('falls back to deliveryDate when statusChangedAt is null', async () => {
     const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
     const staleByDelivery = [
-      { id: '0003', clientName: 'Marta', clientPhone: '333', garmentName: 'Vestido', repairType: 'ruedo', description: 'acortar', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, statusChangedAt: null, price: 3000 },
+      { id: '0003', orderNumber: 13, clientName: 'Marta', clientPhone: '333', garmentName: 'Vestido', repairType: 'ruedo', description: 'acortar', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, statusChangedAt: null, price: 3000 },
     ];
     mockPrisma.order.findMany.mockResolvedValue(staleByDelivery);
 
@@ -510,7 +510,7 @@ describe('GET /api/zenco/dashboard/stale-garments', () => {
     const yesterday = new Date(Date.now() - 86400000).toISOString();
     // statusChangedAt is recent (1 day ago) — NOT stale
     const freshByStatusChanged = [
-      { id: '0004', clientName: 'Pablo', clientPhone: '444', garmentName: 'Camisa', repairType: 'cuello', description: 'reparar', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, statusChangedAt: yesterday, price: 2000 },
+      { id: '0004', orderNumber: 14, clientName: 'Pablo', clientPhone: '444', garmentName: 'Camisa', repairType: 'cuello', description: 'reparar', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, statusChangedAt: yesterday, price: 2000 },
     ];
     mockPrisma.order.findMany.mockResolvedValue(freshByStatusChanged);
 
@@ -524,7 +524,7 @@ describe('GET /api/zenco/dashboard/stale-garments', () => {
 
 describe('PUT /api/zenco/garments/:id/status — statusChangedAt', () => {
   it('sets statusChangedAt when updating status', async () => {
-    const updated = { id: 'ORD-1', status: 'listo', statusChangedAt: new Date().toISOString() };
+    const updated = { id: 'ORD-1', orderNumber: 15, status: 'listo', statusChangedAt: new Date().toISOString() };
     mockPrisma.order.update.mockResolvedValue(updated);
     mockPrisma.notification.create.mockResolvedValue({});
 
@@ -639,8 +639,8 @@ describe('Zenco validation', () => {
 describe('GET /api/zenco/reports/weekly', () => {
   it('returns weekly stats with default (current week)', async () => {
     const orders = [
-      { id: 'ORD-1', clientName: 'Ana', clientPhone: '1111', garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar', status: 'entregado', intakeDate: '2026-04-01', deliveryDate: '2026-04-05', price: 3000, createdAt: new Date('2026-04-01') },
-      { id: 'ORD-2', clientName: 'Luis', clientPhone: '2222', garmentName: 'Camisa', repairType: 'entalle', description: 'estrechar', status: 'listo', intakeDate: '2026-04-02', deliveryDate: '2026-04-07', price: 2000, createdAt: new Date('2026-04-02') },
+      { id: 'ORD-1', orderNumber: 16, clientName: 'Ana', clientPhone: '1111', garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar', status: 'entregado', intakeDate: '2026-04-01', deliveryDate: '2026-04-05', price: 3000, createdAt: new Date('2026-04-01') },
+      { id: 'ORD-2', orderNumber: 17, clientName: 'Luis', clientPhone: '2222', garmentName: 'Camisa', repairType: 'entalle', description: 'estrechar', status: 'listo', intakeDate: '2026-04-02', deliveryDate: '2026-04-07', price: 2000, createdAt: new Date('2026-04-02') },
     ];
     mockPrisma.order.findMany.mockResolvedValue(orders);
     mockPrisma.client.count.mockResolvedValue(1);
@@ -677,9 +677,9 @@ describe('GET /api/zenco/reports/weekly', () => {
 
   it('computes garmentsDone correctly (entregado + listo)', async () => {
     const orders = [
-      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-03', createdAt: new Date('2026-04-01') },
-      { id: 'ORD-2', status: 'listo', repairType: 'entalle', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-02') },
-      { id: 'ORD-3', status: 'recibido', repairType: 'cierre', price: 500, intakeDate: '2026-04-03', deliveryDate: '2026-04-10', createdAt: new Date('2026-04-03') },
+      { id: 'ORD-1', orderNumber: 18, status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-03', createdAt: new Date('2026-04-01') },
+      { id: 'ORD-2', orderNumber: 19, status: 'listo', repairType: 'entalle', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-02') },
+      { id: 'ORD-3', orderNumber: 20, status: 'recibido', repairType: 'cierre', price: 500, intakeDate: '2026-04-03', deliveryDate: '2026-04-10', createdAt: new Date('2026-04-03') },
     ];
     mockPrisma.order.findMany.mockResolvedValue(orders);
     mockPrisma.client.count.mockResolvedValue(0);
@@ -691,9 +691,9 @@ describe('GET /api/zenco/reports/weekly', () => {
 
   it('groups garments by repairType', async () => {
     const orders = [
-      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-03', createdAt: new Date() },
-      { id: 'ORD-2', status: 'listo', repairType: 'dobladillo', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-04', createdAt: new Date() },
-      { id: 'ORD-3', status: 'recibido', repairType: 'entalle', price: 500, intakeDate: '2026-04-03', deliveryDate: '2026-04-10', createdAt: new Date() },
+      { id: 'ORD-1', orderNumber: 21, status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-03', createdAt: new Date() },
+      { id: 'ORD-2', orderNumber: 22, status: 'listo', repairType: 'dobladillo', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-04', createdAt: new Date() },
+      { id: 'ORD-3', orderNumber: 23, status: 'recibido', repairType: 'entalle', price: 500, intakeDate: '2026-04-03', deliveryDate: '2026-04-10', createdAt: new Date() },
     ];
     mockPrisma.order.findMany.mockResolvedValue(orders);
     mockPrisma.client.count.mockResolvedValue(0);
@@ -714,7 +714,7 @@ describe('GET /api/zenco/reports/weekly', () => {
 describe('GET /api/zenco/reports/monthly', () => {
   it('returns monthly stats with default (current month)', async () => {
     const orders = [
-      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 3000, intakeDate: '2026-04-01', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-01') },
+      { id: 'ORD-1', orderNumber: 24, status: 'entregado', repairType: 'dobladillo', price: 3000, intakeDate: '2026-04-01', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-01') },
     ];
     mockPrisma.order.findMany.mockResolvedValue(orders);
     mockPrisma.client.count.mockResolvedValue(2);
@@ -748,8 +748,8 @@ describe('GET /api/zenco/reports/monthly', () => {
 
   it('calculates avgTurnaroundDays from intakeDate to deliveryDate', async () => {
     const orders = [
-      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-01') },
-      { id: 'ORD-2', status: 'entregado', repairType: 'entalle', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-08', createdAt: new Date('2026-04-02') },
+      { id: 'ORD-1', orderNumber: 25, status: 'entregado', repairType: 'dobladillo', price: 1000, intakeDate: '2026-04-01', deliveryDate: '2026-04-05', createdAt: new Date('2026-04-01') },
+      { id: 'ORD-2', orderNumber: 26, status: 'entregado', repairType: 'entalle', price: 2000, intakeDate: '2026-04-02', deliveryDate: '2026-04-08', createdAt: new Date('2026-04-02') },
     ];
     mockPrisma.order.findMany.mockResolvedValue(orders);
     mockPrisma.client.count.mockResolvedValue(0);
@@ -770,12 +770,12 @@ describe('GET /api/zenco/reports/monthly', () => {
 describe('GET /api/zenco/reports/summary', () => {
   it('returns all-time KPI totals', async () => {
     const allOrders = [
-      { id: 'ORD-1', status: 'entregado', repairType: 'dobladillo', price: 3000, intakeDate: '2026-01-01', deliveryDate: '2026-01-05', createdAt: new Date('2026-01-01') },
-      { id: 'ORD-2', status: 'listo', repairType: 'entalle', price: 2000, intakeDate: '2026-02-01', deliveryDate: '2026-02-10', createdAt: new Date('2026-02-01') },
-      { id: 'ORD-3', status: 'recibido', repairType: 'cierre', price: 1500, intakeDate: '2026-03-01', deliveryDate: '2026-03-15', createdAt: new Date('2026-03-01') },
+      { id: 'ORD-1', orderNumber: 27, status: 'entregado', repairType: 'dobladillo', price: 3000, intakeDate: '2026-01-01', deliveryDate: '2026-01-05', createdAt: new Date('2026-01-01') },
+      { id: 'ORD-2', orderNumber: 28, status: 'listo', repairType: 'entalle', price: 2000, intakeDate: '2026-02-01', deliveryDate: '2026-02-10', createdAt: new Date('2026-02-01') },
+      { id: 'ORD-3', orderNumber: 29, status: 'recibido', repairType: 'cierre', price: 1500, intakeDate: '2026-03-01', deliveryDate: '2026-03-15', createdAt: new Date('2026-03-01') },
     ];
     const periodOrders = [
-      { id: 'ORD-3', status: 'recibido', repairType: 'cierre', price: 1500, intakeDate: '2026-03-01', deliveryDate: '2026-03-15', createdAt: new Date('2026-03-01') },
+      { id: 'ORD-3', orderNumber: 29, status: 'recibido', repairType: 'cierre', price: 1500, intakeDate: '2026-03-01', deliveryDate: '2026-03-15', createdAt: new Date('2026-03-01') },
     ];
     mockPrisma.order.findMany
       .mockResolvedValueOnce(allOrders)   // allTime query

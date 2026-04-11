@@ -39,7 +39,7 @@ describe('POST /api/zenco/chat — Conversación con contexto pre-cargado', () =
       id: 'c1', name: 'María', phone: '1111', business: 'zenco', notes: 'clienta frecuente',
     });
     mockPrisma.order.findMany.mockResolvedValue([
-      { garmentName: 'Pantalón', repairType: 'dobladillo', status: 'en_proceso', deliveryDate: '2026-04-10', price: 3000, clientPhone: '1111' },
+      { id: 'ORD-C-1', orderNumber: 1, garmentName: 'Pantalón', repairType: 'dobladillo', status: 'en_proceso', deliveryDate: '2026-04-10', price: 3000, clientPhone: '1111' },
     ]);
     mockChat.mockResolvedValue({ reply: 'Hola María! Tu pantalón está en proceso.', provider: 'gemini' });
 
@@ -61,7 +61,7 @@ describe('POST /api/zenco/chat — Conversación con contexto pre-cargado', () =
       { name: 'Juan', phone: '2222', business: 'zenco' },
     ]);
     mockPrisma.order.findMany.mockResolvedValue([
-      { garmentName: 'Campera', repairType: 'cierre', status: 'listo', deliveryDate: '2026-04-08', price: 5000, clientPhone: '2222' },
+      { id: 'ORD-C-2', orderNumber: 2, garmentName: 'Campera', repairType: 'cierre', status: 'listo', deliveryDate: '2026-04-08', price: 5000, clientPhone: '2222' },
     ]);
 
     await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola soy Juan, como va mi arreglo?' });
@@ -72,7 +72,7 @@ describe('POST /api/zenco/chat — Conversación con contexto pre-cargado', () =
 
   it('Sin cliente identificado: inyecta pedidos recientes en contexto', async () => {
     mockPrisma.order.findMany.mockResolvedValue([
-      { clientName: 'Ana', clientPhone: '3333', garmentName: 'Vestido', repairType: 'entalle', status: 'pendiente', price: 8000 },
+      { id: 'ORD-C-3', orderNumber: 3, clientName: 'Ana', clientPhone: '3333', garmentName: 'Vestido', repairType: 'entalle', status: 'pendiente', price: 8000 },
     ]);
 
     await request(app).post('/api/zenco/chat').set('Authorization', authHeader('zenco')).send({ message: 'Hola' });

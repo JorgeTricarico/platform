@@ -83,7 +83,7 @@ export default function PublicStatus() {
           <div className="public-card-footer">
             <div>
               <div className="public-meta-label">ID de Orden</div>
-              <div className="public-meta-value">#{order.id.slice(-6).toUpperCase()}</div>
+              <div className="public-meta-value">ORD-{String(order.orderNumber).padStart(3, '0')}</div>
             </div>
             <div className="public-card-footer-right">
               <div className="public-meta-label">Entrega Estimada</div>

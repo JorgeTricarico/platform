@@ -45,6 +45,7 @@ model Client {
 
 model Order {
   id           String   @id
+  orderNumber  Int      @unique @default(autoincrement())
   clientName   String
   clientPhone  String
   garmentName  String

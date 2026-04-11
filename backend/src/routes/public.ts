@@ -12,14 +12,17 @@ router.get('/zenco/order/:id', asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   
   let order;
-  if (id.length > 10) {
+  const numericId = Number(id);
+  if (!isNaN(numericId) && Number.isInteger(numericId)) {
+    // Busqueda por orderNumber (numerico legible)
+    order = await prisma.order.findUnique({ where: { orderNumber: numericId } });
+  } else if (id.length > 10) {
     // Busqueda por UUID completo
     order = await prisma.order.findUnique({ where: { id } });
   } else {
-    // Busqueda por ID corto (ultimos 6 caracteres)
-    // Nota: En produccion real se deberia indexar una columna shortId
+    // Fallback: busqueda por ID corto (ultimos 6 caracteres) — legacy
     order = await prisma.order.findFirst({
-      where: { 
+      where: {
         id: { endsWith: id.toLowerCase() },
       },
     });
@@ -32,6 +35,7 @@ router.get('/zenco/order/:id', asyncHandler(async (req, res) => {
   // Devolvemos solo informacion no sensible para el cliente
   res.json({
     id: order.id,
+    orderNumber: order.orderNumber,
     clientName: order.clientName,
     garmentName: order.garmentName,
     repairType: order.repairType,

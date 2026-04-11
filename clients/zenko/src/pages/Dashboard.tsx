@@ -136,7 +136,7 @@ export default function Dashboard() {
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                       {g.clientPhone}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '2px', fontFamily: 'monospace' }}>#{g.id.slice(-6).toUpperCase()}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '2px', fontFamily: 'monospace' }}>ORD-{String(g.orderNumber).padStart(3, '0')}</div>
                   </td>
                   <td>{g.garmentName}</td>
                   <td style={{ textTransform: 'capitalize' }}>{g.repairType}</td>

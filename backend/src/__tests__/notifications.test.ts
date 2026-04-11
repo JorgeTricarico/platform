@@ -18,7 +18,7 @@ const mockPrisma = prisma as unknown as {
 beforeEach(() => {
   vi.clearAllMocks();
   // Route now does findUnique before update — default to a non-entregado prev state
-  mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-1', status: 'recibido', deposit: 0, price: 1000 });
+  mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-1', orderNumber: 1, status: 'recibido', deposit: 0, price: 1000 });
 });
 
 // -------------------------------------------------------
@@ -30,6 +30,7 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
   it('creates a notification when status is set to listo', async () => {
     const order = {
       id: 'ORD-1',
+      orderNumber: 2,
       clientName: 'Maria',
       clientPhone: '1111',
       garmentName: 'Vestido',
@@ -65,6 +66,7 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
   it('does NOT create a notification when status is not listo', async () => {
     mockPrisma.order.update.mockResolvedValue({
       id: 'ORD-1',
+      orderNumber: 3,
       clientName: 'Maria',
       clientPhone: '1111',
       garmentName: 'Vestido',

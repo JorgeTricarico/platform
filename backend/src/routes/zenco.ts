@@ -420,7 +420,7 @@ function getMonthRange(yearMonth: string): { start: string; end: string } {
   };
 }
 
-type OrderRow = { id: string; status: string; repairType: string; price: number; intakeDate: string; deliveryDate: string; createdAt: Date };
+type OrderRow = { id: string; orderNumber: number; status: string; repairType: string; price: number; intakeDate: string; deliveryDate: string; createdAt: Date; [key: string]: unknown };
 
 // Helper: compute stats from an array of orders + newClients count
 function computeOrderStats(orders: OrderRow[], newClients: number) {
