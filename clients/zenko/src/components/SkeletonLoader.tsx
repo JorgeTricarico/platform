@@ -1,3 +1,6 @@
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+
 interface SkeletonLoaderProps {
   rows?: number;
 }
@@ -10,10 +13,10 @@ export function Spinner({ size = 20 }: { size?: number }) {
 
 export function SkeletonLoader({ rows = 5 }: SkeletonLoaderProps) {
   return (
-    <div className="skeleton-loader-wrapper">
-      <div className="skeleton skeleton-title" />
+    <div className="flex flex-col gap-3 p-4">
+      <Skeleton className="h-7 w-48" />
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="skeleton skeleton-row" />
+        <Skeleton key={i} className="h-10 w-full" />
       ))}
     </div>
   );
@@ -21,10 +24,14 @@ export function SkeletonLoader({ rows = 5 }: SkeletonLoaderProps) {
 
 export function SkeletonCard() {
   return (
-    <div className="card skeleton-card-wrapper">
-      <div className="skeleton skeleton-title" />
-      <div className="skeleton skeleton-row" />
-      <div className="skeleton skeleton-row skeleton-row-short" />
-    </div>
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-5 w-40" />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
+      </CardContent>
+    </Card>
   );
 }

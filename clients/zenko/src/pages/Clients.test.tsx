@@ -38,16 +38,18 @@ describe('Clients page (zenko)', () => {
   it('renders client list', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      // Client name may appear in multiple layout elements (responsive table)
+      const matches = screen.getAllByText('Ana Lopez');
+      expect(matches.length).toBeGreaterThan(0);
     });
   });
 
   it('opens edit modal when Editar is clicked', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Editar'));
+    fireEvent.click(screen.getAllByText('Editar')[0]);
     await waitFor(() => {
       expect(screen.getByText('Editar: Ana Lopez')).toBeInTheDocument();
     });
@@ -56,9 +58,9 @@ describe('Clients page (zenko)', () => {
   it('edit modal pre-populates with client data', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Editar'));
+    fireEvent.click(screen.getAllByText('Editar')[0]);
     await waitFor(() => {
       const nameInput = screen.getByPlaceholderText('Nombre completo') as HTMLInputElement;
       expect(nameInput.value).toBe('Ana Lopez');
@@ -68,10 +70,10 @@ describe('Clients page (zenko)', () => {
   it('calls updateClient (NOT createClient) on edit submit', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
 
-    fireEvent.click(screen.getByText('Editar'));
+    fireEvent.click(screen.getAllByText('Editar')[0]);
     await waitFor(() => {
       expect(screen.getByText('Editar: Ana Lopez')).toBeInTheDocument();
     });
@@ -88,7 +90,7 @@ describe('Clients page (zenko)', () => {
   it('renders create form when + Nuevo Cliente is clicked', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
     fireEvent.click(screen.getByText('+ Nuevo Cliente'));
     expect(screen.getByText('Nuevo Cliente')).toBeInTheDocument();
@@ -123,7 +125,7 @@ describe('Z18 — Historial de órdenes por cliente', () => {
   it('renders "Ver historial" button per client row', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
     expect(screen.getByText('Ver historial')).toBeInTheDocument();
   });
@@ -131,7 +133,7 @@ describe('Z18 — Historial de órdenes por cliente', () => {
   it('calls fetchClientOrders when "Ver historial" is clicked', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
     fireEvent.click(screen.getByText('Ver historial'));
     await waitFor(() => {
@@ -142,19 +144,20 @@ describe('Z18 — Historial de órdenes por cliente', () => {
   it('shows historial modal with client orders', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
     fireEvent.click(screen.getByText('Ver historial'));
     await waitFor(() => {
-      expect(screen.getByText('Campera (cierre)')).toBeInTheDocument();
-      expect(screen.getByText('Pantalón (dobladillo)')).toBeInTheDocument();
+      // Orders appear in both mobile cards and desktop table; use getAllByText
+      expect(screen.getAllByText('Campera (cierre)').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Pantalón (dobladillo)').length).toBeGreaterThan(0);
     });
   });
 
   it('shows summary stats in historial modal', async () => {
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
     fireEvent.click(screen.getByText('Ver historial'));
     await waitFor(() => {
@@ -170,7 +173,7 @@ describe('Z20 — Eliminar cliente', () => {
 
     render(<ToastProvider><Clients /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Ana Lopez')).toBeInTheDocument();
+      expect(screen.getAllByText('Ana Lopez').length).toBeGreaterThan(0);
     });
     fireEvent.click(screen.getByText('Eliminar'));
     expect(window.confirm).toHaveBeenCalledWith('¿Eliminar a Ana Lopez? Esta acción no se puede deshacer.');

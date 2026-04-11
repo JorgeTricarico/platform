@@ -6,23 +6,13 @@ import GarmentModal, { EMPTY_FORM } from '../components/GarmentModal';
 import StaleGarmentsWidget from '../components/StaleGarmentsWidget';
 import type { GarmentFormState } from '../components/GarmentModal';
 import { SkeletonLoader } from '../components/SkeletonLoader';
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
-  );
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return isMobile;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Plus, Smartphone } from 'lucide-react';
 
 export default function Dashboard() {
   const toast = useToast();
-  const isMobile = useIsMobile();
   const [garments, setGarments] = useState<DBGarment[]>([]);
   const [dashData, setDashData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,113 +82,163 @@ export default function Dashboard() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'recibido': return <span className="badge pending">Recibido</span>;
-      case 'en_proceso': return <span className="badge urgent">En Proceso</span>;
-      case 'listo': return <span className="badge completed">Listo</span>;
-      default: return <span className="badge">Entregado</span>;
+      case 'recibido': return <Badge variant="recibido">Recibido</Badge>;
+      case 'en_proceso': return <Badge variant="en_proceso">En Proceso</Badge>;
+      case 'listo': return <Badge variant="listo">Listo</Badge>;
+      default: return <Badge variant="entregado">Entregado</Badge>;
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1>Hola, Ana 👋</h1>
-          <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Aquí tienes el resumen de tu taller al día de hoy.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Hola, Ana 👋</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Aquí tienes el resumen de tu taller al día de hoy.
+          </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nueva Orden</button>
+        <Button onClick={() => setIsModalOpen(true)}>
+          <Plus className="w-4 h-4" />
+          Nueva Orden
+        </Button>
       </div>
 
-      <div className="grid grid-cols-4" style={{ marginBottom: '24px', flexShrink: 0 }}>
-        <div className="card">
-          <div className="stat-title">Para Arreglar</div>
-          <div className="stat-value">{itemsToRepair}</div>
-        </div>
-        <div className="card">
-          <div className="stat-title">Para Entregar</div>
-          <div className="stat-value">{itemsToDeliver}</div>
-        </div>
-        <div className="card">
-          <div className="stat-title">Ingresos Mes</div>
-          <div className="stat-value" style={{ color: 'var(--success-color, #22c55e)' }}>${monthlyIncome.toLocaleString()}</div>
-        </div>
-        <div className="card">
-          <div className="stat-title">Balance</div>
-          <div className="stat-value">${balance.toLocaleString()}</div>
-        </div>
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-1 pt-4 px-5">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Para Arreglar
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4 pt-1">
+            <div className="text-3xl font-bold">{itemsToRepair}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-1 pt-4 px-5">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Para Entregar
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4 pt-1">
+            <div className="text-3xl font-bold">{itemsToDeliver}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-1 pt-4 px-5">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Ingresos Mes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4 pt-1">
+            <div className="text-3xl font-bold text-emerald-600">${monthlyIncome.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-1 pt-4 px-5">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Balance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4 pt-1">
+            <div className="text-3xl font-bold">${balance.toLocaleString()}</div>
+          </CardContent>
+        </Card>
       </div>
 
-      <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Prioritarios: Arreglos Pendientes</h2>
-      {urgentGarments.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)' }}>
-          No hay entregas urgentes próximas.
-        </div>
-      ) : isMobile ? (
-        /* Mobile: cards */
-        <div className="garment-cards" style={{ padding: 0, gap: '10px' }}>
-          {urgentGarments.map(g => (
-            <div key={g.id} className="garment-card">
-              <div className="garment-card-header">
-                <span className="garment-card-ord">ORD-{String(g.orderNumber).padStart(3, '0')}</span>
-                {getStatusBadge(g.status)}
-              </div>
-              <div className="garment-card-body">
-                <div style={{ fontWeight: 700, fontSize: '15px', textTransform: 'uppercase' }}>{g.clientName}</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                  {g.clientPhone}
-                </div>
-                <div style={{ marginTop: '6px', fontSize: '14px' }}>
-                  <span style={{ fontWeight: 600 }}>{g.garmentName}</span>
-                  <span style={{ color: 'var(--text-secondary)' }}> — {g.repairType}</span>
-                </div>
-                <div style={{ marginTop: '6px', fontSize: '13px', fontWeight: 700, color: 'var(--urgent-color)' }}>
-                  Entrega: {formatDate(g.deliveryDate)}
-                </div>
-              </div>
+      {/* Urgent garments */}
+      <div>
+        <h2 className="text-lg font-semibold mb-3">Prioritarios: Arreglos Pendientes</h2>
+
+        {urgentGarments.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              No hay entregas urgentes próximas.
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Mobile: cards */}
+            <div className="flex flex-col gap-3 md:hidden">
+              {urgentGarments.map(g => (
+                <Card key={g.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-mono text-muted-foreground">
+                        ORD-{String(g.orderNumber).padStart(3, '0')}
+                      </span>
+                      {getStatusBadge(g.status)}
+                    </div>
+                    <div className="font-bold text-sm uppercase">{g.clientName}</div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                      <Smartphone className="w-3 h-3" />
+                      {g.clientPhone}
+                    </div>
+                    <div className="mt-2 text-sm">
+                      <span className="font-semibold">{g.garmentName}</span>
+                      <span className="text-muted-foreground"> — {g.repairType}</span>
+                    </div>
+                    <div className="mt-2 text-xs font-bold text-red-600">
+                      Entrega: {formatDate(g.deliveryDate)}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : (
-        /* Desktop: table */
-        <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Prenda</th>
-                  <th>Arreglo</th>
-                  <th>Estado</th>
-                  <th>Entrega</th>
-                </tr>
-              </thead>
-              <tbody>
-                {urgentGarments.map(g => (
-                  <tr key={g.id}>
-                    <td>
-                      <div style={{ fontWeight: 600, textTransform: 'uppercase' }}>{g.clientName}</div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                        {g.clientPhone}
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '2px', fontFamily: 'monospace' }}>ORD-{String(g.orderNumber).padStart(3, '0')}</div>
-                    </td>
-                    <td>{g.garmentName}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{g.repairType}</td>
-                    <td>{getStatusBadge(g.status)}</td>
-                    <td style={{ fontWeight: 600, color: 'var(--urgent-color)' }}>{formatDate(g.deliveryDate)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
-      <div style={{ marginTop: '24px' }}>
-        <StaleGarmentsWidget />
+            {/* Desktop: table */}
+            <Card className="hidden md:block overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40">
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Cliente</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Prenda</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Arreglo</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Estado</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Entrega</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {urgentGarments.map((g, i) => (
+                      <tr
+                        key={g.id}
+                        className={i % 2 === 0 ? 'bg-background' : 'bg-muted/20'}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="font-semibold uppercase">{g.clientName}</div>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Smartphone className="w-3 h-3" />
+                            {g.clientPhone}
+                          </div>
+                          <div className="text-xs text-muted-foreground/60 font-mono mt-0.5">
+                            ORD-{String(g.orderNumber).padStart(3, '0')}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">{g.garmentName}</td>
+                        <td className="px-4 py-3 capitalize">{g.repairType}</td>
+                        <td className="px-4 py-3">{getStatusBadge(g.status)}</td>
+                        <td className="px-4 py-3 font-semibold text-red-600">
+                          {formatDate(g.deliveryDate)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </>
+        )}
       </div>
+
+      {/* Stale garments widget */}
+      <StaleGarmentsWidget />
 
       {isModalOpen && (
         <GarmentModal

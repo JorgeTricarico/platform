@@ -3,6 +3,11 @@ import { fetchStaleGarments } from '../services/api';
 import type { StaleGarment } from '../services/api';
 import { BUSINESS } from '../config';
 import { SkeletonCard } from './SkeletonLoader';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { MessageCircle } from 'lucide-react';
 
 export default function StaleGarmentsWidget() {
   const [garments, setGarments] = useState<StaleGarment[]>([]);
@@ -28,34 +33,42 @@ export default function StaleGarmentsWidget() {
   };
 
   return (
-    <div className="card">
-      <div className="stat-title">Prendas Listas sin Retirar</div>
-      {garments.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)', margin: '16px 0 0' }}>No hay prendas pendientes de retiro.</p>
-      ) : (
-        <div style={{ marginTop: '12px' }}>
-          {garments.map(g => (
-            <div key={g.id} className="stale-garment-item">
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600 }}>{g.clientName}</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{g.garmentName} — {g.repairType}</div>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Prendas Listas sin Retirar
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {garments.length === 0 ? (
+          <p className="text-sm text-muted-foreground mt-0">No hay prendas pendientes de retiro.</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {garments.map(g => (
+              <div key={g.id} className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm">{g.clientName}</div>
+                  <div className="text-xs text-muted-foreground">{g.garmentName} — {g.repairType}</div>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="overdue" className="text-xs whitespace-nowrap">
+                    {daysOverdue(g.deliveryDate)} dias — {formatDate(g.deliveryDate)}
+                  </Badge>
+                  <a
+                    href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReminderMsg(g.clientName, g.garmentName))}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(buttonVariants({ variant: 'success', size: 'sm' }))}
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                    Avisar
+                  </a>
+                </div>
               </div>
-              <div className="stale-garment-actions">
-                <span className="badge urgent" style={{ fontSize: '12px' }}>{daysOverdue(g.deliveryDate)} dias — {formatDate(g.deliveryDate)}</span>
-                <a
-                  className="btn btn-small"
-                  href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReminderMsg(g.clientName, g.garmentName))}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ backgroundColor: '#f0fff4', border: '1px solid #9ae6b4', color: '#276749', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
-                >
-                  Avisar
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

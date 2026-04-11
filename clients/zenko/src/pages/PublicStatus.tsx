@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { fetchPublicStatus } from '../services/api';
 import type { PublicStatusResponse } from '../services/api';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const STEPS = [
   { id: 'recibido', label: 'Recibido', icon: '📥' },
@@ -34,10 +38,10 @@ export default function PublicStatus() {
 
   if (loading) {
     return (
-      <div className="public-page-center">
-        <div className="public-loading-inner">
-          <div className="loader"></div>
-          <p className="public-loading-text">Consultando el estado de tu prenda...</p>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Consultando el estado de tu prenda...</p>
         </div>
       </div>
     );
@@ -45,13 +49,15 @@ export default function PublicStatus() {
 
   if (error || !order) {
     return (
-      <div className="public-page-error">
-        <div className="card" style={{ maxWidth: '400px' }}>
-          <div className="public-error-icon">🔍</div>
-          <h2 className="public-error-title">Ups!</h2>
-          <p className="public-error-message">{error || 'No pudimos cargar la información.'}</p>
-          <button className="btn btn-primary" onClick={() => window.location.reload()}>Reintentar</button>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-background px-4">
+        <Card className="w-full max-w-sm">
+          <CardContent className="pt-6 pb-6 flex flex-col items-center text-center gap-3">
+            <span className="text-4xl">🔍</span>
+            <h2 className="text-xl font-bold text-foreground">Ups!</h2>
+            <p className="text-sm text-muted-foreground">{error || 'No pudimos cargar la información.'}</p>
+            <Button onClick={() => window.location.reload()}>Reintentar</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -59,86 +65,117 @@ export default function PublicStatus() {
   const currentStepIndex = STEPS.findIndex(s => s.id === order.status);
 
   return (
-    <div className="public-page">
-      <div className="public-container">
-        <header className="public-header">
-          <div className="public-brand">
-            Zenko<span className="public-brand-suffix">.arg</span>
-          </div>
-          <div className="public-portal-badge">
-            Portal del Cliente
-          </div>
+    <div className="min-h-screen bg-background py-8 px-4">
+      <div className="max-w-lg mx-auto space-y-4">
+
+        {/* Header */}
+        <header className="flex items-center justify-between mb-2">
+          <span className="text-xl font-bold text-foreground">
+            Zenko<span className="text-primary">.arg</span>
+          </span>
+          <Badge variant="secondary">Portal del Cliente</Badge>
         </header>
 
-        <div className="card public-card">
-          <p className="public-card-greeting">Hola {order.clientName.split(' ')[0]}, el estado de tu</p>
-          <h2 className="public-card-garment-name">{order.garmentName}</h2>
+        {/* Order card */}
+        <Card>
+          <CardContent className="pt-5 pb-5">
+            <p className="text-sm text-muted-foreground mb-1">
+              Hola {order.clientName.split(' ')[0]}, el estado de tu
+            </p>
+            <h2 className="text-xl font-bold text-foreground mb-3">{order.garmentName}</h2>
 
-          <div className="public-tags-row">
-            <span className="public-tag">
-              <strong>Arreglo:</strong> {order.repairType}
-            </span>
-          </div>
+            <div className="mb-4">
+              <Badge variant="secondary">
+                <strong className="mr-1">Arreglo:</strong> {order.repairType}
+              </Badge>
+            </div>
 
-          <div className="public-card-footer">
-            <div>
-              <div className="public-meta-label">ID de Orden</div>
-              <div className="public-meta-value">ORD-{String(order.orderNumber).padStart(3, '0')}</div>
+            <div className="flex items-center justify-between pt-3 border-t border-border">
+              <div>
+                <div className="text-xs text-muted-foreground mb-0.5">ID de Orden</div>
+                <div className="text-sm font-semibold text-foreground">
+                  ORD-{String(order.orderNumber).padStart(3, '0')}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-muted-foreground mb-0.5">Entrega Estimada</div>
+                <div className="text-sm font-semibold text-foreground">
+                  {new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('es-AR')}
+                </div>
+              </div>
             </div>
-            <div className="public-card-footer-right">
-              <div className="public-meta-label">Entrega Estimada</div>
-              <div className="public-meta-value">{new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('es-AR')}</div>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Vertical Stepper */}
-        <div className="card public-stepper-card">
-          <div className="public-stepper-list">
-            {STEPS.map((s, idx) => {
-              const isCompleted = idx <= currentStepIndex;
-              const isCurrent = idx === currentStepIndex;
+        <Card>
+          <CardContent className="pt-5 pb-5">
+            <div className="space-y-0">
+              {STEPS.map((s, idx) => {
+                const isCompleted = idx <= currentStepIndex;
+                const isCurrent = idx === currentStepIndex;
+                const isLast = idx === STEPS.length - 1;
 
-              const circleClass = isCurrent
-                ? 'public-step-circle public-step-circle--current'
-                : isCompleted
-                  ? 'public-step-circle public-step-circle--completed'
-                  : 'public-step-circle public-step-circle--pending';
-
-              const labelClass = isCompleted
-                ? 'public-step-label public-step-label--completed'
-                : 'public-step-label public-step-label--pending';
-
-              return (
-                <div key={s.id} className="public-step-row">
-                  <div className="public-step-track">
-                    <div className={circleClass}>
-                      {isCompleted ? '✓' : idx + 1}
+                return (
+                  <div key={s.id} className="flex gap-4">
+                    {/* Track column */}
+                    <div className="flex flex-col items-center">
+                      {/* Circle */}
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 z-10',
+                          isCurrent
+                            ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
+                            : isCompleted
+                              ? 'bg-success text-white'
+                              : 'bg-muted text-muted-foreground border border-border'
+                        )}
+                      >
+                        {isCompleted ? '✓' : idx + 1}
+                      </div>
+                      {/* Connector line */}
+                      {!isLast && (
+                        <div
+                          className={cn(
+                            'w-0.5 flex-1 my-1 min-h-6',
+                            idx < currentStepIndex ? 'bg-success' : 'bg-border'
+                          )}
+                        />
+                      )}
                     </div>
-                    {idx < STEPS.length - 1 && (
-                      <div className={`public-step-line ${idx < currentStepIndex ? 'public-step-line--done' : 'public-step-line--pending'}`} />
-                    )}
-                  </div>
-                  <div className="public-step-content">
-                    <div className={labelClass}>
-                      {s.label} {s.icon}
-                    </div>
-                    {isCurrent && (
-                      <div className="public-step-badge-current">ACTUAL</div>
-                    )}
-                    {!isCompleted && !isCurrent && (
-                      <div className="public-step-pending-text">Pendiente</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
 
-        <div className="public-footer">
-          <p>¿Tenes alguna duda? Comunícate con nosotros.</p>
-          <div className="public-footer-brand">Zenko Arreglos de Ropa</div>
+                    {/* Content column */}
+                    <div className={cn('pb-5 flex-1', isLast && 'pb-0')}>
+                      <div className="flex items-center gap-2 pt-1">
+                        <span
+                          className={cn(
+                            'text-sm font-medium',
+                            isCompleted ? 'text-foreground' : 'text-muted-foreground'
+                          )}
+                        >
+                          {s.label} {s.icon}
+                        </span>
+                        {isCurrent && (
+                          <Badge variant="default" className="text-[10px] px-1.5 py-0">
+                            ACTUAL
+                          </Badge>
+                        )}
+                        {!isCompleted && !isCurrent && (
+                          <span className="text-xs text-muted-foreground">Pendiente</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <div className="text-center pt-2 pb-4">
+          <p className="text-sm text-muted-foreground">¿Tenes alguna duda? Comunícate con nosotros.</p>
+          <p className="text-xs text-muted-foreground/60 mt-1 font-medium">Zenko Arreglos de Ropa</p>
         </div>
       </div>
     </div>

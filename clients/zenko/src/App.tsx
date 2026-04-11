@@ -1,5 +1,18 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useTheme } from './hooks/useTheme';
+import {
+  LayoutDashboard,
+  Shirt,
+  DollarSign,
+  Users,
+  MessageSquare,
+  ChevronLeft,
+  Menu,
+  Moon,
+  Sun,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Garments = lazy(() => import('./pages/Garments'));
 const Finances = lazy(() => import('./pages/Finances'));
@@ -20,11 +33,11 @@ function AuthGate() {
   const isPublicView = window.location.search.includes('view=status');
 
   if (loading) {
-    return <div className="page-loading" />;
+    return <div className="flex items-center justify-center min-h-screen bg-background" />;
   }
 
-  if (isPublicView) return <ErrorBoundary><Suspense fallback={<div className="page-loading" />}><PublicStatus /></Suspense></ErrorBoundary>;
-  if (!isAuthenticated) return <ErrorBoundary><Suspense fallback={<div className="page-loading" />}><Login /></Suspense></ErrorBoundary>;
+  if (isPublicView) return <ErrorBoundary><Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-background" />}><PublicStatus /></Suspense></ErrorBoundary>;
+  if (!isAuthenticated) return <ErrorBoundary><Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-background" />}><Login /></Suspense></ErrorBoundary>;
   return <AppContent />;
 }
 
@@ -35,6 +48,14 @@ function readTabFromHash(): Tab {
   const hash = window.location.hash.replace('#', '');
   return VALID_TABS.includes(hash as Tab) ? (hash as Tab) : 'dashboard';
 }
+
+const NAV_ITEMS: { id: Tab; label: string; Icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { id: 'garments', label: 'Ordenes', Icon: Shirt },
+  { id: 'finances', label: 'Finanzas', Icon: DollarSign },
+  { id: 'clients', label: 'Clientes', Icon: Users },
+  { id: 'chat', label: 'AI Bot', Icon: MessageSquare },
+];
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>(readTabFromHash);
@@ -80,100 +101,130 @@ function AppContent() {
     setIsCollapsed(!isCollapsed);
   };
 
+  const isMobileOverlayVisible = sidebarOpen && typeof window !== 'undefined' && window.innerWidth <= 768;
+
   return (
-    <div className="app-container">
+    <div className="flex h-screen bg-background overflow-hidden">
       <OfflineIndicator />
-      {/* Sidebar overlay for mobile */}
-      <div className={`sidebar-overlay ${sidebarOpen && window.innerWidth <= 768 ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
+
+      {/* Mobile sidebar overlay */}
+      {isMobileOverlayVisible && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : 'hidden'} ${isCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-logo">
-          <img src={logoUrl} alt="Zenko Logo" style={{ width: 44, height: 44, borderRadius: '12px', objectFit: 'cover' }} />
-          <span className="logo-text">Zenko<span>.arg</span></span>
+      <aside
+        className={cn(
+          'fixed top-0 left-0 h-full z-30 flex flex-col',
+          'bg-card border-r border-border shadow-sm',
+          'transition-all duration-300 ease-in-out',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          isCollapsed ? 'w-16' : 'w-56',
+          'md:relative md:translate-x-0 md:flex'
+        )}
+      >
+        {/* Logo */}
+        <div className={cn(
+          'flex items-center gap-3 px-4 py-5 border-b border-border',
+          isCollapsed && 'justify-center px-2'
+        )}>
+          <img
+            src={logoUrl}
+            alt="Zenko Logo"
+            className="w-11 h-11 rounded-xl object-cover flex-shrink-0"
+          />
+          {!isCollapsed && (
+            <span className="text-lg font-bold text-foreground">
+              Zenko<span className="text-primary">.arg</span>
+            </span>
+          )}
         </div>
-        
-        <nav className="nav-menu">
-          <div 
-            className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => navigate('dashboard')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            <span>Dashboard</span>
-          </div>
-          <div 
-            className={`nav-link ${activeTab === 'garments' ? 'active' : ''}`}
-            onClick={() => navigate('garments')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"></path></svg>
-            <span>Ordenes</span>
-          </div>
-          <div 
-            className={`nav-link ${activeTab === 'finances' ? 'active' : ''}`}
-            onClick={() => navigate('finances')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            <span>Finanzas</span>
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'clients' ? 'active' : ''}`}
-            onClick={() => navigate('clients')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            <span>Clientes</span>
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'chat' ? 'active' : ''}`}
-            onClick={() => navigate('chat')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            <span>AI Bot</span>
-          </div>
+
+        {/* Nav */}
+        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+          {NAV_ITEMS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              onClick={() => navigate(id)}
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                isCollapsed && 'justify-center px-2',
+                activeTab === id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+              title={isCollapsed ? label : undefined}
+            >
+              <Icon className="w-5 h-5 flex-shrink-0" />
+              {!isCollapsed && <span>{label}</span>}
+            </button>
+          ))}
         </nav>
 
-        <div className="sidebar-footer">
-          <button className="collapse-btn" onClick={toggleCollapse}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-            <span>Colapsar</span>
+        {/* Collapse button */}
+        <div className="px-2 py-3 border-t border-border">
+          <button
+            onClick={toggleCollapse}
+            className={cn(
+              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors',
+              isCollapsed && 'justify-center px-2'
+            )}
+            title={isCollapsed ? 'Expandir' : undefined}
+          >
+            <ChevronLeft
+              className={cn(
+                'w-5 h-5 flex-shrink-0 transition-transform duration-200',
+                isCollapsed && 'rotate-180'
+              )}
+            />
+            {!isCollapsed && <span>Colapsar</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Area */}
-      <main className="main-content">
-        <header className="topbar">
-          <button className="hamburger-btn" onClick={toggleSidebar}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          </button>
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Topbar */}
+        <header className="flex items-center gap-3 px-4 h-14 border-b border-border bg-card flex-shrink-0">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar">
+            <Menu className="w-5 h-5" />
+          </Button>
+
+          <div className="flex-1" />
+
           <NotificationBell clientId="all" />
-          <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}>
-            {theme === 'light' ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            )}
-          </button>
-          <div className="user-profile">
-            {user?.name || 'Ana & Ariel'}
-            <div className="user-avatar" style={{ backgroundColor: 'var(--primary-color)' }}>Z</div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-foreground hidden sm:block">
+              {user?.name || 'Ana & Ariel'}
+            </span>
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
+              Z
+            </div>
             {authRequired && user && (
-              <button className="btn" onClick={logout} style={{ marginLeft: 8, padding: '4px 8px', fontSize: '0.75rem' }}>Salir</button>
+              <Button variant="outline" size="sm" onClick={logout}>
+                Salir
+              </Button>
             )}
           </div>
         </header>
 
-        <div className="page-content">
+        {/* Page content */}
+        <div className="flex-1 overflow-y-auto bg-background">
           <ErrorBoundary>
-            <Suspense fallback={<div className="page-loading" />}>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-60 text-muted-foreground">Cargando...</div>}>
               {activeTab === 'dashboard' && <Dashboard />}
               {activeTab === 'garments' && <Garments />}
               {activeTab === 'finances' && <Finances />}

@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { Bell } from 'lucide-react';
 import { fetchNotifications, markNotificationRead, type DBNotification } from '../services/api';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface NotificationBellProps {
   clientId: string;
@@ -62,38 +66,51 @@ export default function NotificationBell({ clientId, pollInterval = 30000 }: Not
   };
 
   return (
-    <div className="notification-bell" ref={ref}>
-      <button
-        className="notification-bell-btn"
+    <div className="relative" ref={ref}>
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => setOpen(!open)}
         aria-label="Notificaciones"
+        className="relative"
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-        </svg>
+        <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="notification-badge" data-testid="unread-badge">{unreadCount}</span>
+          <Badge
+            data-testid="unread-badge"
+            className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center rounded-full"
+          >
+            {unreadCount}
+          </Badge>
         )}
-      </button>
+      </Button>
 
       {open && (
-        <div className="notification-dropdown" data-testid="notification-dropdown">
-          <div className="notification-dropdown-header">
-            Notificaciones
+        <div
+          data-testid="notification-dropdown"
+          className="absolute right-0 top-full mt-2 w-72 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden"
+        >
+          <div className="px-4 py-3 border-b border-border">
+            <span className="text-sm font-semibold text-foreground">Notificaciones</span>
           </div>
+
           {notifications.length === 0 ? (
-            <div className="notification-empty">Sin notificaciones</div>
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+              Sin notificaciones
+            </div>
           ) : (
-            <div className="notification-list">
+            <div className="max-h-72 overflow-y-auto divide-y divide-border">
               {notifications.map(n => (
                 <div
                   key={n.id}
-                  className={`notification-item ${n.read ? '' : 'unread'}`}
+                  className={cn(
+                    'px-4 py-3 cursor-pointer hover:bg-muted transition-colors',
+                    !n.read && 'bg-primary/5'
+                  )}
                   onClick={() => !n.read && handleMarkRead(n.id)}
                 >
-                  <div className="notification-item-message">{n.message}</div>
-                  <div className="notification-item-time">{formatTime(n.createdAt)}</div>
+                  <div className="text-sm text-foreground leading-snug">{n.message}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{formatTime(n.createdAt)}</div>
                 </div>
               ))}
             </div>

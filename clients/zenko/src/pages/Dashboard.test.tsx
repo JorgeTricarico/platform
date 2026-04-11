@@ -68,7 +68,9 @@ describe('Dashboard view', () => {
   it('displays the list of urgent garments', async () => {
     render(<ToastProvider><Dashboard /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero')).toBeInTheDocument();
+      // Both mobile card and desktop table render in jsdom (no CSS media queries)
+      const matches = screen.getAllByText('Campera de Cuero');
+      expect(matches.length).toBeGreaterThan(0);
     });
   });
 });

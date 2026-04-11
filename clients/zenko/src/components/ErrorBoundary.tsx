@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   children: ReactNode;
@@ -27,37 +28,13 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '60vh',
-            gap: '16px',
-            color: 'var(--text-primary)',
-            backgroundColor: 'var(--bg-color)',
-            padding: '24px',
-            textAlign: 'center',
-          }}
-        >
-          <p style={{ fontSize: '1rem', margin: 0 }}>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-6 text-center">
+          <p className="text-base text-foreground">
             Algo salió mal al cargar esta sección. Recargá la página.
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: 'var(--primary-color)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-            }}
-          >
+          <Button onClick={() => window.location.reload()}>
             Recargar
-          </button>
+          </Button>
         </div>
       );
     }
