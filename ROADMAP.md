@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-09 (sesion 21)
+> Ultima actualizacion: 2026-04-11 (sesion 26)
 
 ## Completado
 
@@ -22,6 +22,15 @@
 | Z22 | Botón "Avisar" solo visible cuando status === 'listo' (era visible en todas las prendas) | — | 2026-04-07 |
 | D28 | Filtro por fecha en Appointments: chips Todos/Hoy/Esta semana/Este mes | — | 2026-04-07 |
 | Z18b | Historial de órdenes por cliente en Clients Zenko (botón → modal con tabla + stats) | — | 2026-04-07 |
+| Z26 | orderNumber autoincremental — formato ORD-001 en vez de UUID truncado | — | 2026-04-11 |
+| Z27 | Filtros avanzados Garments — tipo arreglo, fechas, vencidos, sort múltiple | — | 2026-04-11 |
+| M28 | Tailwind v4 + shadcn/ui — migración completa de todas las páginas y componentes | — | 2026-04-11 |
+| M29 | Mobile responsive total — cards en mobile, tablas en desktop (Garments, Clients, Dashboard) | — | 2026-04-11 |
+| M30 | Hash-based routing — refresh y botón atrás mantienen la página activa | — | 2026-04-11 |
+| M31 | Code split generateTicket — bundle Garments 666KB → 15KB (jsPDF/QR lazy) | — | 2026-04-11 |
+| M32 | CSS purge — 1766 → 258 líneas (-85%), eliminación de CSS legacy | — | 2026-04-11 |
+| M33 | JWT auto-refresh — endpoint /api/auth/refresh + timer frontend 5min antes de expirar | — | 2026-04-11 |
+| M34 | Dynamic BusinessConfig — VITE_BUSINESS env var, BUSINESS_REGISTRY tipado, nuevo cliente = solo config | — | 2026-04-11 |
 
 ---
 
@@ -38,7 +47,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M4 | Notificaciones in-app (turno proximo, prenda lista) | [M4](docs/roadmap/M4-notificaciones-inapp.md) | pendiente | baja |
 | M5 | Busqueda global (clientes + ordenes + citas) | [M5](docs/roadmap/M5-busqueda-global.md) | pendiente | media |
 | L1 | WhatsApp real con Baileys | [L1](docs/roadmap/L1-whatsapp-baileys.md) | **completado** | alta |
-| L3 | Multi-tenant config-driven | [L3](docs/roadmap/L3-multi-tenant.md) | pendiente | baja |
+| L3 | Multi-tenant config-driven | [L3](docs/roadmap/L3-multi-tenant.md) | **completado** (BusinessConfig tipado + BUSINESS_REGISTRY + VITE_BUSINESS) | alta |
 | L4 | Analytics dashboard (metricas de negocio) | [L4](docs/roadmap/L4-analytics-dashboard.md) | pendiente | media |
 | L5 | Backup automatico DB a S3/GCS | [L5](docs/roadmap/L5-backup-automatico.md) | pendiente | media |
 | L6 | PWA instalable en celular | [L6](docs/roadmap/L6-pwa.md) | **completado** (vite-plugin-pwa + manifest + SW + offline cache + mutation queue) | media |
@@ -48,11 +57,11 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M6 | Responsive completo — ambos clientes 100% usables en celular | [M6](docs/roadmap/M6-responsive-mobile.md) | **completado** (media queries + sidebar + modales min(X,90vw) + CSS consolidado) | alta |
 | M8 | Fix: updateClient endpoint + Clients.tsx edit bug (crea duplicado) | — | **completado** (PUT /clients/:id + fix handleEdit) | **critica** |
 | M9 | Toast system — reemplazar alert() con notificaciones styled | — | **completado** (ToastProvider + useToast, 16 alert→toast, success feedback) | alta |
-| M10 | React Router — URLs reales, back/forward, deep linking | — | pendiente | media |
+| M10 | React Router — URLs reales, back/forward, deep linking | — | **completado** (hash-based routing #garments, #clients, etc.) | media |
 | M11 | Auth basica (JWT) — proteger todos los endpoints | [M11](docs/roadmap/M11-auth-jwt.md) | **codigo completo** (backend + frontend + tests. Login por nombre, Bearer token, CORS restrictivo, AuthContext + Login UI, seed script. REQUIRE_AUTH env var controla demo mode. Pendiente infra: prisma db push, seed, Render env vars) | **critica** |
 | M12 | CI frontend — agregar lint + tests de ambos clientes al CI | — | pendiente | alta |
 | M13 | Object storage para fotos (S3/R2) — filesystem efimero en Render | — | pendiente | media |
-| M14 | Cerrar modales con Escape + focus trap + aria-modal | — | pendiente | media |
+| M14 | Cerrar modales con Escape + focus trap + aria-modal | — | **completado** (shadcn Dialog con ESC + overlay click) | media |
 | M15 | Paginacion en endpoints y tablas (garments, clients, appointments) | — | pendiente | media |
 | M16 | Shared packages workspace — extraer db.ts, sync.ts, ToastContext, OfflineIndicator | [M16](docs/roadmap/M16-shared-packages.md) | pendiente | alta |
 | M17 | Loading state en botones submit (evitar doble-click) | [M17](docs/roadmap/M17-loading-states.md) | **completado** (sesion 15) | alta |
@@ -66,6 +75,12 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M25 | Gemini API key — renovar free tier o habilitar billing | [M25](docs/roadmap/M25-gemini-key.md) | pendiente | alta |
 | M26 | Localización completa en español — validaciones, fechas y mensajes de navegador | — | pendiente | alta |
 | M27 | Input de Fecha personalizado — resolver formato DD/MM/YYYY forzado en todos los navegadores | — | pendiente | media |
+| M35 | Evaluar e integrar Refine como framework CRUD — data providers, access control, headless UI | [M35](docs/roadmap/M35-refine-framework.md) | pendiente | **critica** |
+| M36 | Ambientes QA — separar dev/qa/prod con DBs independientes, preview deployments | [M36](docs/roadmap/M36-ambientes-qa.md) | pendiente | **critica** |
+| M37 | DataView component reutilizable — tabla desktop / cards mobile, sort/filter/pagination built-in | [M37](docs/roadmap/M37-dataview-component.md) | pendiente | alta |
+| M38 | Template base para nuevo cliente — scaffold automático desde BusinessConfig | [M38](docs/roadmap/M38-template-cliente.md) | pendiente | alta |
+| M39 | Shared component library — extraer ui/ components a paquete workspace reutilizable | — | pendiente | alta |
+| M40 | Paginación server-side — cursor-based pagination en endpoints + componente Pagination | — | pendiente | media |
 
 ---
 
