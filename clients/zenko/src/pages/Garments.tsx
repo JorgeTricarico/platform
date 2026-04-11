@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { fetchGarments, createGarment, updateGarment, deleteGarment } from '../services/api';
 import type { DBGarment } from '../services/api';
-import { generateTicket } from '../services/generateTicket';
 import { useToast } from '../components/ToastContext';
 import { BUSINESS } from '../config';
 import GarmentModal, { EMPTY_FORM } from '../components/GarmentModal';
@@ -242,7 +241,10 @@ export default function Garments() {
         variant="secondary"
         size="sm"
         className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
-        onClick={() => generateTicket(g)}
+        onClick={async () => {
+          const { generateTicket } = await import('../services/generateTicket');
+          generateTicket(g);
+        }}
       >
         Ticket
       </Button>
