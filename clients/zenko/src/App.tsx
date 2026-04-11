@@ -26,6 +26,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider, useToast } from './components/ToastContext';
 import { AuthProvider, useAuth } from './components/AuthContext';
 import { setupOnlineSync } from './services/sync';
+import { BUSINESS } from './config/business';
 import logoUrl from './assets/logo.png';
 
 function AuthGate() {
@@ -133,12 +134,12 @@ function AppContent() {
         )}>
           <img
             src={logoUrl}
-            alt="Zenko Logo"
+            alt={`${BUSINESS.name} Logo`}
             className="w-11 h-11 rounded-xl object-cover flex-shrink-0"
           />
           {!isCollapsed && (
             <span className="text-lg font-bold text-foreground">
-              Zenko<span className="text-primary">.arg</span>
+              {BUSINESS.brandLabel}<span className="text-primary">{BUSINESS.brandSuffix}</span>
             </span>
           )}
         </div>
@@ -208,10 +209,10 @@ function AppContent() {
 
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground hidden sm:block">
-              {user?.name || 'Ana & Ariel'}
+              {user?.name || BUSINESS.ownerName}
             </span>
             <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
-              Z
+              {BUSINESS.brandLabel[0]}
             </div>
             {authRequired && user && (
               <Button variant="outline" size="sm" onClick={logout}>

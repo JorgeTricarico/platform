@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../db.js';
 import { validate, registerSchema, loginSchema } from '../schemas.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { signToken, isAuthRequired } from '../middleware/auth.js';
+import { signToken, isAuthRequired, type JwtPayload } from '../middleware/auth.js';
 
 export const authRoutes = Router();
 
@@ -98,5 +99,41 @@ authRoutes.post(
         business: authenticatedUser.business,
       },
     });
+  }),
+);
+
+// POST /api/auth/refresh — exchange a valid token for a new one with extended expiry
+authRoutes.post(
+  '/refresh',
+  asyncHandler(async (req, res) => {
+    const header = req.headers.authorization;
+    if (!header?.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Token requerido' });
+      return;
+    }
+
+    const oldToken = header.slice(7);
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      res.status(500).json({ error: 'JWT_SECRET no configurado' });
+      return;
+    }
+
+    let payload: JwtPayload;
+    try {
+      payload = jwt.verify(oldToken, secret) as JwtPayload;
+    } catch {
+      res.status(401).json({ error: 'Token invalido o expirado' });
+      return;
+    }
+
+    const newToken = signToken({
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+      business: payload.business,
+    });
+
+    res.json({ token: newToken });
   }),
 );

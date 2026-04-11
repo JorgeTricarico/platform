@@ -178,6 +178,78 @@ describe('Auth Routes', () => {
       expect(res.status).toBe(400);
     });
   });
+
+  describe('POST /api/auth/refresh', () => {
+    it('should return a new token when given a valid token', async () => {
+      // Include a past iat in payload so the refreshed token will have a different iat
+      const originalToken = jwt.sign(
+        { userId: 'user-1', email: 'ana@zenco.com', role: 'admin', business: 'zenco', iat: Math.floor(Date.now() / 1000) - 60 },
+        JWT_SECRET,
+        { expiresIn: '7d' },
+      );
+
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .set('Authorization', `Bearer ${originalToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeDefined();
+      expect(res.body.token).not.toBe(originalToken);
+
+      const decoded = jwt.verify(res.body.token, JWT_SECRET) as Record<string, unknown>;
+      expect(decoded.userId).toBe('user-1');
+      expect(decoded.business).toBe('zenco');
+    });
+
+    it('should return 401 when no Authorization header is provided', async () => {
+      const res = await request(app).post('/api/auth/refresh');
+      expect(res.status).toBe(401);
+      expect(res.body.error).toBe('Token requerido');
+    });
+
+    it('should return 401 when given an expired token', async () => {
+      const expiredToken = jwt.sign(
+        { userId: 'user-1', email: 'ana@zenco.com', role: 'admin', business: 'zenco' },
+        JWT_SECRET,
+        { expiresIn: '-1s' },
+      );
+
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .set('Authorization', `Bearer ${expiredToken}`);
+
+      expect(res.status).toBe(401);
+      expect(res.body.error).toBe('Token invalido o expirado');
+    });
+
+    it('should return 401 when given an invalid token', async () => {
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .set('Authorization', 'Bearer invalid-token-garbage');
+
+      expect(res.status).toBe(401);
+      expect(res.body.error).toBe('Token invalido o expirado');
+    });
+
+    it('should preserve the payload claims in the new token', async () => {
+      const originalToken = jwt.sign(
+        { userId: 'user-99', email: 'jorge@platform.com', role: 'superadmin', business: 'all' },
+        JWT_SECRET,
+        { expiresIn: '7d' },
+      );
+
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .set('Authorization', `Bearer ${originalToken}`);
+
+      expect(res.status).toBe(200);
+      const decoded = jwt.verify(res.body.token, JWT_SECRET) as Record<string, unknown>;
+      expect(decoded.userId).toBe('user-99');
+      expect(decoded.email).toBe('jorge@platform.com');
+      expect(decoded.role).toBe('superadmin');
+      expect(decoded.business).toBe('all');
+    });
+  });
 });
 
 describe('Auth Middleware', () => {

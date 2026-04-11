@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import logoUrl from '../assets/logo.png';
+import { BUSINESS } from '../config/business';
 
 export default function Login() {
   const { login, loginAsDemo, authRequired } = useAuth();
@@ -33,11 +34,11 @@ export default function Login() {
           <div className="flex flex-col items-center text-center mb-6">
             <img
               src={logoUrl}
-              alt="Zenko Logo"
+              alt={`${BUSINESS.name} Logo`}
               className="w-16 h-16 rounded-2xl object-cover mb-3"
             />
             <h1 className="text-2xl font-bold text-foreground">
-              Zenko<span className="text-primary">.arg</span>
+              {BUSINESS.brandLabel}<span className="text-primary">{BUSINESS.brandSuffix}</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">Inicia sesion para continuar</p>
           </div>

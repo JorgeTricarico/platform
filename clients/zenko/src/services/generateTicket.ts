@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import type { DBGarment } from './api';
 import { LOGO_BASE64 } from '../constants/assets';
+import { BUSINESS } from '../config/business';
 
 export async function generateTicket(order: DBGarment): Promise<void> {
   const doc = new jsPDF({ unit: 'mm', format: [80, 180] });
@@ -12,10 +13,10 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   // Header Text
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('ZENKO', 30, 20, { align: 'center' });
+  doc.text(BUSINESS.ticketTitle, 30, 20, { align: 'center' });
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Arreglos de Ropa', 30, 26, { align: 'center' });
+  doc.text(BUSINESS.ticketSubtitle, 30, 26, { align: 'center' });
   
   // WhatsApp Symbol & Number
   doc.setFillColor(37, 211, 102);
@@ -25,10 +26,10 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   doc.text('W', 18, 30.7, { align: 'center' });
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(8);
-  doc.text('11 6574-9397', 34, 31, { align: 'center' });
-  
+  doc.text(BUSINESS.whatsappNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1 $2-$3'), 34, 31, { align: 'center' });
+
   doc.setFontSize(7);
-  doc.text('Independencia 243, Morón', 30, 35, { align: 'center' });
+  doc.text(BUSINESS.address, 30, 35, { align: 'center' });
 
   // Separator
   doc.setDrawColor(200);
@@ -76,9 +77,9 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   doc.text('Escanear para ver estado del pedido', 40, qrY + 43, { align: 'center' });
 
   doc.setFontSize(6);
-  doc.text('Pasados los 90 dias sin retirar el local dispone de las prendas.', 40, qrY + 48, { align: 'center' });
-  doc.text('Una vez finalizado el arreglo se avisara via', 40, qrY + 51, { align: 'center' });
-  doc.text('mensaje de WhatsApp que esta listo para retirarse.', 40, qrY + 54, { align: 'center' });
+  BUSINESS.ticketFooterLines.forEach((line, i) => {
+    doc.text(line, 40, qrY + 48 + i * 3, { align: 'center' });
+  });
 
   doc.save(`ticket-${order.id}.pdf`);
 }

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { BUSINESS } from '../config/business';
 
 const STEPS = [
   { id: 'recibido', label: 'Recibido', icon: '📥' },
@@ -71,7 +72,7 @@ export default function PublicStatus() {
         {/* Header */}
         <header className="flex items-center justify-between mb-2">
           <span className="text-xl font-bold text-foreground">
-            Zenko<span className="text-primary">.arg</span>
+            {BUSINESS.brandLabel}<span className="text-primary">{BUSINESS.brandSuffix}</span>
           </span>
           <Badge variant="secondary">Portal del Cliente</Badge>
         </header>
@@ -175,7 +176,7 @@ export default function PublicStatus() {
         {/* Footer */}
         <div className="text-center pt-2 pb-4">
           <p className="text-sm text-muted-foreground">¿Tenes alguna duda? Comunícate con nosotros.</p>
-          <p className="text-xs text-muted-foreground/60 mt-1 font-medium">Zenko Arreglos de Ropa</p>
+          <p className="text-xs text-muted-foreground/60 mt-1 font-medium">{BUSINESS.name} {BUSINESS.serviceDescription}</p>
         </div>
       </div>
     </div>

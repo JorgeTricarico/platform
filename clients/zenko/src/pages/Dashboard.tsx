@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, Smartphone } from 'lucide-react';
+import { BUSINESS } from '../config/business';
 
 export default function Dashboard() {
   const toast = useToast();
@@ -94,9 +95,9 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Hola, Ana 👋</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{BUSINESS.greeting} 👋</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Aquí tienes el resumen de tu taller al día de hoy.
+            {BUSINESS.subtitle}
           </p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>

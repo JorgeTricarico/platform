@@ -6,9 +6,10 @@ interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  className?: string;
 }
 
-function Dialog({ open, onOpenChange, children }: DialogProps) {
+function Dialog({ open, onOpenChange, children, className }: DialogProps) {
   React.useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -23,7 +24,7 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
   return (
     <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
-      <div className="relative z-50 w-[min(95vw,32rem)] max-h-[90vh] overflow-y-auto">
+      <div className={cn('relative z-50 w-[min(95vw,32rem)] max-h-[90vh] overflow-y-auto', className)}>
         {children}
       </div>
     </div>

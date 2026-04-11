@@ -5,8 +5,9 @@ import PhotoGallery from './PhotoGallery';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
+import { Search, User, Phone, Shirt, Scissors, FileText, CalendarDays, DollarSign, Loader2 } from 'lucide-react';
 
 export const EMPTY_FORM = {
   clientName: '', clientPhone: '', garmentName: '', repairType: '',
@@ -87,8 +88,8 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   };
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="w-[min(95vw,36rem)] max-h-[90vh] overflow-y-auto" onClose={onClose}>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }} className="w-[min(95vw,36rem)]">
+      <DialogContent onClose={onClose}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -103,6 +104,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                 variant={clientMode === 'existing' ? 'default' : 'outline'}
                 onClick={() => setClientMode('existing')}
               >
+                <User className="h-3.5 w-3.5" />
                 Cliente existente
               </Button>
               <Button
@@ -118,17 +120,22 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
 
           {clientMode === 'existing' && !isEditing ? (
             <div className="relative" ref={dropdownRef}>
-              <Input
-                type="text"
-                placeholder="Buscar cliente por nombre o teléfono..."
-                value={clientQuery}
-                onChange={(e) => setClientQuery(e.target.value)}
-                onFocus={() => { if (clientQuery.length >= 2) setShowDropdown(true); }}
-              />
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  type="text"
+                  placeholder="Buscar cliente por nombre o teléfono..."
+                  value={clientQuery}
+                  onChange={(e) => setClientQuery(e.target.value)}
+                  onFocus={() => { if (clientQuery.length >= 2) setShowDropdown(true); }}
+                  className="pl-9"
+                />
+              </div>
               {showDropdown && (
                 <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-card shadow-lg overflow-hidden">
                   {searching ? (
-                    <div className="px-4 py-3 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       Buscando...
                     </div>
                   ) : clientResults.length > 0 ? (
@@ -150,8 +157,15 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                 </div>
               )}
               {form.clientName && (
-                <div className="mt-2 text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                  Seleccionado: <strong className="text-foreground">{form.clientName}</strong> — {form.clientPhone}
+                <div className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                  <User className="h-3.5 w-3.5 shrink-0" />
+                  Seleccionado: <strong className="text-foreground">{form.clientName}</strong>
+                  {form.clientPhone && (
+                    <>
+                      <Phone className="h-3 w-3 ml-1 shrink-0" />
+                      <span>{form.clientPhone}</span>
+                    </>
+                  )}
                 </div>
               )}
               <input type="hidden" name="clientName" value={form.clientName} />
@@ -162,49 +176,71 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
             </div>
           ) : (
             <div className="flex gap-3">
-              <Input required name="clientName" placeholder="Nombre y Apellido" value={form.clientName} onChange={handle} className="flex-1" />
-              <Input required name="clientPhone" placeholder="Teléfono" value={form.clientPhone} onChange={handle} className="flex-1" />
+              <div className="relative flex-1">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Input required name="clientName" placeholder="Nombre y Apellido" value={form.clientName} onChange={handle} className="pl-9" />
+              </div>
+              <div className="relative flex-1">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Input required name="clientPhone" placeholder="Teléfono" value={form.clientPhone} onChange={handle} className="pl-9" />
+              </div>
             </div>
           )}
 
           <div className="flex gap-3">
-            <Input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="flex-1" />
-            <Input required name="repairType" placeholder="Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="flex-1" />
+            <div className="relative flex-1">
+              <Shirt className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="pl-9" />
+            </div>
+            <div className="relative flex-1">
+              <Scissors className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input required name="repairType" placeholder="Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="pl-9" />
+            </div>
           </div>
 
-          <textarea
-            required
-            name="description"
-            placeholder="Detalle exacto del trabajo a realizar..."
-            value={form.description}
-            onChange={handle}
-            rows={3}
-            className={cn(
-              'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none',
-              'placeholder:text-muted-foreground',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-              'disabled:cursor-not-allowed disabled:opacity-50'
-            )}
-          />
+          <div className="relative">
+            <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Textarea
+              required
+              name="description"
+              placeholder="Detalle exacto del trabajo a realizar..."
+              value={form.description}
+              onChange={handle}
+              rows={3}
+              className="pl-9 resize-none"
+            />
+          </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Fecha de Ingreso</label>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                <CalendarDays className="h-3.5 w-3.5" />
+                Fecha de Ingreso
+              </label>
               <Input required name="intakeDate" type="date" value={form.intakeDate} onChange={handle} />
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Fecha de Entrega</label>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                <CalendarDays className="h-3.5 w-3.5" />
+                Fecha de Entrega
+              </label>
               <Input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} />
             </div>
           </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Precio ($)</label>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                <DollarSign className="h-3.5 w-3.5" />
+                Precio ($)
+              </label>
               <Input required name="price" type="number" placeholder="Ej: 1500" value={form.price || ''} onChange={handle} />
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Seña ($)</label>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                <DollarSign className="h-3.5 w-3.5" />
+                Seña ($)
+              </label>
               <Input name="deposit" type="number" placeholder="Ej: 500" value={form.deposit || ''} onChange={handle} />
             </div>
           </div>
@@ -221,7 +257,12 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? 'Guardando...' : 'Guardar'}
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : 'Guardar'}
             </Button>
           </DialogFooter>
         </form>

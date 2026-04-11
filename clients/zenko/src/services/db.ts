@@ -1,4 +1,5 @@
-const DB_NAME = 'zenko_cache';
+import { BUSINESS } from '../config/business';
+const DB_NAME = `${BUSINESS.slug}_cache`;
 const DB_VERSION = 1;
 const CACHE_STORE = 'api_cache';
 const MUTATION_STORE = 'pending_mutations';
