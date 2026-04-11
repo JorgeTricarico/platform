@@ -75,12 +75,14 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M25 | Gemini API key — renovar free tier o habilitar billing | [M25](docs/roadmap/M25-gemini-key.md) | pendiente | alta |
 | M26 | Localización completa en español — validaciones, fechas y mensajes de navegador | — | pendiente | alta |
 | M27 | Input de Fecha personalizado — resolver formato DD/MM/YYYY forzado en todos los navegadores | — | pendiente | media |
-| M35 | Evaluar e integrar Refine como framework CRUD — data providers, access control, headless UI | [M35](docs/roadmap/M35-refine-framework.md) | pendiente | **critica** |
+| M35 | ~~Refine framework~~ → **DESCARTADO** — no resuelve multi-instancia, agrega complejidad sin beneficio | [M35](docs/roadmap/M35-refine-framework.md) | **descartado** | — |
 | M36 | Ambientes QA — separar dev/qa/prod con DBs independientes, preview deployments | [M36](docs/roadmap/M36-ambientes-qa.md) | pendiente | **critica** |
 | M37 | DataView component reutilizable — tabla desktop / cards mobile, sort/filter/pagination built-in | [M37](docs/roadmap/M37-dataview-component.md) | pendiente | alta |
-| M38 | Template base para nuevo cliente — scaffold automático desde BusinessConfig | [M38](docs/roadmap/M38-template-cliente.md) | pendiente | alta |
-| M39 | Shared component library — extraer ui/ components a paquete workspace reutilizable | — | pendiente | alta |
-| M40 | Paginación server-side — cursor-based pagination en endpoints + componente Pagination | — | pendiente | media |
+| M38 | Turborepo monorepo — extraer packages/ui, packages/types, packages/config, apps/backend, apps/web | [M38](docs/roadmap/M38-template-cliente.md) | pendiente | **critica** |
+| M39 | Coolify + Docker — deploy aislado por cliente, VPS Hetzner, SSL automático | [INFRA](docs/integrations/INFRA-DOCKER-POR-CLIENTE.md) | pendiente | **critica** |
+| M40 | Tenant config system — tenants/{name}/config.ts + features.ts + prompts.ts por cliente | [SAAS](docs/integrations/SAAS-ARCHITECTURE-EVALUATION.md) | pendiente | **critica** |
+| M41 | Paginación server-side — cursor-based pagination en endpoints + componente Pagination | — | pendiente | media |
+| M42 | Onboarding automatizado — script create-tenant + deploy via Coolify API | — | pendiente | alta |
 
 ---
 
