@@ -1583,8 +1583,6 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  overflow-y: auto;
-  flex: 1;
 }
 
 .garment-card {
@@ -1592,7 +1590,6 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
 }
 
 .garment-card.overdue {

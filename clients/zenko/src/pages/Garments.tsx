@@ -263,7 +263,7 @@ export default function Garments() {
   if (loading && garments.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: isMobile ? 'auto' : '100%' }}>
 
       {/* ── Encabezado ─────────────────────────────────────────────── */}
       <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
@@ -300,7 +300,7 @@ export default function Garments() {
       </div>
 
       {/* ── Card contenedor ───────────────────────────────────────── */}
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      <div className="card" style={{ padding: '0', overflow: isMobile ? 'visible' : 'hidden', display: 'flex', flexDirection: 'column', flex: isMobile ? 'none' : 1, minHeight: 0 }}>
 
         {/* Barra de búsqueda + botón Filtros */}
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '12px', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
