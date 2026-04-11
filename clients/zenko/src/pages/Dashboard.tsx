@@ -93,9 +93,9 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{BUSINESS.greeting} 👋</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{BUSINESS.greeting} 👋</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {BUSINESS.subtitle}
           </p>
@@ -115,7 +115,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4 pt-1">
-            <div className="text-3xl font-bold">{itemsToRepair}</div>
+            <div className="text-2xl sm:text-3xl font-bold">{itemsToRepair}</div>
           </CardContent>
         </Card>
 
@@ -126,7 +126,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4 pt-1">
-            <div className="text-3xl font-bold">{itemsToDeliver}</div>
+            <div className="text-2xl sm:text-3xl font-bold">{itemsToDeliver}</div>
           </CardContent>
         </Card>
 
@@ -137,7 +137,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4 pt-1">
-            <div className="text-3xl font-bold text-emerald-600">${monthlyIncome.toLocaleString()}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-emerald-600">${monthlyIncome.toLocaleString()}</div>
           </CardContent>
         </Card>
 
@@ -148,7 +148,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4 pt-1">
-            <div className="text-3xl font-bold">${balance.toLocaleString()}</div>
+            <div className="text-2xl sm:text-3xl font-bold">${balance.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>

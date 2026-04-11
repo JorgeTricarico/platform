@@ -102,19 +102,18 @@ function AppContent() {
     setIsCollapsed(!isCollapsed);
   };
 
-  const isMobileOverlayVisible = sidebarOpen && typeof window !== 'undefined' && window.innerWidth <= 768;
-
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <OfflineIndicator />
 
-      {/* Mobile sidebar overlay */}
-      {isMobileOverlayVisible && (
-        <div
-          className="fixed inset-0 bg-black/40 z-20 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile sidebar overlay — always in DOM, visibility controlled by CSS + state */}
+      <div
+        className={cn(
+          'fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity duration-300',
+          sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )}
+        onClick={() => setSidebarOpen(false)}
+      />
 
       {/* Sidebar */}
       <aside
@@ -223,7 +222,7 @@ function AppContent() {
         </header>
 
         {/* Page content */}
-        <div className="flex-1 overflow-y-auto bg-background">
+        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-6">
           <ErrorBoundary>
             <Suspense fallback={<div className="flex items-center justify-center min-h-60 text-muted-foreground">Cargando...</div>}>
               {activeTab === 'dashboard' && <Dashboard />}

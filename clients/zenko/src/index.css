@@ -119,8 +119,8 @@ body {
 /* Typography */
 .subtitle { color: var(--text-secondary); font-size: 16px; margin-bottom: 8px; font-weight: 500;}
 
-/* Components */
-.card {
+/* Legacy card — only used by ChatDemo */
+.legacy-card {
   background: var(--surface-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
@@ -128,7 +128,7 @@ body {
   padding: 32px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.card:hover {
+.legacy-card:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }

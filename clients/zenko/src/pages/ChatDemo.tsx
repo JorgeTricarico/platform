@@ -122,7 +122,7 @@ export default function ChatDemo() {
         ))}
       </div>
 
-      <div className="card" style={{ maxWidth: '600px', margin: '0 auto', padding: 0, overflow: 'hidden' }}>
+      <div className="legacy-card" style={{ maxWidth: '600px', margin: '0 auto', padding: 0, overflow: 'hidden' }}>
         {/* Chat Header */}
         <div style={{ background: '#25D366', color: 'white', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px' }}>Z</div>
