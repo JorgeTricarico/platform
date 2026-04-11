@@ -28,16 +28,30 @@ function AuthGate() {
   return <AppContent />;
 }
 
+type Tab = 'dashboard' | 'garments' | 'finances' | 'clients' | 'chat';
+const VALID_TABS: Tab[] = ['dashboard', 'garments', 'finances', 'clients', 'chat'];
+
+function readTabFromHash(): Tab {
+  const hash = window.location.hash.replace('#', '');
+  return VALID_TABS.includes(hash as Tab) ? (hash as Tab) : 'dashboard';
+}
+
 function AppContent() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'garments' | 'finances' | 'clients' | 'chat'>('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(true); // Default visible on desktop
+  const [activeTab, setActiveTab] = useState<Tab>(readTabFromHash);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toast = useToast();
   const { user, authRequired, logout } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
 
+  // Sync hash → state (back/forward buttons)
   useEffect(() => {
-    // Initial state based on screen size
+    const onHashChange = () => setActiveTab(readTabFromHash());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
     }
@@ -50,7 +64,8 @@ function AppContent() {
     return cleanup;
   }, []);
 
-  const navigate = (tab: typeof activeTab) => {
+  const navigate = (tab: Tab) => {
+    window.location.hash = tab;
     setActiveTab(tab);
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
