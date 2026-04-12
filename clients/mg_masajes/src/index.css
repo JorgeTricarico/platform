@@ -722,27 +722,25 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   text-align: center;
-  box-shadow: 0 20px 60px var(--player-shadow);
+  box-shadow: var(--shadow-lg);
   border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   height: 100%;
   box-sizing: border-box;
 }
 
 /* Artwork circle with animated glow */
 .ambient-artwork {
-  width: 150px;
-  height: 150px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: auto;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
   transition: transform 0.4s ease;
   flex-shrink: 0;
 }
@@ -970,8 +968,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   padding: 10px 14px;
   background: var(--player-overlay);
   border-radius: 16px;
-  margin-bottom: auto;
-  flex-shrink: 0;
+  margin-bottom: 16px;
 }
 
 .ambient-volume-row {

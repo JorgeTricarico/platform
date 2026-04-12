@@ -41,7 +41,7 @@ function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial
 // ---------------------------------------------------------------------------
 
 function parseAndValidate(raw: TenantConfigInput): TenantConfig {
-  const merged = deepMerge(TENANT_DEFAULTS as TenantConfigInput, raw)
+  const merged = deepMerge(TENANT_DEFAULTS as unknown as TenantConfigInput, raw)
 
   const result = TenantConfigSchema.safeParse(merged)
 

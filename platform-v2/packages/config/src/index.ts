@@ -1,7 +1,8 @@
 // ── Existing registry & feature-flag utilities ────────────────────────────
 export * from './tenant-registry.js'
 export * from './feature-flags.js'
-export type { TenantConfig, FeatureFlags, TenantTheme, BusinessSchedule } from '@platform/types'
+// Re-export non-conflicting types from @platform/types
+export type { FeatureFlags, TenantTheme, BusinessSchedule } from '@platform/types'
 
 // ── Zod schema & inferred types (new v2 system) ───────────────────────────
 export {
@@ -12,6 +13,7 @@ export {
   AIConfigSchema,
   AIToolSchema,
   WhatsAppConfigSchema,
+  type TenantConfig,
   type TenantConfigInput,
   type ServiceConfig,
   type FeaturesConfig,

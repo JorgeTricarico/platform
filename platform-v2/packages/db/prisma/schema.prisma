@@ -28,68 +28,78 @@ model Tenant {
 // =============================================
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
+  id           String    @id @default(uuid())
+  email        String?
   passwordHash String
   name         String
-  role         String   @default("admin")  // "admin" | "viewer"
-  business     String                       // tenant slug or "all"
-  createdAt    DateTime @default(now())
+  role         String    @default("admin")  // "admin" | "viewer"
+  tenantId     String                        // tenant slug or "all"
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime?
 
-  @@index([business])
+  @@index([tenantId])
   @@map("users")
 }
 
 // =============================================
-// CLIENTS — Shared registry (scoped by business)
+// CLIENTS — Shared registry (scoped by tenantId)
 // =============================================
 
 model Client {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
   phone     String
   altPhone  String?
-  business  String               // tenant slug
-  createdAt DateTime @default(now())
+  tenantId  String                // tenant slug
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 
+  garments       Garment[]
   patientRecords PatientRecord[]
   notifications  Notification[]
 
-  @@unique([phone, business])
-  @@index([business])
+  @@unique([phone, tenantId])
+  @@index([tenantId])
   @@map("clients")
 }
 
 // =============================================
-// ORDERS — Zenco garment repairs
+// GARMENTS — Zenco garment repairs
 // =============================================
 
-model Order {
-  id              String   @id
-  orderNumber     Int      @unique @default(autoincrement())
-  clientName      String
-  clientPhone     String
-  garmentName     String
-  repairType      String
-  description     String
-  status          String   @default("recibido")
-  statusChangedAt String?
-  intakeDate      String   @default("")
-  deliveryDate    String
-  price           Float
-  deposit         Float    @default(0)
-  location        String?
-  createdAt       DateTime @default(now())
+model Garment {
+  id          String    @id @default(uuid())
+  tenantId    String
+  orderNumber String                          // e.g. "ORD-001"
+  clientId    String?
+  clientName  String                          // denormalized for quick display
+  clientPhone String
+  repairType  String
+  description String?
+  status      String    @default("recibido")
+  price       Float     @default(0)
+  deposit     Float     @default(0)
+  intakeDate  DateTime  @default(now())
+  readyDate   DateTime?
+  deliveredAt DateTime?
+  notes       String?
+  photos      GarmentPhoto[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
-  @@index([status])
-  @@index([deliveryDate])
-  @@index([clientPhone])
-  @@map("orders")
+  client      Client?   @relation(fields: [clientId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, orderNumber])
+  @@map("garments")
 }
 
 model GarmentPhoto {
   id        String   @id @default(uuid())
   garmentId String
+  garment   Garment  @relation(fields: [garmentId], references: [id], onDelete: Cascade)
   filename  String
   url       String
   createdAt DateTime @default(now())
@@ -99,33 +109,28 @@ model GarmentPhoto {
 }
 
 // =============================================
-// FINANCES — Shared structure, separate tables per tenant
+// FINANCES — Unified tenant-scoped table
 // =============================================
 
-model ZencoFinance {
-  id          String @id
-  date        String
-  type        String  // "ingreso" | "gasto"
-  category    String
-  amount      Float
-  description String
+model Finance {
+  id            String    @id @default(uuid())
+  tenantId      String
+  type          String    // "income" | "expense"
+  amount        Float
+  description   String
+  category      String?
+  paymentMethod String?
+  referenceId   String?
+  referenceType String?   // "order" | "appointment" | "manual"
+  date          DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 
-  @@index([date])
-  @@index([type])
-  @@map("zenco_finances")
-}
-
-model MgMasajesFinance {
-  id          String @id
-  date        String
-  type        String  // "ingreso" | "gasto"
-  category    String
-  amount      Float
-  description String
-
-  @@index([date])
-  @@index([type])
-  @@map("mg_masajes_finances")
+  @@index([tenantId])
+  @@index([tenantId, date])
+  @@index([tenantId, type])
+  @@map("finances")
 }
 
 // =============================================
@@ -133,21 +138,25 @@ model MgMasajesFinance {
 // =============================================
 
 model Appointment {
-  id          String   @id
+  id          String    @id @default(uuid())
+  tenantId    String
   clientName  String
   clientPhone String
   service     String
   duration    Int
   date        String
   time        String
-  status      String   @default("pendiente")
+  status      String    @default("pendiente")
   price       Float
   notes       String?
-  location    String   @default("Consultorio")
-  createdAt   DateTime @default(now())
+  location    String    @default("Consultorio")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
-  @@index([date])
-  @@index([status])
+  @@index([tenantId])
+  @@index([tenantId, date])
+  @@index([tenantId, status])
   @@index([clientPhone])
   @@map("appointments")
 }
@@ -157,9 +166,10 @@ model Appointment {
 // =============================================
 
 model PatientRecord {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
+  tenantId     String
   clientId     String
-  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   date         String
   reason       String
   symptoms     String?
@@ -167,8 +177,11 @@ model PatientRecord {
   treatment    String?
   observations String?
   nextSession  String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
+  @@index([tenantId])
   @@index([clientId])
   @@map("patient_records")
 }
@@ -178,14 +191,18 @@ model PatientRecord {
 // =============================================
 
 model Notification {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
+  tenantId  String
   clientId  String
-  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client    Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   message   String
-  type      String   @default("prenda_lista")
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  type      String    @default("prenda_lista")
+  read      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
+  @@index([tenantId])
   @@index([clientId])
   @@index([read])
   @@map("notifications")
@@ -197,12 +214,12 @@ model Notification {
 
 model ChatMessage {
   id        String   @id @default(uuid())
-  business  String
+  tenantId  String
   role      String   // "user" | "assistant"
   content   String
   sessionId String
   createdAt DateTime @default(now())
 
-  @@index([business, sessionId])
+  @@index([tenantId, sessionId])
   @@map("chat_messages")
 }
