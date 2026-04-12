@@ -24,7 +24,7 @@
 }
 
 /* Dark mode Tailwind overrides */
-[data-theme="dark"] {
+html[data-theme="dark"] {
   color-scheme: dark;
   --color-background: #1A1108;
   --color-foreground: #F5EDE0;
