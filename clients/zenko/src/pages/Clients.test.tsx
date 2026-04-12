@@ -148,9 +148,9 @@ describe('Z18 — Historial de órdenes por cliente', () => {
     });
     fireEvent.click(screen.getAllByText('Historial')[0]);
     await waitFor(() => {
-      // Orders appear in both mobile cards and desktop table; use getAllByText
-      expect(screen.getAllByText('Campera (cierre)').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Pantalón (dobladillo)').length).toBeGreaterThan(0);
+      // Usar regex para coincidir con el contenido de las prendas aunque estén en spans separados
+      expect(screen.getAllByText(/Campera/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Pantalón/i).length).toBeGreaterThan(0);
     });
   });
 

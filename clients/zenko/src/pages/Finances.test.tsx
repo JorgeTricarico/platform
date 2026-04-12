@@ -60,7 +60,7 @@ describe('Finances page', () => {
     const monthInput = document.querySelector('input[type="month"]') as HTMLInputElement;
     fireEvent.change(monthInput, { target: { value: '2026-04' } });
     await waitFor(() => {
-      const todosBtn = screen.getByText('Todos');
+      const todosBtn = screen.getByText('Ver todo el historial');
       expect(todosBtn).toBeInTheDocument();
     });
   });

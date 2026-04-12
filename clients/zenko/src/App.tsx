@@ -6,10 +6,11 @@ import {
   DollarSign,
   Users,
   MessageSquare,
-  ChevronLeft,
   Menu,
   Moon,
   Sun,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -86,6 +87,22 @@ function AppContent() {
     return cleanup;
   }, []);
 
+  // Keyboard shortcut Ctrl+B / Cmd+B to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        if (window.innerWidth > 768) {
+          setIsCollapsed((prev) => !prev);
+        } else {
+          setSidebarOpen((prev) => !prev);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const navigate = (tab: Tab) => {
     window.location.hash = tab;
     setActiveTab(tab);
@@ -122,74 +139,70 @@ function AppContent() {
           'bg-card border-r border-border shadow-sm',
           'transition-all duration-300 ease-in-out',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-          isCollapsed ? 'w-16' : 'w-56',
+          'w-[300px]', // Ancho mobile aumentado
+          isCollapsed ? 'md:w-16' : 'md:w-64', // Colapsado solo aplica en desktop
           'md:relative md:translate-x-0 md:flex'
         )}
       >
-        {/* Logo */}
+        {/* Floating Collapse Button (Desktop) */}
+        <button
+          onClick={toggleCollapse}
+          className="hidden md:flex absolute -right-3 top-8 h-6 w-6 items-center justify-center rounded-full border border-border bg-card shadow-sm hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-all z-40 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+          title={isCollapsed ? 'Expandir (Ctrl+B)' : 'Colapsar (Ctrl+B)'}
+        >
+          {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
+
+        {/* Logo & Header */}
         <div className={cn(
-          'flex items-center gap-3 px-4 py-5 border-b border-border',
-          isCollapsed && 'justify-center px-2'
+          'flex items-center pt-5 pb-4 border-b border-border',
+          isCollapsed ? 'justify-center px-2' : 'px-5'
         )}>
-          <img
-            src={logoUrl}
-            alt={`${BUSINESS.name} Logo`}
-            className="w-11 h-11 rounded-xl object-cover flex-shrink-0"
-          />
-          {!isCollapsed && (
-            <span className="text-lg font-bold text-foreground">
-              {BUSINESS.brandLabel}<span className="text-primary">{BUSINESS.brandSuffix}</span>
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            <img
+              src={logoUrl}
+              alt={`${BUSINESS.name} Logo`}
+              className="w-12 h-12 md:w-10 md:h-10 rounded-xl object-cover flex-shrink-0"
+            />
+            {!isCollapsed && (
+              <span className="text-xl font-extrabold text-foreground tracking-tight">
+                {BUSINESS.brandLabel}<span className="text-primary">{BUSINESS.brandSuffix}</span>
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-5 space-y-2 overflow-y-auto">
           {NAV_ITEMS.map(({ id, label, Icon }) => (
             <button
               key={id}
               onClick={() => navigate(id)}
               className={cn(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                isCollapsed && 'justify-center px-2',
+                'w-full flex items-center gap-5 px-5 py-4 md:gap-4 md:px-4 md:py-3.5 rounded-xl text-lg md:text-[15px] font-semibold transition-colors',
+                isCollapsed && 'md:justify-center md:px-0 md:py-3.5 md:gap-0',
                 activeTab === id
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
               title={isCollapsed ? label : undefined}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              {!isCollapsed && <span>{label}</span>}
+              <Icon className="w-6 h-6 md:w-5 md:h-5 flex-shrink-0" />
+              <span className={cn(isCollapsed && 'md:hidden')}>
+                {label}
+              </span>
             </button>
           ))}
         </nav>
 
-        {/* Collapse button */}
-        <div className="px-2 py-3 border-t border-border">
-          <button
-            onClick={toggleCollapse}
-            className={cn(
-              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors',
-              isCollapsed && 'justify-center px-2'
-            )}
-            title={isCollapsed ? 'Expandir' : undefined}
-          >
-            <ChevronLeft
-              className={cn(
-                'w-5 h-5 flex-shrink-0 transition-transform duration-200',
-                isCollapsed && 'rotate-180'
-              )}
-            />
-            {!isCollapsed && <span>Colapsar</span>}
-          </button>
-        </div>
+
       </aside>
 
       {/* Main Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Topbar */}
         <header className="flex items-center gap-3 px-4 h-14 border-b border-border bg-card flex-shrink-0">
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar" className="md:hidden">
             <Menu className="w-5 h-5" />
           </Button>
 

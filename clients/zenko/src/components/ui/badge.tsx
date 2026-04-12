@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors',
+  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors whitespace-nowrap',
   {
     variants: {
       variant: {
@@ -11,11 +11,11 @@ const badgeVariants = cva(
         secondary: 'border-transparent bg-muted text-muted-foreground',
         destructive: 'border-transparent bg-destructive text-white',
         outline: 'text-foreground',
-        recibido: 'bg-amber-50 text-amber-800 border-amber-200',
-        en_proceso: 'bg-blue-50 text-blue-800 border-blue-200',
-        listo: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        entregado: 'bg-gray-100 text-gray-600 border-gray-200',
-        overdue: 'bg-red-50 text-red-700 border-red-200',
+        recibido: 'bg-status-recibido-bg text-status-recibido-text border-status-recibido-border',
+        en_proceso: 'bg-status-proceso-bg text-status-proceso-text border-status-proceso-border',
+        listo: 'bg-status-listo-bg text-status-listo-text border-status-listo-border',
+        entregado: 'bg-status-entregado-bg text-status-entregado-text border-status-entregado-border',
+        overdue: 'bg-status-overdue-bg text-status-overdue-text border-status-overdue-border',
       },
     },
     defaultVariants: {

@@ -95,7 +95,7 @@ export default function PublicStatus() {
               <div>
                 <div className="text-xs text-muted-foreground mb-0.5">ID de Orden</div>
                 <div className="text-sm font-semibold text-foreground">
-                  ORD-{String(order.orderNumber).padStart(3, '0')}
+                  ORD-{String(order.orderNumber).padStart(6, '0')}
                 </div>
               </div>
               <div className="text-right">

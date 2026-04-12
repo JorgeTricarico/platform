@@ -37,7 +37,7 @@ describe('ChatDemo page', () => {
 
   it('renders empty state message', () => {
     render(<ChatDemo />);
-    expect(screen.getByText('Escribi un mensaje para empezar la conversacion')).toBeInTheDocument();
+    expect(screen.getByText('Escribe un mensaje para empezar la conversación')).toBeInTheDocument();
   });
 
   it('sends a message when user types and presses Enter', async () => {

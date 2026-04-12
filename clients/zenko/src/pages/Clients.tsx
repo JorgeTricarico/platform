@@ -255,7 +255,7 @@ export default function Clients() {
       {/* Historial modal */}
       <Dialog open={!!historialTarget} onOpenChange={(open) => { if (!open) setHistorialTarget(null); }}>
         <DialogContent
-          className="w-[min(95vw,56rem)]"
+          className="w-[min(95vw,64rem)]"
           onClose={() => setHistorialTarget(null)}
         >
           <DialogHeader>
@@ -278,28 +278,29 @@ export default function Clients() {
                 <div className="overflow-x-auto rounded-lg border border-border">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-border bg-muted/40">
-                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Prenda</th>
-                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden sm:table-cell">Ingreso</th>
-                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden sm:table-cell">Entrega</th>
-                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Estado</th>
-                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Precio</th>
+                      <tr className="border-b border-border bg-muted/40 text-xs">
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground w-1/3">Prenda</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%] hidden sm:table-cell">Ingreso</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%] hidden sm:table-cell">Entrega</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%]">Estado</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%]">Precio</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {clientOrders.orders.map((o: DBGarment) => (
                         <tr key={o.id} className="hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 font-medium">
-                            {o.garmentName} ({o.repairType})
+                            <span className="font-bold">{o.garmentName}</span>
+                            <span className="text-muted-foreground ml-1">({o.repairType})</span>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap hidden sm:table-cell">
+                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap hidden sm:table-cell w-[1%]">
                             {o.intakeDate ? new Date(o.intakeDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap hidden sm:table-cell">
+                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap hidden sm:table-cell w-[1%]">
                             {o.deliveryDate ? new Date(o.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
                           </td>
-                          <td className="px-4 py-3">{o.status}</td>
-                          <td className="px-4 py-3 font-bold">${o.price.toLocaleString('es-AR')}</td>
+                          <td className="px-4 py-3 whitespace-nowrap w-[1%]">{o.status}</td>
+                          <td className="px-4 py-3 font-bold whitespace-nowrap w-[1%]">${o.price.toLocaleString('es-AR')}</td>
                         </tr>
                       ))}
                     </tbody>

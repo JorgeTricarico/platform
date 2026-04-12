@@ -62,7 +62,7 @@ describe('PublicStatus', () => {
       expect(screen.getByText('Pantalón')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('ORD-001')).toBeInTheDocument();
+    expect(screen.getByText('ORD-000001')).toBeInTheDocument();
     expect(screen.getByText('dobladillo')).toBeInTheDocument();
   });
 

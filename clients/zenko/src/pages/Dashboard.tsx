@@ -137,7 +137,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4 pt-1">
-            <div className="text-2xl sm:text-3xl font-bold text-emerald-600">${monthlyIncome.toLocaleString()}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-status-positive">${monthlyIncome.toLocaleString()}</div>
           </CardContent>
         </Card>
 
@@ -172,7 +172,7 @@ export default function Dashboard() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-mono text-muted-foreground">
-                        ORD-{String(g.orderNumber).padStart(3, '0')}
+                        ORD-{String(g.orderNumber).padStart(6, '0')}
                       </span>
                       {getStatusBadge(g.status)}
                     </div>
@@ -185,7 +185,7 @@ export default function Dashboard() {
                       <span className="font-semibold">{g.garmentName}</span>
                       <span className="text-muted-foreground"> — {g.repairType}</span>
                     </div>
-                    <div className="mt-2 text-xs font-bold text-red-600">
+                    <div className="mt-2 text-xs font-bold text-status-negative">
                       Entrega: {formatDate(g.deliveryDate)}
                     </div>
                   </CardContent>
@@ -219,13 +219,13 @@ export default function Dashboard() {
                             {g.clientPhone}
                           </div>
                           <div className="text-xs text-muted-foreground/60 font-mono mt-0.5">
-                            ORD-{String(g.orderNumber).padStart(3, '0')}
+                            ORD-{String(g.orderNumber).padStart(6, '0')}
                           </div>
                         </td>
                         <td className="px-4 py-3">{g.garmentName}</td>
                         <td className="px-4 py-3 capitalize">{g.repairType}</td>
                         <td className="px-4 py-3">{getStatusBadge(g.status)}</td>
-                        <td className="px-4 py-3 font-semibold text-red-600">
+                        <td className="px-4 py-3 font-semibold text-status-negative">
                           {formatDate(g.deliveryDate)}
                         </td>
                       </tr>

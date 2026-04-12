@@ -5,13 +5,13 @@ import { ToastProvider } from '../components/ToastContext';
 
 const mockGarments = [
   {
-    id: 'ORD-001', clientName: 'María G.', clientPhone: '11-4567-8901',
+    id: 'ORD-001', orderNumber: 1, clientName: 'María G.', clientPhone: '11-4567-8901',
     garmentName: 'Campera de Cuero', repairType: 'cierre',
     description: 'Cambiar cierre', status: 'en_proceso',
     intakeDate: '2026-04-01', deliveryDate: '2026-04-05', price: 15000
   },
   {
-    id: 'ORD-002', clientName: 'Juan P.', clientPhone: '11-1234-5678',
+    id: 'ORD-002', orderNumber: 2, clientName: 'Juan P.', clientPhone: '11-1234-5678',
     garmentName: 'Pantalón', repairType: 'dobladillo',
     description: 'Dobladillo', status: 'entregado',
     intakeDate: '2026-04-02', deliveryDate: '2026-04-01', price: 5000

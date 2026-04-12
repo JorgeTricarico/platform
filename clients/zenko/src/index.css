@@ -14,6 +14,39 @@
   --color-destructive: #D14949;
   --color-accent: #A34E17;
   --color-success: #5B8255;
+  --color-info: #3B82F6;
+  --color-warning: #F59E0B;
+
+  /* Status Colors (Default/Light) */
+  --color-status-recibido-bg: #FFFBEB; /* amber-50 */
+  --color-status-recibido-text: #92400E; /* amber-800 */
+  --color-status-recibido-border: #FDE68A; /* amber-200 */
+
+  --color-status-proceso-bg: #EFF6FF; /* blue-50 */
+  --color-status-proceso-text: #1E40AF; /* blue-800 */
+  --color-status-proceso-border: #BFDBFE; /* blue-200 */
+
+  --color-status-listo-bg: #ECFDF5; /* emerald-50 */
+  --color-status-listo-text: #065F46; /* emerald-800 */
+  --color-status-listo-border: #A7F3D0; /* emerald-200 */
+
+  --color-status-entregado-bg: #F3F4F6; /* gray-100 */
+  --color-status-entregado-text: #4B5563; /* gray-600 */
+  --color-status-entregado-border: #E5E7EB; /* gray-200 */
+
+  --color-status-overdue-bg: #FEF2F2; /* red-50 */
+  --color-status-overdue-text: #B91C1C; /* red-700 */
+  --color-status-overdue-border: #FECACA; /* red-200 */
+
+  --color-status-positive: #065F46; /* emerald-800 */
+  --color-status-negative: #B91C1C; /* red-700 */
+
+  /* WhatsApp Theme (Light) */
+  --color-whatsapp-header: #25D366;
+  --color-whatsapp-bg: #ECE5DD;
+  --color-whatsapp-user: #DCF8C6;
+  --color-whatsapp-bot: #FFFFFF;
+  --color-whatsapp-input: #F0F0F0;
 
   --font-sans: 'Outfit', 'Inter', -apple-system, sans-serif;
   --radius-lg: 16px;
@@ -22,92 +55,61 @@
 
 /* Dark mode Tailwind overrides */
 [data-theme="dark"] {
+  color-scheme: dark;
   --color-background: #1A1108;
   --color-foreground: #F5EDE0;
   --color-card: #2A1A0D;
   --color-muted: #221508;
-  --color-muted-foreground: #B89B7A;
+  --color-muted-foreground: #D1BC9D;
   --color-border: #3D2A18;
+
+  /* Status Colors (Dark) */
+  --color-status-recibido-bg: rgba(69, 26, 3, 0.3); /* dark amber */
+  --color-status-recibido-text: #FBBF24; /* amber-400 */
+  --color-status-recibido-border: #78350F; /* amber-900 */
+
+  --color-status-proceso-bg: rgba(30, 58, 138, 0.3); /* dark blue */
+  --color-status-proceso-text: #60A5FA; /* blue-400 */
+  --color-status-proceso-border: #1E3A8A; /* blue-900 */
+
+  --color-status-listo-bg: rgba(6, 78, 59, 0.3); /* dark emerald */
+  --color-status-listo-text: #34D399; /* emerald-400 */
+  --color-status-listo-border: #064E3B; /* emerald-900 */
+
+  --color-status-entregado-bg: rgba(31, 41, 55, 0.5); /* dark gray */
+  --color-status-entregado-text: #9CA3AF; /* gray-400 */
+  --color-status-entregado-border: #374151; /* gray-700 */
+
+  --color-status-overdue-bg: rgba(127, 29, 29, 0.3); /* dark red */
+  --color-status-overdue-text: #F87171; /* red-400 */
+  --color-status-overdue-border: #7F1D1D; /* red-900 */
+
+  --color-status-positive: #34D399; /* emerald-400 */
+  --color-status-negative: #F87171; /* red-400 */
+
+  /* WhatsApp Theme (Dark) */
+  --color-whatsapp-header: #128C7E;
+  --color-whatsapp-bg: #0B141A;
+  --color-whatsapp-user: #005C4B;
+  --color-whatsapp-bot: #202C33;
+  --color-whatsapp-input: #1F2C33;
 }
 
 /* ─── Legacy CSS Variables (only for ChatDemo) ─────────────────────── */
 :root {
-  --bg-color: #F6F1EA;
-  --surface-color: #FFFFFF;
-  --surface-secondary: #FAFAF8;
-  --text-primary: #382416;
-  --text-secondary: #7A604D;
-  --primary-color: #D66D26;
-  --primary-hover: #C55E1C;
-  --accent-color: #A34E17;
-  --urgent-color: #D14949;
-  --success-color: #5B8255;
-  --border-color: #E2D5C8;
-  --shadow-sm: 0 2px 4px rgba(56, 36, 22, 0.05);
-  --shadow-md: 0 4px 8px rgba(56, 36, 22, 0.08);
-  --shadow-lg: 0 8px 16px rgba(56, 36, 22, 0.1);
-  --radius-md: 8px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
-  --font-sans: 'Outfit', 'Inter', -apple-system, sans-serif;
-  --error-bg: #fef2f2;
-  --error-text: #dc2626;
-  --error-border: #fecaca;
-  --warning-bg: #fffbeb;
-  --warning-text: #d97706;
-}
-
-[data-theme="dark"] {
-  --bg-color: #1A1108;
-  --surface-color: #2A1A0D;
-  --surface-secondary: #221508;
-  --text-primary: #F5EDE0;
-  --text-secondary: #B89B7A;
-  --border-color: #3D2A18;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
-  --error-bg: #2d1212;
-  --error-text: #f87171;
-  --error-border: #7f1d1d;
-  --warning-bg: #2d2007;
-  --warning-text: #fbbf24;
-}
 
 /* ─── Global body ─────────────────────────────────────────────────── */
 body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 }
 
-/* ─── Legacy classes (only used by ChatDemo) ──────────────────────── */
-.subtitle { color: var(--text-secondary); font-size: 16px; margin-bottom: 8px; font-weight: 500;}
-
-.legacy-card {
-  background: var(--surface-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
-  padding: 32px;
-}
-
-.badge {
-  padding: 6px 12px;
-  border-radius: var(--radius-full);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-.badge.urgent { background-color: #FDE8E8; color: var(--urgent-color); }
-.badge.pending { background-color: #FEF3C7; color: var(--accent-color); }
-.badge.completed { background-color: #E1F0DA; color: var(--success-color); }
-
-.flex-between { display: flex; align-items: center; justify-content: space-between; }
-
-/* ─── Spinner ─────────────────────────────────────────────────────── */
+/* ─── Spinner (Centralized) ────────────────────────────────────────── */
 .spinner-inline {
-  border: 2px solid var(--border-color);
-  border-top-color: var(--primary-color);
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

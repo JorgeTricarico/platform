@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { API_URL } from '../services/api';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { SendHorizontal } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = { ...extra };
@@ -90,72 +94,78 @@ export default function ChatDemo() {
   };
 
   return (
-    <div>
-      <div className="flex-between" style={{ marginBottom: '24px' }}>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between gap-4 mb-6 shrink-0">
         <div>
-          <h1>Demo del Bot de WhatsApp</h1>
-          <p className="subtitle">Simula como responderia Ana (IA) a los mensajes de tus clientes.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Demo del Bot de WhatsApp</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Simula como respondería Ana (IA) a los mensajes de tus clientes.</p>
         </div>
-        <span className="badge completed" style={{ padding: '8px 16px', fontSize: '14px' }}>Modo Demo</span>
+        <Badge variant="listo" className="px-4 py-1.5 text-sm font-bold uppercase tracking-wide shrink-0">
+          Modo Demo
+        </Badge>
       </div>
 
       {/* Scenario Tabs */}
-      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
+      <div className="flex gap-2 justify-center mb-6 flex-wrap shrink-0">
         {SCENARIOS.map(s => (
           <button
             key={s.id}
             onClick={() => switchScenario(s.id)}
             disabled={loading}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              border: activeScenario === s.id ? '2px solid #25D366' : '1px solid #ccc',
-              background: activeScenario === s.id ? '#25D366' : 'white',
-              color: activeScenario === s.id ? 'white' : '#333',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '13px',
-              fontWeight: activeScenario === s.id ? 600 : 400,
-            }}
+            className={cn(
+              'px-4 py-2 rounded-full text-xs font-semibold transition-all border',
+              activeScenario === s.id
+                ? 'bg-whatsapp-header text-white border-whatsapp-header shadow-sm'
+                : 'bg-card text-foreground border-border hover:bg-muted'
+            )}
           >
             {s.label}
           </button>
         ))}
       </div>
 
-      <div className="legacy-card" style={{ maxWidth: '600px', margin: '0 auto', padding: 0, overflow: 'hidden' }}>
+      <div className="max-w-[600px] w-full mx-auto rounded-2xl border border-border bg-card shadow-lg overflow-hidden flex flex-col flex-1 min-h-0">
         {/* Chat Header */}
-        <div style={{ background: '#25D366', color: 'white', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px' }}>Z</div>
+        <div className="bg-whatsapp-header text-white p-4 flex items-center gap-3 shrink-0">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg select-none">
+            Z
+          </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '16px' }}>Ana de Zenko</div>
-            <div style={{ fontSize: '12px', opacity: 0.9 }}>en linea</div>
+            <div className="font-bold text-sm">Ana de Zenko</div>
+            <div className="text-[11px] opacity-90 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              en línea
+            </div>
           </div>
         </div>
 
         {/* Messages */}
-        <div style={{ height: '400px', overflowY: 'auto', padding: '16px', background: '#ECE5DD', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="flex-1 overflow-y-auto p-4 bg-whatsapp-bg flex flex-col gap-3 scroll-smooth min-h-0">
           {messages.length === 0 && !loading && (
-            <div style={{ textAlign: 'center', color: '#999', fontSize: '13px', marginTop: '160px' }}>
-              Escribi un mensaje para empezar la conversacion
+            <div className="text-center text-muted-foreground/60 text-xs mt-32 italic">
+              Escribe un mensaje para empezar la conversación
             </div>
           )}
           {messages.map((m, i) => (
-            <div key={i} style={{
-              alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-              background: m.role === 'user' ? '#DCF8C6' : 'white',
-              padding: '10px 14px',
-              borderRadius: '10px',
-              maxWidth: '80%',
-              fontSize: '14px',
-              lineHeight: '1.5',
-              boxShadow: '0 1px 1px rgba(0,0,0,0.1)',
-              whiteSpace: 'pre-wrap'
-            }}>
+            <div
+              key={i}
+              className={cn(
+                'p-3 rounded-2xl max-w-[85%] text-sm leading-relaxed shadow-sm break-words',
+                m.role === 'user'
+                  ? 'self-end bg-whatsapp-user text-slate-900 rounded-tr-none'
+                  : 'self-start bg-whatsapp-bot text-slate-900 dark:text-slate-100 rounded-tl-none'
+              )}
+            >
               {m.text}
             </div>
           ))}
           {loading && (
-            <div style={{ alignSelf: 'flex-start', background: 'white', padding: '10px 14px', borderRadius: '10px', fontSize: '14px', color: '#999' }}>
+            <div className="self-start bg-whatsapp-bot text-muted-foreground p-3 rounded-2xl rounded-tl-none text-xs flex items-center gap-2">
+              <div className="flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
               Escribiendo...
             </div>
           )}
@@ -163,21 +173,22 @@ export default function ChatDemo() {
         </div>
 
         {/* Input */}
-        <div style={{ display: 'flex', gap: '8px', padding: '12px 16px', borderTop: '1px solid #ddd', background: '#F0F0F0' }}>
+        <div className="flex gap-2 p-3 bg-whatsapp-input border-t border-border/10 shrink-0">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
             placeholder="Escribe un mensaje..."
-            style={{ flex: 1, padding: '10px 14px', borderRadius: '20px', border: 'none', outline: 'none', fontSize: '14px' }}
+            className="flex-1 px-4 py-2.5 rounded-full border-none bg-card text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-whatsapp-header/50 shadow-inner"
           />
-          <button
+          <Button
             onClick={sendMessage}
             disabled={loading}
-            style={{ background: '#25D366', color: 'white', border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            size="icon"
+            className="rounded-full bg-whatsapp-header hover:bg-whatsapp-header/90 text-white w-10 h-10 shrink-0"
           >
-            &#10148;
-          </button>
+            <SendHorizontal className="w-5 h-5 ml-0.5" />
+          </Button>
         </div>
       </div>
     </div>

@@ -147,7 +147,7 @@ export default function Garments() {
       if (dateFrom && g.deliveryDate < dateFrom) return false;
       if (dateTo   && g.deliveryDate > dateTo)   return false;
       const q = searchTerm.toLowerCase();
-      const orderLabel = `ord-${String(g.orderNumber).padStart(3, '0')}`.toLowerCase();
+      const orderLabel = `ord-${String(g.orderNumber).padStart(6, '0')}`.toLowerCase();
       return !q || g.clientName.toLowerCase().includes(q) ||
         g.garmentName.toLowerCase().includes(q) ||
         g.repairType.toLowerCase().includes(q) ||
@@ -238,9 +238,8 @@ export default function Garments() {
         </a>
       )}
       <Button
-        variant="secondary"
+        variant="info"
         size="sm"
-        className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
         onClick={async () => {
           const { generateTicket } = await import('../services/generateTicket');
           generateTicket(g);
@@ -414,7 +413,7 @@ export default function Garments() {
                   size="sm"
                   variant="destructive"
                   onClick={clearFilters}
-                  className="bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+                  className="dark:bg-red-950/30 dark:text-red-400 dark:border-red-900 bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:hover:bg-red-950/50"
                 >
                   <X className="h-3 w-3" />
                   Limpiar filtros
@@ -443,7 +442,7 @@ export default function Garments() {
                 {/* Header: ORD + badge */}
                 <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/30">
                   <span className="font-mono text-xs font-bold text-muted-foreground">
-                    ORD-{String(g.orderNumber).padStart(3, '0')}
+                    ORD-{String(g.orderNumber).padStart(6, '0')}
                   </span>
                   <span className="flex items-center gap-1.5">
                     {getStatusBadge(g.status)}
@@ -496,15 +495,15 @@ export default function Garments() {
                   </div>
 
                   {/* Precios */}
-                  <div className="flex gap-3 flex-wrap text-xs">
-                    <div className="font-bold">Total: ${g.price.toLocaleString()}</div>
-                    {g.deposit !== undefined && g.deposit > 0 && (
-                      <>
-                        <div className="text-emerald-700 font-semibold">Seña: ${g.deposit.toLocaleString()}</div>
-                        <div className="text-red-600 font-bold">Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
-                      </>
-                    )}
-                  </div>
+                    <div className="flex gap-3 flex-wrap text-xs">
+                      <div className="font-bold">Total: ${g.price.toLocaleString()}</div>
+                      {g.deposit !== undefined && g.deposit > 0 && (
+                        <>
+                          <div className="text-status-positive font-semibold">Seña: ${g.deposit.toLocaleString()}</div>
+                          <div className="text-status-negative font-bold">Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
+                        </>
+                      )}
+                    </div>
                 </div>
 
                 {/* Acciones */}
@@ -520,13 +519,13 @@ export default function Garments() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Cliente</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Prenda & Detalle</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Ingreso</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Entrega</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Costo / Saldo</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Estado</th>
-                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Acciones</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground w-1/4">Cliente</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground w-1/3">Prenda & Detalle</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%]">Ingreso</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%]">Entrega</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%]">Costo / Saldo</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%]">Estado</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap w-[1%]">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -535,7 +534,7 @@ export default function Garments() {
                     key={g.id}
                     className={cn(
                       'border-b border-border hover:bg-muted/30 transition-colors',
-                      isOverdue(g) && 'bg-amber-50/50'
+                      isOverdue(g) && 'bg-amber-50/50 dark:bg-amber-950/20'
                     )}
                   >
                     <td className="px-4 py-3">
@@ -545,31 +544,31 @@ export default function Garments() {
                         {g.clientPhone}
                       </div>
                       <div className="text-[11px] text-muted-foreground/60 mt-0.5 font-mono">
-                        ORD-{String(g.orderNumber).padStart(3, '0')}
+                        ORD-{String(g.orderNumber).padStart(6, '0')}
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-foreground">{g.garmentName} ({g.repairType})</div>
-                      <div className="text-xs text-muted-foreground max-w-[280px] truncate">
+                      <div className="text-xs text-muted-foreground">
                         {g.description}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                       {formatDate(g.intakeDate, !!g.intakeDate && g.intakeDate.length > 10)}
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                       {formatDate(g.deliveryDate)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="font-semibold text-foreground">Total: ${g.price.toLocaleString()}</div>
                       {g.deposit !== undefined && g.deposit > 0 && (
-                        <div className="text-xs text-emerald-700">Seña: ${g.deposit.toLocaleString()}</div>
+                        <div className="text-xs text-status-positive">Seña: ${g.deposit.toLocaleString()}</div>
                       )}
                       {g.deposit !== undefined && g.deposit > 0 && (
-                        <div className="text-xs text-red-600 font-semibold">Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
+                        <div className="text-xs text-status-negative font-semibold">Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex flex-col gap-1 items-start">
                         {getStatusBadge(g.status)}
                         {isOverdue(g) && (
@@ -577,7 +576,7 @@ export default function Garments() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex gap-2 flex-wrap">
                         <ActionButtons g={g} />
                       </div>
@@ -612,7 +611,7 @@ export default function Garments() {
       {/* Modal Editar */}
       {editTarget && (
         <GarmentModal
-          title={`Editar Orden ORD-${String(editTarget.orderNumber).padStart(3, '0')}`}
+          title={`Editar Orden ORD-${String(editTarget.orderNumber).padStart(6, '0')}`}
           form={editForm}
           setForm={setEditForm}
           onSubmit={handleEdit}

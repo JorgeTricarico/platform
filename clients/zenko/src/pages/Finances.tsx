@@ -27,7 +27,7 @@ export default function Finances() {
   const [submitting, setSubmitting] = useState(false);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
-  const [filterMonth, setFilterMonth] = useState('');
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
 
   // Edit state
   const [editTarget, setEditTarget] = useState<DBFinance | null>(null);
@@ -139,8 +139,9 @@ export default function Finances() {
           <Button
             variant="outline"
             onClick={() => setFilterMonth('')}
+            className="h-10"
           >
-            Todos
+            Ver todo el historial
           </Button>
         )}
       </div>
@@ -152,21 +153,21 @@ export default function Finances() {
             <TrendingUp className="h-4 w-4 text-emerald-500" />
             Ingresos Totales
           </div>
-          <div className="text-2xl font-bold text-emerald-600">${totalIncome.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-status-positive">${totalIncome.toLocaleString()}</div>
         </div>
         <div className="rounded-xl border border-border bg-card shadow-sm p-4 border-t-4 border-t-red-500">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <TrendingDown className="h-4 w-4 text-red-500" />
             Gastos del Taller
           </div>
-          <div className="text-2xl font-bold text-red-600">${totalExpenses.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-status-negative">${totalExpenses.toLocaleString()}</div>
         </div>
         <div className="rounded-xl border border-border bg-card shadow-sm p-4 border-t-4 border-t-primary">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <DollarSign className="h-4 w-4 text-primary" />
             Ganancia Neta
           </div>
-          <div className={cn('text-2xl font-bold', netIncome >= 0 ? 'text-foreground' : 'text-red-600')}>
+          <div className={cn('text-2xl font-bold', netIncome >= 0 ? 'text-foreground' : 'text-status-negative')}>
             ${netIncome.toLocaleString()}
           </div>
         </div>
@@ -196,7 +197,7 @@ export default function Finances() {
                   </div>
                   <div className="font-semibold text-sm">{f.category}</div>
                   {f.description && <div className="text-xs text-muted-foreground">{f.description}</div>}
-                  <div className={cn('text-lg font-bold mt-2', f.type === 'income' ? 'text-emerald-600' : 'text-red-600')}>
+                  <div className={cn('text-lg font-bold mt-2', f.type === 'income' ? 'text-status-positive' : 'text-status-negative')}>
                     {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
                   </div>
                   <div className="flex gap-2 mt-3 pt-2 border-t border-border">
@@ -243,7 +244,7 @@ export default function Finances() {
                             <div className="text-xs text-muted-foreground">{f.description}</div>
                           )}
                         </td>
-                        <td className={cn('px-4 py-3 font-bold whitespace-nowrap', f.type === 'income' ? 'text-emerald-600' : 'text-red-600')}>
+                        <td className={cn('px-4 py-3 font-bold whitespace-nowrap', f.type === 'income' ? 'text-status-positive' : 'text-status-negative')}>
                           {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
                         </td>
                         <td className="px-4 py-3">
@@ -270,7 +271,7 @@ export default function Finances() {
 
       {/* Dialog Nuevo Registro */}
       <Dialog open={isModalOpen} onOpenChange={open => { if (!open) { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); } }}>
-        <DialogContent>
+        <DialogContent onClose={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }}>
           <DialogHeader>
             <DialogTitle>Nuevo Registro Financiero</DialogTitle>
           </DialogHeader>
@@ -322,7 +323,7 @@ export default function Finances() {
 
       {/* Dialog Editar Registro */}
       <Dialog open={!!editTarget} onOpenChange={open => { if (!open) setEditTarget(null); }}>
-        <DialogContent>
+        <DialogContent onClose={() => setEditTarget(null)}>
           <DialogHeader>
             <DialogTitle>Editar Registro</DialogTitle>
           </DialogHeader>

@@ -12,11 +12,17 @@ interface DialogProps {
 function Dialog({ open, onOpenChange, children, className }: DialogProps) {
   React.useEffect(() => {
     if (!open) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onOpenChange(false);
     };
     document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    return () => {
+      document.body.style.overflow = originalStyle;
+      document.removeEventListener('keydown', handler);
+    };
   }, [open, onOpenChange]);
 
   if (!open) return null;
@@ -44,9 +50,10 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+          className="absolute right-3 top-3 sm:right-5 sm:top-5 rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-all z-[60] group"
+          aria-label="Cerrar"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5 transition-transform group-hover:rotate-90" />
         </button>
       )}
       {children}
