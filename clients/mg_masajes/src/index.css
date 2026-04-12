@@ -34,18 +34,18 @@
   --color-border: #3D2A18;
 
   /* Ambient Player (Spa Nocturno - Dark Mode) */
-  --player-bg-1: #1A1108;
-  --player-bg-2: #140D06;
-  --player-bg-3: #0F0904;
+  --player-bg-1: #2A1A0D;
+  --player-bg-2: #221508;
+  --player-bg-3: #1A1108;
   --player-text: #D66D26; /* Naranja en negro para contraste superior */
   --player-text-muted: rgba(214, 109, 38, 0.7);
   --player-text-dim: rgba(214, 109, 38, 0.4);
-  --player-overlay: rgba(214, 109, 38, 0.05);
-  --player-overlay-hover: rgba(214, 109, 38, 0.1);
-  --player-progress-bg: rgba(214, 109, 38, 0.1);
+  --player-overlay: rgba(214, 109, 38, 0.1);
+  --player-overlay-hover: rgba(214, 109, 38, 0.2);
+  --player-progress-bg: rgba(214, 109, 38, 0.2);
   --player-shadow: rgba(0, 0, 0, 0.6);
-  --player-artwork-bg-1: #140D06;
-  --player-artwork-bg-2: #0F0904;
+  --player-artwork-bg-1: #221508;
+  --player-artwork-bg-2: #1A1108;
 }
 
 /* ─── Global Resets & Zero-Scroll ──────────────────────────────────── */
@@ -75,8 +75,8 @@
   --shadow-md: 0 12px 30px rgba(56, 36, 22, 0.08);
   --shadow-lg: 0 20px 40px rgba(56, 36, 22, 0.12);
   
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
+  --radius-md: 16px;
+  --radius-lg: 32px;
   --radius-full: 9999px;
   
   --font-sans: 'Outfit', 'Inter', -apple-system, sans-serif;
@@ -90,17 +90,33 @@
   --space-2xl: 32px;
   --space-3xl: 48px;
 
-  /* Ambient Player (Spa Diurno - Light Mode) */
-  --player-bg-1: #FDFBF7;
-  --player-bg-2: #F7F3EF;
-  --player-bg-3: #EBE4D8;
-  --player-text: var(--color-foreground);
+  --player-bg-1: #FFFFFF;
+  --player-bg-2: #FDFBF7;
+  --player-bg-3: #F7F3EF;
+  --player-text: #382416;
   --player-text-muted: rgba(56, 36, 22, 0.7);
   --player-text-dim: rgba(56, 36, 22, 0.4);
-  --player-overlay: rgba(56, 36, 22, 0.04);
-  --player-overlay-hover: rgba(56, 36, 22, 0.08);
-  --player-progress-bg: rgba(56, 36, 22, 0.08);
-  --player-shadow: rgba(56, 36, 22, 0.1);
+  --player-overlay: rgba(214, 109, 38, 0.05); 
+  --player-overlay-hover: rgba(214, 109, 38, 0.1);
+  --player-progress-bg: rgba(214, 109, 38, 0.1);
+  --player-shadow: rgba(56, 36, 22, 0.08); /* solo definimos el color para usarlo con box-shadow: 0 20px 60px var() */
+  --player-artwork-bg-1: #F7F3EF;
+  --player-artwork-bg-2: #EBE4D8;
+}
+
+/* Force reset for light mode properly with all variables */
+html:not([data-theme="dark"]), 
+[data-theme="light"] {
+  --player-bg-1: #FFFFFF;
+  --player-bg-2: #FDFBF7;
+  --player-bg-3: #F7F3EF;
+  --player-text: #382416;
+  --player-text-muted: rgba(56, 36, 22, 0.7);
+  --player-text-dim: rgba(56, 36, 22, 0.4);
+  --player-overlay: rgba(214, 109, 38, 0.05); 
+  --player-overlay-hover: rgba(214, 109, 38, 0.1);
+  --player-progress-bg: rgba(214, 109, 38, 0.1);
+  --player-shadow: rgba(56, 36, 22, 0.08);
   --player-artwork-bg-1: #F7F3EF;
   --player-artwork-bg-2: #EBE4D8;
 }
@@ -123,14 +139,29 @@ body {
 
 
 /* ─── Components (Modernized) ─────────────────────────────────────── */
+/* ─── Regla Maestra de Redondeado (Anti-Bordes-Afilados) ──────────────── */
+.card, 
+.dashboard-wrapper .card,
+.table-container, 
+.modal-card, 
+.ambient-player-panel, 
+.ambient-library-panel, 
+.ambient-track-list, 
+.ambient-library-header, 
+.skeleton-card-wrapper {
+  border-radius: 32px !important;
+  overflow: hidden !important; 
+}
+
+
 .card {
   background: var(--surface-color);
-  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   padding: 32px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  overflow: hidden; /* Asegura que hijos no rompan el redondeado */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 .card:hover { 
   box-shadow: var(--shadow-md); 
@@ -687,7 +718,6 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .ambient-player-panel {
   flex: 0 0 380px;
   background: linear-gradient(160deg, var(--player-bg-1) 0%, var(--player-bg-2) 60%, var(--player-bg-3) 100%);
-  border-radius: var(--radius-lg);
   padding: 32px 28px;
   display: flex;
   flex-direction: column;
@@ -695,7 +725,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   justify-content: center;
   text-align: center;
   box-shadow: 0 20px 60px var(--player-shadow);
-  border: 1px solid rgba(214, 109, 38, 0.15); /* Borde sutil para distinción */
+  border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
   overflow: hidden;
   height: 100%;
   box-sizing: border-box;
@@ -730,7 +760,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 }
 
 .ambient-artwork-playing .ambient-artwork-inner {
-  background: linear-gradient(135deg, #4A2D15 0%, #D66D26 50%, #A34E17 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 50%, var(--color-primary) 100%);
   color: rgba(255, 255, 255, 0.9);
   border-color: rgba(214, 109, 38, 0.4);
   box-shadow: var(--shadow-lg);
@@ -815,7 +845,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .ambient-wave-bar {
   width: 3px;
   height: 4px;
-  background: linear-gradient(to top, #D66D26, #E8944A);
+  background: linear-gradient(to top, var(--color-primary), var(--color-accent));
   border-radius: 2px;
   animation: wave-dance 1.2s ease-in-out infinite;
 }
@@ -858,7 +888,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   height: 64px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #D66D26 0%, #E8944A 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -902,7 +932,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 .ambient-progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #D66D26, #E8944A);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   border-radius: 2px;
   transition: width 0.3s linear;
 }
@@ -963,7 +993,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #D66D26;
+  background: var(--color-primary);
   cursor: pointer;
 }
 
@@ -971,7 +1001,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #D66D26;
+  background: var(--color-primary);
   border: none;
   cursor: pointer;
 }
@@ -1004,8 +1034,8 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .ambient-feedback {
   margin-top: 12px;
   padding: 10px 16px;
-  background: rgba(214, 109, 38, 0.12);
-  color: #E8944A;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
   font-weight: 700;
   font-size: 12px;
   border-radius: var(--radius-md);
@@ -1027,7 +1057,6 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   flex-direction: column;
   overflow: hidden;
   background: var(--color-card); /* Distinción clara del fondo de la página */
-  border-radius: var(--radius-lg);
   padding: 24px;
   border: 1px solid var(--border-color);
 }

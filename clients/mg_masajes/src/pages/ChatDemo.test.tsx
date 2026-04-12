@@ -7,7 +7,7 @@ window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+vi.stubGlobal('fetch', mockFetch);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -49,7 +49,7 @@ describe('ChatDemo — renderizado básico', () => {
   it('muestra el botón de envío', () => {
     render(<ChatDemo />);
     // El botón de envío tiene el icono ➤ (&#10148;)
-    const sendButton = document.querySelector('button[disabled]') || document.querySelectorAll('button')[document.querySelectorAll('button').length - 1];
+    // const sendButton = document.querySelector('button[disabled]') || document.querySelectorAll('button')[document.querySelectorAll('button').length - 1];
     // O buscamos el botón por su contenedor
     expect(document.querySelector('.bg-\\[\\#25D366\\]')).not.toBeNull();
   });
