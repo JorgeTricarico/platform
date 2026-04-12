@@ -226,7 +226,7 @@ h2 { font-size: 22px; font-weight: 700; color: var(--text-primary) !important; m
   font-family: inherit;
   font-size: 14px;
   color: var(--text-secondary);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   transition: all 0.2s;
 }
 .btn-secondary:hover {
@@ -255,7 +255,7 @@ h2 { font-size: 22px; font-weight: 700; color: var(--text-primary) !important; m
 .table-container {
   width: 100%;
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   border: 1px solid var(--border-color);
   background: var(--surface-color);
   flex: 1;
@@ -267,8 +267,8 @@ table {
   border-collapse: separate;
   border-spacing: 0;
 }
-th:first-child { border-top-left-radius: var(--radius-lg); }
-th:last-child { border-top-right-radius: var(--radius-lg); }
+th:first-child { border-top-left-radius: 32px; }
+th:last-child { border-top-right-radius: 32px; }
 
 table {
   width: 100%;
@@ -288,13 +288,13 @@ th {
   letter-spacing: 1px;
   background-color: var(--surface-secondary);
 }
-th:first-child { border-top-left-radius: var(--radius-lg); }
-th:last-child { border-top-right-radius: var(--radius-lg); }
+th:first-child { border-top-left-radius: 32px; }
+th:last-child { border-top-right-radius: 32px; }
 
 td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 .badge {
   padding: 6px 12px;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -328,7 +328,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 
 .modal-card {
   background: var(--surface-color);
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   box-shadow: var(--shadow-lg);
   padding: 32px;
   width: min(480px, 90vw);
@@ -357,7 +357,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 
 .input {
   padding: 10px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   border: 1px solid var(--border-color);
   font-family: inherit;
   font-size: 14px;
@@ -370,7 +370,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 
 .input-search {
   padding: 12px 16px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   border: 1px solid var(--border-color);
   width: min(320px, 100%);
   outline: none;
@@ -383,7 +383,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
 
 .input-filter {
   padding: 10px 14px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   border: 1px solid var(--border-color);
   font-family: inherit;
   font-size: 14px;
@@ -398,7 +398,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   font-family: inherit;
   font-size: 14px;
   color: var(--text-secondary);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
 }
 .btn-secondary:hover {
   background-color: var(--surface-secondary);
@@ -409,7 +409,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   font-size: 13px;
   background-color: var(--surface-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   cursor: pointer;
   font-family: inherit;
   font-weight: 600;
@@ -426,7 +426,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   border: 1px solid var(--border-color);
   cursor: pointer;
   font-weight: 600;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   font-family: inherit;
   font-size: 14px;
   color: var(--text-primary);
@@ -476,7 +476,7 @@ td { font-size: 15px; color: var(--text-primary); font-weight: 500;}
   align-items: flex-start;
   gap: 10px;
   padding: 14px 16px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   box-shadow: var(--shadow-lg);
   font-size: 14px;
   font-weight: 600;
@@ -632,7 +632,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.1);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -691,7 +691,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   background: var(--primary-color);
   color: white;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -722,11 +722,12 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
   box-shadow: 0 20px 60px var(--player-shadow);
   border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
   box-sizing: border-box;
 }
@@ -740,8 +741,10 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-top: auto;
+  margin-bottom: 8px;
   transition: transform 0.4s ease;
+  flex-shrink: 0;
 }
 
 .ambient-artwork-inner {
@@ -966,8 +969,9 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   gap: 16px;
   padding: 10px 14px;
   background: var(--player-overlay);
-  border-radius: var(--radius-md);
-  margin-bottom: 16px;
+  border-radius: 16px;
+  margin-bottom: auto;
+  flex-shrink: 0;
 }
 
 .ambient-volume-row {
@@ -1014,7 +1018,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .ambient-mode-btn {
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   border: none;
   background: transparent;
   color: var(--player-text-muted);
@@ -1038,7 +1042,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   color: var(--color-primary);
   font-weight: 700;
   font-size: 12px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   text-align: center;
   animation: feedback-in 0.3s ease;
 }
@@ -1082,7 +1086,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   color: var(--text-secondary);
   background: var(--surface-secondary);
   padding: 3px 10px;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
 }
 
 .ambient-restore-btn {
@@ -1090,7 +1094,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   padding: 6px 14px;
   font-size: 11px;
   font-weight: 700;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   background: rgba(214, 109, 38, 0.08);
   color: var(--primary-color);
   border: 1px solid rgba(214, 109, 38, 0.15);
@@ -1130,7 +1134,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 .ambient-track-list::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.08);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
 }
 
 .ambient-track-item {
@@ -1138,7 +1142,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
@@ -1199,7 +1203,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .ambient-track-item-icon {
   width: 34px;
   height: 34px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1249,7 +1253,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .ambient-delete-btn {
   width: 30px;
   height: 30px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
@@ -1275,7 +1279,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 700;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   border: none;
   background: #ef4444;
   color: white;
@@ -1413,7 +1417,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   padding: 20px 24px;
   margin-bottom: var(--space-lg);
   background: var(--surface-color);
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
@@ -1464,7 +1468,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .patients-record-card {
   padding: 24px;
   background: var(--surface-color);
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
@@ -1495,7 +1499,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   margin-top: var(--space-md);
   padding: var(--space-md);
   background-color: var(--surface-secondary);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   font-size: 14px;
 }
 
@@ -1507,7 +1511,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 .patients-form-section {
   padding: var(--space-lg);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
 }
 
 .patients-form-section-bg {
@@ -1588,7 +1592,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   flex-direction: column;
   background: var(--surface-color);
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
@@ -1661,7 +1665,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   flex-direction: column;
   background: var(--surface-color);
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
@@ -1731,7 +1735,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 .appointments-form-section {
   padding: var(--space-lg);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
 }
 
 .appointments-form-section-bg {
@@ -1792,7 +1796,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   font-weight: 600;
   background-color: var(--surface-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   cursor: pointer;
   font-family: inherit;
   color: var(--text-secondary);
@@ -1840,7 +1844,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   flex-direction: column;
   background: var(--color-card);
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
@@ -1918,7 +1922,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   padding: var(--space-lg);
   text-align: center;
   background: var(--surface-secondary);
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   border: 1px solid var(--border-color);
 }
 
@@ -1939,7 +1943,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 .clients-history-table-wrap {
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
 }
 
 .clients-history-table {
@@ -1956,7 +1960,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   padding: var(--space-lg);
   border: 1px solid var(--border-color);
   background: var(--surface-color);
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -1986,7 +1990,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .clients-modal-section {
   padding: var(--space-lg);
   background-color: var(--surface-secondary);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   margin-bottom: var(--space-xl);
 }
 
@@ -2020,7 +2024,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   background: linear-gradient(90deg, var(--border-color) 25%, var(--surface-secondary) 50%, var(--border-color) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
 }
 
 @keyframes shimmer {
@@ -2087,7 +2091,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   gap: 6px;
   background: var(--surface-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   padding: 5px 10px 5px 6px;
   margin-right: var(--space-md);
   max-width: 200px;
