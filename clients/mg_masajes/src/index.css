@@ -720,7 +720,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 60px var(--player-shadow);
   border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
   overflow: hidden;
   height: 100%;
