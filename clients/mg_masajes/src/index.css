@@ -1341,15 +1341,6 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
     max-height: none;
   }
 
-  .ambient-artwork {
-    width: 120px;
-    height: 120px;
-  }
-
-  .ambient-artwork-ring-1 { width: 150px; height: 150px; }
-  .ambient-artwork-ring-2 { width: 175px; height: 175px; }
-  .ambient-artwork-ring-3 { width: 200px; height: 200px; }
-
   .ambient-now-playing-title {
     max-width: 240px;
     font-size: 18px;
