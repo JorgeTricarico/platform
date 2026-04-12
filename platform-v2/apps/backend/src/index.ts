@@ -1,42 +1,34 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { tenantMiddleware, registerTenantLoader } from './middleware/tenant.js';
 import { paginationMiddleware } from './middleware/pagination.js';
 import { requestLogger, notFoundHandler, errorHandler } from './middleware/errorHandler.js';
+import { getPrismaClient, applyTenantMiddleware } from '@platform/db';
+import type { AppRequest } from './types.js';
 import api from './router.js';
 
 // ─── Tenant Registry ──────────────────────────────────────────────────────────
 // Register the loader that resolves slug → TenantConfig.
-// Tenants are supplied via TENANT_CONFIG_<SLUG> env vars (JSON) or a local map.
+// Configs are imported directly from the tenants/ directory.
+
+import zencoConfigRaw from '../../../tenants/zenco/config.js';
+import mgMasajesConfigRaw from '../../../tenants/mg_masajes/config.js';
+import { TenantConfigSchema } from '@platform/config';
+import type { TenantConfig } from '@platform/config';
+
+const TENANT_CONFIGS: Record<string, TenantConfig> = {
+  zenco: TenantConfigSchema.parse(zencoConfigRaw),
+  mg_masajes: TenantConfigSchema.parse(mgMasajesConfigRaw),
+};
 
 async function loadTenantRegistry(): Promise<void> {
-  const tenantMap = new Map<string, import('@platform/config').TenantConfig>();
-
-  const slugs = (process.env['TENANTS'] ?? 'zenco,mg_masajes')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  for (const slug of slugs) {
-    const envKey = `TENANT_CONFIG_${slug.toUpperCase()}`;
-    const rawJson = process.env[envKey];
-    if (rawJson) {
-      try {
-        const { TenantConfigSchema } = await import('@platform/config');
-        const config = TenantConfigSchema.parse(JSON.parse(rawJson));
-        tenantMap.set(slug, config);
-        console.log(`[tenant] Loaded "${slug}" from env`);
-      } catch (err) {
-        console.warn(`[tenant] Invalid config for "${slug}":`, (err as Error).message);
-      }
-    } else {
-      console.warn(`[tenant] No config found for "${slug}" (env var ${envKey} not set)`);
-    }
+  for (const slug of Object.keys(TENANT_CONFIGS)) {
+    console.log(`[tenant] Loaded "${slug}" from config`);
   }
 
-  registerTenantLoader(async (slug) => tenantMap.get(slug) ?? null);
+  registerTenantLoader(async (slug) => TENANT_CONFIGS[slug] ?? null);
 }
 
 // ─── App Factory ──────────────────────────────────────────────────────────────
@@ -80,6 +72,18 @@ export function createApp(): express.Application {
     return tenantMiddleware(req, res, next);
   });
 
+  // Attach tenant-scoped Prisma client to each request
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    const appReq = req as AppRequest;
+    const baseClient = getPrismaClient();
+    if (appReq.tenantId) {
+      appReq.db = applyTenantMiddleware(baseClient, appReq.tenantId) as unknown;
+    } else {
+      appReq.db = baseClient as unknown;
+    }
+    next();
+  });
+
   // Pagination defaults
   app.use(paginationMiddleware());
 
@@ -100,7 +104,7 @@ export function createApp(): express.Application {
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 
-const PORT = parseInt(process.env['PORT'] ?? '3001', 10);
+const PORT = parseInt(process.env['PORT'] ?? '3000', 10);
 
 async function main(): Promise<void> {
   await loadTenantRegistry();

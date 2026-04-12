@@ -9,12 +9,16 @@
     "tenants/*"
   ],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo dev",
+    "build": "turbo build",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "setup": "bash scripts/dev-setup.sh",
+    "db:push": "npm run --workspace=packages/db db:push",
+    "db:seed": "npm run --workspace=packages/db seed",
+    "db:studio": "npm run --workspace=packages/db db:studio"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

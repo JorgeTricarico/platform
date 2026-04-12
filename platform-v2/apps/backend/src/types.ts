@@ -21,6 +21,8 @@ export interface AppRequest extends Request {
   tenant: TenantConfig;
   user?: AuthUser;
   pagination: PaginationState;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any;
 }
 
 // ─── App Error ────────────────────────────────────────────────────────────────

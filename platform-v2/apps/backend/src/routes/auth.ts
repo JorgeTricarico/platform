@@ -40,6 +40,12 @@ function getDb(req: Request) {
   return db;
 }
 
+// ─── GET /auth/status ─────────────────────────────────────────────────────────
+
+router.get('/status', (_req, res) => {
+  res.json({ authRequired: true, healthy: true });
+});
+
 // ─── POST /auth/login ─────────────────────────────────────────────────────────
 
 router.post(

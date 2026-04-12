@@ -55,16 +55,16 @@ services:
     environment:
       NODE_ENV:     development
       PORT:         ${PORT:-3000}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-platform_dev}?schema=public
+      DATABASE_URL: ${DATABASE_URL:-file:./dev.db}
       JWT_SECRET:   ${JWT_SECRET:-dev-jwt-secret-change-in-prod}
-      TENANT:       ${TENANT:-default}
+      TENANT:       ${TENANT:-zenco}
       GEMINI_API_KEY:   ${GEMINI_API_KEY:-}
       WHATSAPP_TOKEN:   ${WHATSAPP_TOKEN:-}
       WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID:-}
     volumes:
       # Mount source for hot-reload (ts-node-dev)
-      - ../backend/src:/app/backend/src:delegated
-      - ../backend/prisma:/app/backend/prisma:delegated
+      - ../apps/backend/src:/app/apps/backend/src:delegated
+      - ../packages/db/prisma:/app/packages/db/prisma:delegated
       # Isolate node_modules inside container (prevents host/container conflicts)
       - backend-node-modules:/app/node_modules
       - backend-pkg-node-modules:/app/backend/node_modules
@@ -74,7 +74,7 @@ services:
       - platform-net
     command: >
       sh -c "
-        cd backend &&
+        cd apps/backend &&
         npx prisma migrate deploy &&
         npm run dev
       "
@@ -92,27 +92,27 @@ services:
       dockerfile: infra/docker/Dockerfile.web
       target: builder          # Builder stage runs Vite; we override CMD below
       args:
-        VITE_TENANT:   ${VITE_TENANT:-zenko}
+        VITE_TENANT:   ${VITE_TENANT:-zenco}
         VITE_API_URL:  ${VITE_API_URL:-http://localhost:3000}
-        TENANT_PATH:   ${TENANT_PATH:-clients/zenko}
+        TENANT_PATH:   ${TENANT_PATH:-apps/web}
     container_name: platform-web-dev
     restart: unless-stopped
     depends_on:
       - backend
     environment:
-      VITE_TENANT:  ${VITE_TENANT:-zenko}
+      VITE_TENANT:  ${VITE_TENANT:-zenco}
       VITE_API_URL: ${VITE_API_URL:-http://backend:3000}
     volumes:
       # Mount source for Vite HMR
-      - ../clients/${VITE_TENANT:-zenko}/src:/app/clients/${VITE_TENANT:-zenko}/src:delegated
+      - ../apps/web/src:/app/apps/web/src:delegated
       - web-node-modules:/app/node_modules
-      - web-tenant-node-modules:/app/clients/${VITE_TENANT:-zenko}/node_modules
+      - web-tenant-node-modules:/app/apps/web/node_modules
     ports:
       - "${WEB_PORT:-5173}:5173"
     networks:
       - platform-net
     command: >
-      sh -c "cd clients/${VITE_TENANT:-zenko} && npm run dev -- --host 0.0.0.0"
+      sh -c "cd apps/web && npm run dev -- --host 0.0.0.0"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:5173 || exit 1"]
       interval: 30s

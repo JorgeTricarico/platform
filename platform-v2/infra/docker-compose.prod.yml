@@ -63,7 +63,7 @@ services:
 
   # ── Web (nginx) ──────────────────────────────────────────────────────────────
   web:
-    image: ghcr.io/${GITHUB_ORG:-your-org}/platform-web-${VITE_TENANT:-zenko}:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_ORG:-your-org}/platform-web-${VITE_TENANT:-zenco}:${IMAGE_TAG:-latest}
     build:
       target: runner          # nginx stage
     restart: unless-stopped

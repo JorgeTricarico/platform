@@ -3,7 +3,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDirs": ["./src", "../../../tenants"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ES2022",
@@ -14,7 +14,7 @@
       "@platform/db": ["../../packages/db/src/index.ts"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../../../tenants/**/*"],
   "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../../packages/types" },
