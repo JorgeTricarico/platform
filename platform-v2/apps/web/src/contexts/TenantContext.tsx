@@ -5,7 +5,7 @@
  * Use useTenant() to read it from any component.
  */
 import { createContext, useContext } from 'react';
-import type { TenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
 
 export const TenantContext = createContext<TenantConfig | null>(null);
 

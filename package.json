@@ -4,6 +4,7 @@
   "private": true,
   "workspaces": [
     "clients/zenko",
+    "clients/mg_masajes",
     "backend"
   ],
   "scripts": {

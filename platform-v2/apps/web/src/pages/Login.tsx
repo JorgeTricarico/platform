@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import type { TenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
 
 interface LoginProps {
   tenant: TenantConfig;

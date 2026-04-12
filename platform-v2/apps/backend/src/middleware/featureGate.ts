@@ -30,7 +30,7 @@ export function requireFeature(feature: FeatureName): RequestHandler {
       return next(AppError.internal('requireFeature used before tenantMiddleware'));
     }
 
-    const features = appReq.tenant.features as Record<string, boolean>;
+    const features = appReq.tenant.features as unknown as Record<string, boolean>;
     const enabled = features[feature];
     if (!enabled) {
       return next(AppError.featureDisabled(feature));

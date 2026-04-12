@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo, useCallback, type FormEvent } from 'react';
 import { Search, Plus, Pencil, Trash2, User, ChevronRight, X, Phone } from 'lucide-react';
-import { cn, formatDate } from '../lib/utils';
+import { formatDate } from '../lib/utils';
 import { useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import type { Client, Order, Appointment, PatientRecord } from '@platform/types';
-import type { TenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ function ClientHistoryModal({ client, tenant, onClose }: HistoryModalProps) {
     const load = async () => {
       setLoading(true);
       try {
-        if (tenant.features.garments) {
+        if (tenant.features.orders) {
           const all = await api.orders.list();
           setOrders(all.filter((o) => o.clientName === client.name || o.clientPhone === client.phone));
         }
@@ -91,7 +91,7 @@ function ClientHistoryModal({ client, tenant, onClose }: HistoryModalProps) {
           ) : (
             <>
               {/* Orders */}
-              {tenant.features.garments && (
+              {tenant.features.orders && (
                 <section>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Órdenes ({orders.length})
@@ -161,7 +161,7 @@ function ClientHistoryModal({ client, tenant, onClose }: HistoryModalProps) {
                 </section>
               )}
 
-              {!tenant.features.garments && !tenant.features.appointments && !tenant.features.patientRecords && (
+              {!tenant.features.orders && !tenant.features.appointments && !tenant.features.patientRecords && (
                 <p className="text-sm text-muted-foreground text-center py-4">No hay historial disponible</p>
               )}
             </>

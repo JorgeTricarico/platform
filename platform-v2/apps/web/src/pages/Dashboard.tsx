@@ -12,13 +12,14 @@ import { cn, formatCurrency, formatDate } from '../lib/utils';
 import { useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import type { DashboardStats } from '../services/api';
-import type { TenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
+import type { NavTab } from '../layouts/Sidebar';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface DashboardProps {
   tenant: TenantConfig;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: NavTab) => void;
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -116,7 +117,7 @@ function ActivityItem({
         <p className="text-xs text-muted-foreground truncate">{sublabel}</p>
       </div>
       <div className="text-right flex-shrink-0">
-        <p className="text-xs text-muted-foreground">{formatDate(timestamp.split('T')[0])}</p>
+        <p className="text-xs text-muted-foreground">{formatDate(timestamp.split('T')[0] ?? '')}</p>
         {status && (
           <p className="text-[10px] text-muted-foreground capitalize">{status}</p>
         )}
@@ -191,7 +192,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
               value={stats?.todayCount ?? 0}
               subtext={features.appointments ? 'turnos' : 'órdenes'}
               icon={<Clock className="w-4 h-4" />}
-              onClick={features.appointments ? () => onNavigate('appointments') : features.garments ? () => onNavigate('garments') : undefined}
+              onClick={features.appointments ? () => onNavigate('appointments') : features.orders ? () => onNavigate('garments') : undefined}
             />
             <StatCard
               label="Pendientes"
@@ -206,7 +207,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
               subtext="este mes"
               icon={<TrendingUp className="w-4 h-4" />}
               trend="up"
-              onClick={features.finances ? () => onNavigate('finances') : undefined}
+              onClick={features.finance ? () => onNavigate('finances') : undefined}
             />
             <StatCard
               label="Balance"
@@ -222,7 +223,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
       {/* Status breakdown + recent activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Status breakdown */}
-        {(features.garments || features.appointments) && (
+        {(features.orders || features.appointments) && (
           <div className="rounded-xl border bg-card p-4 shadow-sm">
             <h3 className="text-sm font-semibold mb-4">Por estado</h3>
             {loading ? (
@@ -282,7 +283,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
       <div className="mt-4 rounded-xl border bg-card p-4 shadow-sm">
         <h3 className="text-sm font-semibold mb-3">Acciones rápidas</h3>
         <div className="flex flex-wrap gap-2">
-          {features.garments && (
+          {features.orders && (
             <button
               onClick={() => onNavigate('garments')}
               className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
@@ -300,7 +301,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
               Nuevo turno
             </button>
           )}
-          {features.finances && (
+          {features.finance && (
             <button
               onClick={() => onNavigate('finances')}
               className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"

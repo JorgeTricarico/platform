@@ -53,7 +53,7 @@ export const ThemeSchema = z.object({
 export const AIToolSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  parameters: z.record(z.unknown()),
+  parameters: z.record(z.string(), z.unknown()),
 })
 
 export const AIConfigSchema = z.object({
@@ -69,7 +69,7 @@ export const WhatsAppConfigSchema = z.object({
   phoneNumberId: z.string().min(1, 'phoneNumberId is required when whatsapp is enabled'),
   businessAccountId: z.string().min(1, 'businessAccountId is required when whatsapp is enabled'),
   /** Map of logical template name → actual Meta template name */
-  templateNames: z.record(z.string()).default({}),
+  templateNames: z.record(z.string(), z.string()).default({}),
   /** Default language code for templates */
   defaultLanguage: z.string().default('es_AR'),
 })
@@ -112,10 +112,24 @@ export const TenantConfigSchema = z
     services: z.array(ServiceSchema).default([]),
 
     /** Feature flags */
-    features: FeaturesSchema.default({}),
+    features: FeaturesSchema.default({
+      garments: false,
+      appointments: false,
+      patientRecords: false,
+      finances: false,
+      whatsapp: false,
+      aiChat: false,
+      photoGallery: false,
+      publicStatus: false,
+      qrTickets: false,
+    }),
 
     /** Visual theme */
-    theme: ThemeSchema.default({}),
+    theme: ThemeSchema.default({
+      primaryColor: '#6366f1',
+      accentColor: '#f59e0b',
+      colorScheme: 'light',
+    }),
 
     /** AI assistant config — required only when features.aiChat is true */
     ai: AIConfigSchema.optional(),

@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 import { Sidebar, type NavTab } from './Sidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../hooks/useTheme';
-import type { TenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -108,8 +108,17 @@ export function MainLayout({ tenant, activeTab, onNavigate, children }: MainLayo
 
           {/* Page title / breadcrumb area */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-semibold text-foreground capitalize truncate">
-              {activeTab === 'garments' ? 'Órdenes' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+            <h1 className="text-sm font-semibold text-foreground truncate">
+              {({
+                dashboard: 'Dashboard',
+                garments: 'Órdenes',
+                appointments: 'Turnos',
+                clients: 'Clientes',
+                patients: 'Fichas clínicas',
+                finances: 'Finanzas',
+                chat: 'AI Chat',
+                settings: 'Ajustes',
+              } as Record<string, string>)[activeTab] ?? activeTab}
             </h1>
           </div>
 

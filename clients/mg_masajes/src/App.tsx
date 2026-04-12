@@ -1,5 +1,22 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Calendar, 
+  DollarSign, 
+  Music, 
+  Users, 
+  FileText, 
+  Zap, 
+  MessageSquare,
+  Menu,
+  Moon,
+  Sun,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
+import { cn } from './lib/utils';
+import { Button } from './components/ui/button';
 import { useTheme } from './hooks/useTheme';
 import { MusicProvider, useMusicCommand } from './components/MusicContext';
 import { ToastProvider, useToast } from './components/ToastContext';
@@ -25,16 +42,29 @@ function AuthGate() {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <div className="page-loading" />;
+    return <div className="flex items-center justify-center min-h-screen bg-background" />;
   }
 
-  if (!isAuthenticated) return <ErrorBoundary><Suspense fallback={<div className="page-loading" />}><Login /></Suspense></ErrorBoundary>;
+  if (!isAuthenticated) return <ErrorBoundary><Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-background" />}><Login /></Suspense></ErrorBoundary>;
   return <AppContent />;
 }
 
+type Tab = 'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient';
+
+const NAV_ITEMS: { id: Tab; label: string; Icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { id: 'appointments', label: 'Citas y Turnos', Icon: Calendar },
+  { id: 'finances', label: 'Finanzas', Icon: DollarSign },
+  { id: 'ambient', label: 'Música', Icon: Music },
+  { id: 'clients', label: 'Clientes', Icon: Users },
+  { id: 'patients', label: 'Fichas', Icon: FileText },
+  { id: 'agent', label: 'AI', Icon: Zap },
+  { id: 'chat', label: 'Chat Beta', Icon: MessageSquare },
+];
+
 function AppContent() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'appointments' | 'finances' | 'patients' | 'clients' | 'agent' | 'chat' | 'ambient'>('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(true); // Default visible on desktop
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { isPlaying, currentTrackTitle, sendMusicCommand } = useMusicCommand();
   const toast = useToast();
@@ -43,7 +73,6 @@ function AppContent() {
   const location = useLocation();
   const routerNavigate = useNavigate();
 
-  // Sync state with URL path
   useEffect(() => {
     const path = location.pathname;
     if (path.includes('/clients')) setActiveTab('clients');
@@ -57,7 +86,6 @@ function AppContent() {
   }, [location.pathname]);
 
   useEffect(() => {
-    // Initial state based on screen size
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
     }
@@ -70,8 +98,7 @@ function AppContent() {
     return cleanup;
   }, []);
 
-  const handleNavigate = (tab: typeof activeTab) => {
-    // Navigate using React Router to update URL
+  const handleNavigate = (tab: Tab) => {
     const path = tab === 'dashboard' ? '/' : `/${tab}`;
     routerNavigate(path);
     if (window.innerWidth <= 768) {
@@ -88,148 +115,129 @@ function AppContent() {
   };
 
   return (
-    <div className="app-container">
+    <div className="flex h-screen bg-background overflow-hidden relative">
       <OfflineIndicator />
-      <div className={`sidebar-overlay ${sidebarOpen && window.innerWidth <= 768 ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
-      <aside className={`sidebar ${sidebarOpen ? 'open' : 'hidden'} ${isCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-logo">
-          <img src={logoUrl} alt={`${BUSINESS.name} Logo`} style={{ width: 44, height: 44, borderRadius: '12px', objectFit: 'cover' }} />
-          <span className="logo-text">{BUSINESS.brandLabel}<span>{BUSINESS.brandSuffix}</span></span>
-        </div>
+      
+      {/* Mobile sidebar overlay */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity duration-300",
+          sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )} 
+        onClick={() => setSidebarOpen(false)} 
+      />
 
-        <nav className="nav-menu">
-          <div
-            className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => handleNavigate('dashboard')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            <span>Dashboard</span>
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'appointments' ? 'active' : ''}`}
-            onClick={() => handleNavigate('appointments')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>Citas y Turnos</span>
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'finances' ? 'active' : ''}`}
-            onClick={() => handleNavigate('finances')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            <span>Finanzas</span>
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'ambient' ? 'active' : ''}`}
-            onClick={() => handleNavigate('ambient')}
-            title={isPlaying && currentTrackTitle ? `Reproduciendo: ${currentTrackTitle}` : undefined}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-            <span>Musica</span>
-            {isPlaying && (
-              <span className="music-pulse" style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--success-color, #22c55e)', animation: 'pulse 2s infinite', flexShrink: 0 }} />
+      <aside 
+        className={cn(
+          "fixed top-0 left-0 h-full z-30 flex flex-col bg-card border-r border-border shadow-sm transition-all duration-300 ease-in-out",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "w-[300px]", // Ancho mobile aumentado para legibilidad
+          isCollapsed ? "md:w-16" : "md:w-64", // Colapsado solo en desktop
+          "md:relative md:translate-x-0 md:flex"
+        )}
+      >
+        {/* Floating Collapse Button (Desktop) */}
+        <button
+          onClick={toggleCollapse}
+          className="hidden md:flex absolute -right-3 top-8 h-6 w-6 items-center justify-center rounded-full border border-border bg-card shadow-sm hover:bg-muted text-muted-foreground transition-all z-40 focus:outline-none"
+          title={isCollapsed ? 'Expandir' : 'Colapsar'}
+        >
+          {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
+
+        <div className={cn(
+          "flex items-center pt-5 pb-4 border-b border-border",
+          isCollapsed ? "justify-center px-2" : "px-5"
+        )}>
+           <div className="flex items-center gap-3">
+            <img 
+              src={logoUrl} 
+              alt={`${BUSINESS.name} Logo`} 
+              className="w-12 h-12 md:w-10 md:h-10 rounded-xl object-cover flex-shrink-0"
+            />
+            {!isCollapsed && (
+              <span className="text-xl font-extrabold text-foreground tracking-tight">
+                {BUSINESS.brandLabel}<span className="text-primary">{BUSINESS.brandSuffix}</span>
+              </span>
             )}
           </div>
-          <div
-            className={`nav-link ${activeTab === 'clients' ? 'active' : ''}`}
-            onClick={() => handleNavigate('clients')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            <span>Clientes</span>
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'patients' ? 'active' : ''}`}
-            onClick={() => handleNavigate('patients')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            <span>Fichas</span>
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'agent' ? 'active' : ''}`}
-            onClick={() => handleNavigate('agent')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            <span>AI</span>
-          </div>
-          <div
-            className={`nav-link ${activeTab === 'chat' ? 'active' : ''}`}
-            onClick={() => handleNavigate('chat')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            <span>Chat</span>
-          </div>
-        </nav>
-
-        <div className="sidebar-footer">
-          <button className="collapse-btn" onClick={toggleCollapse}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-            <span>Colapsar</span>
-          </button>
         </div>
+
+        <nav className="flex-1 px-3 py-5 space-y-2 overflow-y-auto overflow-x-hidden">
+          {NAV_ITEMS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              onClick={() => handleNavigate(id)}
+              className={cn(
+                "w-full flex items-center gap-5 px-5 py-4 md:gap-4 md:px-4 md:py-3.5 rounded-xl text-lg md:text-[15px] font-semibold transition-colors relative",
+                isCollapsed && "md:justify-center md:px-0 md:py-3.5 md:gap-0",
+                activeTab === id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+              title={isCollapsed ? label : undefined}
+            >
+              <Icon className="w-6 h-6 md:w-5 md:h-5 flex-shrink-0" />
+              <span className={cn(isCollapsed && "md:hidden")}>
+                {label}
+              </span>
+              {id === 'ambient' && isPlaying && (
+                 <span className={cn(
+                   "w-2 h-2 rounded-full bg-success animate-pulse",
+                   isCollapsed ? "absolute top-2 right-2" : "ml-auto"
+                 )} />
+              )}
+            </button>
+          ))}
+        </nav>
       </aside>
 
-      <main className="main-content">
-        <header className="topbar">
-          <button className="hamburger-btn" onClick={toggleSidebar}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          </button>
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
+        <header className="flex items-center gap-3 px-4 h-14 border-b border-border bg-card flex-shrink-0">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
+            <Menu className="w-5 h-5 text-foreground" />
+          </Button>
+
           {currentTrackTitle && (
-            <div className="topbar-music">
-              <button className="topbar-music-btn" onClick={() => sendMusicCommand({ action: isPlaying ? 'pause' : 'play' })} title={isPlaying ? 'Pausar' : 'Reproducir'}>
-                {isPlaying ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
-                  </svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5,3 19,12 5,21"/>
-                  </svg>
-                )}
+            <div className="hidden sm:flex items-center gap-2 bg-muted/40 px-3 py-1.5 rounded-full border border-border/20 max-w-[250px]">
+              <button onClick={() => sendMusicCommand({ action: isPlaying ? 'pause' : 'play' })} className="text-primary hover:scale-110 transition-transform">
+                {isPlaying ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>}
               </button>
-              <span className="topbar-music-title">{currentTrackTitle}</span>
-              <button className="topbar-music-btn" onClick={() => sendMusicCommand({ action: 'next' })} title="Siguiente">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="5,4 15,12 5,20"/><rect x="16" y="4" width="3" height="16"/>
-                </svg>
-              </button>
+              <span className="text-[11px] font-bold text-muted-foreground truncate">{currentTrackTitle}</span>
             </div>
           )}
-          <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}>
-            {theme === 'light' ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            )}
-          </button>
-          <div className="user-profile">
-            {user?.name || BUSINESS.ownerName}
-            <div className="user-avatar">D</div>
+
+          <div className="flex-1" />
+
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground hover:text-foreground">
+            {theme === 'light' ? <Moon className="w-4.5 h-4.5" /> : <Sun className="w-4.5 h-4.5" />}
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-block text-sm font-semibold text-foreground">
+              {user?.name || BUSINESS.ownerName}
+            </span>
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
+              {BUSINESS.ownerName[0]}
+            </div>
             {authRequired && (
-              <button className="btn" onClick={logout} style={{ marginLeft: 8, padding: '4px 8px', fontSize: '0.75rem' }}>Salir</button>
+              <Button variant="outline" size="sm" onClick={logout} className="ml-1 text-[11px] h-7 px-2">Salir</Button>
             )}
           </div>
         </header>
 
-        <div className="page-content">
+        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-6 lg:p-8">
           <ErrorBoundary>
-            <Suspense fallback={<div className="page-loading" />}>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
               {activeTab === 'dashboard' && <Dashboard />}
               {activeTab === 'appointments' && <Appointments />}
               {activeTab === 'finances' && <Finances />}
               {activeTab === 'clients' && <Clients />}
               {activeTab === 'patients' && <Patients />}
               {activeTab === 'agent' && <Agent />}
-              <div style={{ display: activeTab === 'ambient' ? 'flex' : 'none', flexDirection: 'column', height: '100%', minHeight: 0 }}><Ambient /></div>
+              <div className={cn("h-full", activeTab !== 'ambient' && "hidden")}>
+                <Ambient />
+              </div>
               {activeTab === 'chat' && <ChatDemo />}
             </Suspense>
           </ErrorBoundary>
@@ -254,3 +262,4 @@ function App() {
 }
 
 export default App;
+

@@ -11,6 +11,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { loadTenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
 import App from './App.js';
 import './index.css';
 
@@ -51,7 +52,7 @@ async function boot() {
 
   createRoot(rootEl).render(
     <StrictMode>
-      <App tenant={config} />
+      <App tenant={config as unknown as TenantConfig} />
     </StrictMode>,
   );
 }

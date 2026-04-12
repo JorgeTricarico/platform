@@ -13,7 +13,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import type { FeaturesConfig, TenantConfig } from '@platform/config';
+import type { FeatureFlags, TenantConfig } from '@platform/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,16 +32,16 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   /** Feature flag required for this item to appear, or undefined = always show */
-  requiredFeature?: keyof FeaturesConfig;
+  requiredFeature?: keyof FeatureFlags;
 }
 
 const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'dashboard',    label: 'Dashboard',   icon: LayoutDashboard },
-  { id: 'garments',     label: 'Órdenes',     icon: Shirt,           requiredFeature: 'garments' },
+  { id: 'garments',     label: 'Órdenes',     icon: Shirt,           requiredFeature: 'orders' },
   { id: 'appointments', label: 'Turnos',      icon: Calendar,        requiredFeature: 'appointments' },
   { id: 'clients',      label: 'Clientes',    icon: Users },
   { id: 'patients',     label: 'Fichas',      icon: FileText,        requiredFeature: 'patientRecords' },
-  { id: 'finances',     label: 'Finanzas',    icon: DollarSign,      requiredFeature: 'finances' },
+  { id: 'finances',     label: 'Finanzas',    icon: DollarSign,      requiredFeature: 'finance' },
   { id: 'chat',         label: 'AI Chat',     icon: MessageSquare,   requiredFeature: 'aiChat' },
   { id: 'settings',     label: 'Ajustes',     icon: Settings },
 ];
@@ -74,7 +74,7 @@ export function Sidebar({
   onToggleCollapse,
   className,
 }: SidebarProps) {
-  const features = tenant.features as FeaturesConfig;
+  const features = tenant.features as FeatureFlags;
 
   const visibleItems = ALL_NAV_ITEMS.filter(
     (item) => !item.requiredFeature || features[item.requiredFeature],

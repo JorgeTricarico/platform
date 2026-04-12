@@ -4,7 +4,7 @@ import { cn, formatCurrency, formatDate, formatDateLong, today } from '../lib/ut
 import { useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import type { Appointment, AppointmentStatus } from '@platform/types';
-import type { TenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -76,12 +76,11 @@ interface ModalProps {
 }
 
 function AppointmentModal({ title, onClose, onSubmit, form, onChange, tenant, submitting, conflictError }: ModalProps) {
-  const statusLabel = (s: string) => tenant.statuses.find((st) => st.key === s)?.label ?? s;
-
   const handleServiceChange = (service: string) => {
     onChange('service', service);
     // Auto-fill price/duration from tenant services catalog
-    const found = tenant.services?.find?.((s: { id?: string; name?: string }) =>
+    const tenantAny = tenant as unknown as { services?: Array<{ id?: string; name?: string; defaultPrice?: number; duration?: number }> };
+    const found = tenantAny.services?.find?.((s) =>
       s.id === service || s.name === service
     );
     if (found) {
@@ -266,7 +265,7 @@ export default function Appointments({ tenant }: AppointmentsProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, _setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('todos');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
@@ -301,7 +300,7 @@ export default function Appointments({ tenant }: AppointmentsProps) {
     const todayStr = today();
     const weekEnd = new Date(now);
     weekEnd.setDate(weekEnd.getDate() + 7);
-    const weekEndStr = weekEnd.toISOString().split('T')[0];
+    const weekEndStr = weekEnd.toISOString().split('T')[0] ?? '';
 
     return appointments.filter((a) => {
       if (statusFilter !== 'all' && a.status !== statusFilter) return false;
@@ -325,7 +324,7 @@ export default function Appointments({ tenant }: AppointmentsProps) {
     const groups: Record<string, Appointment[]> = {};
     for (const a of filtered) {
       groups[a.date] = groups[a.date] ?? [];
-      groups[a.date].push(a);
+      groups[a.date]!.push(a);
     }
     return groups;
   }, [filtered]);

@@ -11,20 +11,20 @@ export function formatCurrency(amount: number, currency = '$'): string {
 
 export function formatDate(dateStr: string): string {
   if (!dateStr) return '—';
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
+  const parts = dateStr.split('-').map(Number);
+  const date = new Date(parts[0] ?? 0, (parts[1] ?? 1) - 1, parts[2] ?? 1);
   return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function formatDateLong(dateStr: string): string {
   if (!dateStr) return '—';
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
+  const parts = dateStr.split('-').map(Number);
+  const date = new Date(parts[0] ?? 0, (parts[1] ?? 1) - 1, parts[2] ?? 1);
   return date.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 export function today(): string {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().split('T')[0] ?? '';
 }
 
 export function isOverdue(dateStr: string, status: string): boolean {

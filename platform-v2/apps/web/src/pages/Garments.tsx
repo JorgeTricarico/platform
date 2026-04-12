@@ -7,13 +7,12 @@ import {
   MessageCircle,
   SlidersHorizontal,
   X,
-  ChevronDown,
 } from 'lucide-react';
 import { cn, formatCurrency, formatDate, isOverdue, today } from '../lib/utils';
 import { useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import type { Order, OrderStatus } from '@platform/types';
-import type { TenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 

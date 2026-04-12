@@ -73,7 +73,7 @@ router.get(
         from,
         to,
         month,
-      } = req.query as {
+      } = req.query as unknown as {
         cursor?: string;
         limit: number;
         q?: string;

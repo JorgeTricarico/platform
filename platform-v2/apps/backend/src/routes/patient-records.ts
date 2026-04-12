@@ -72,7 +72,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const appReq = req as AppRequest;
-      const patientId = req.params['patientId'];
+      const patientId = req.params['patientId'] as string;
       if (!patientId) throw AppError.badRequest('patientId is required');
 
       const { cursor, limit, sortDir, from, to } = req.query as unknown as {
@@ -129,7 +129,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const appReq = req as AppRequest;
-      const patientId = req.params['patientId'];
+      const patientId = req.params['patientId'] as string;
       if (!patientId) throw AppError.badRequest('patientId is required');
 
       const input = req.body as {
@@ -174,7 +174,7 @@ router.put(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const appReq = req as AppRequest;
-      const patientId = req.params['patientId'];
+      const patientId = req.params['patientId'] as string;
       const recordId = req.params['id'];
       if (!patientId) throw AppError.badRequest('patientId is required');
 
@@ -223,7 +223,7 @@ router.delete(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const appReq = req as AppRequest;
-      const patientId = req.params['patientId'];
+      const patientId = req.params['patientId'] as string;
       const recordId = req.params['id'];
       if (!patientId) throw AppError.badRequest('patientId is required');
 

@@ -4,7 +4,7 @@ import { cn, formatCurrency, formatDate, today } from '../lib/utils';
 import { useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
 import type { Finance, FinanceType } from '@platform/types';
-import type { TenantConfig } from '@platform/config';
+import type { TenantConfig } from '@platform/types';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
