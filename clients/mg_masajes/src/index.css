@@ -639,7 +639,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 /* AMBIENT PAGE — Spa Nocturno Premium   */
 /* ===================================== */
 .ambient-page {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   height: 100%;
@@ -712,13 +712,14 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 /* ---- Player Panel (dark warm) ---- */
 .ambient-player-panel {
-  flex: 0 0 380px;
+  flex: 0 0 420px;
   background: linear-gradient(160deg, var(--player-bg-1) 0%, var(--player-bg-2) 60%, var(--player-bg-3) 100%);
-  padding: 36px 32px;
+  padding: 56px 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 24px;
   text-align: center;
   box-shadow: 0 20px 60px var(--player-shadow);
   border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
@@ -736,7 +737,6 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
   transition: transform 0.4s ease;
   flex-shrink: 0;
 }
@@ -804,10 +804,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   100% { opacity: 0; transform: scale(1.15); }
 }
 
-/* Track info */
-.ambient-now-playing-info {
-  margin-bottom: 12px;
-}
+
 
 .ambient-now-playing-title {
   margin: 0 0 6px;
@@ -857,7 +854,6 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   gap: 24px;
-  margin-bottom: 16px;
 }
 
 .ambient-ctrl-btn {
@@ -908,7 +904,6 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 /* Progress bar */
 .ambient-progress {
   width: 100%;
-  margin-bottom: 16px;
 }
 
 .ambient-progress-bar-wrap {
