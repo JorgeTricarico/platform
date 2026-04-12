@@ -714,7 +714,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .ambient-player-panel {
   flex: 0 0 380px;
   background: linear-gradient(160deg, var(--player-bg-1) 0%, var(--player-bg-2) 60%, var(--player-bg-3) 100%);
-  padding: 20px 24px;
+  padding: 36px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
