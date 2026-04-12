@@ -6,8 +6,8 @@
 #   ./infra/scripts/deploy-tenant.sh <slug> <environment> [options]
 #
 # Examples:
-#   ./infra/scripts/deploy-tenant.sh zenko dev
-#   ./infra/scripts/deploy-tenant.sh zenko prod --tag v1.2.3
+#   ./infra/scripts/deploy-tenant.sh zenco dev
+#   ./infra/scripts/deploy-tenant.sh zenco prod --tag v1.2.3
 #   ./infra/scripts/deploy-tenant.sh mg-masajes staging --no-push
 #
 # Environments:

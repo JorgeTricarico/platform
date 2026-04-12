@@ -8,6 +8,7 @@ import {
   SlidersHorizontal,
   X,
 } from 'lucide-react';
+import { DataView, type ColumnDef } from '../../../../packages/ui/src/components/DataView';
 import { cn, formatCurrency, formatDate, isOverdue, today } from '../lib/utils';
 import { useApi } from '../hooks/useApi';
 import { useToast } from '../contexts/ToastContext';
@@ -504,138 +505,149 @@ export default function Garments({ tenant }: GarmentsProps) {
         )}
       </div>
 
-      {/* Table — desktop */}
-      {loading ? (
-        <div className="space-y-2">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 rounded-lg bg-muted animate-pulse" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <p className="text-sm">No se encontraron órdenes</p>
-        </div>
-      ) : (
-        <>
-          {/* Desktop table */}
-          <div className="hidden md:block rounded-xl border bg-card overflow-hidden">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Cliente</th>
-                  <th>Prenda</th>
-                  <th>Tipo</th>
-                  <th>Estado</th>
-                  <th>Entrega</th>
-                  <th>Precio</th>
-                  <th className="text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((order) => {
-                  const overdue = isOverdue(order.deliveryDate, order.status);
-                  return (
-                    <tr key={order.id}>
-                      <td className="font-mono text-xs text-muted-foreground">
-                        #{order.orderNumber}
-                      </td>
-                      <td>
-                        <p className="font-medium">{order.clientName}</p>
-                        <p className="text-xs text-muted-foreground">{order.clientPhone}</p>
-                      </td>
-                      <td className="max-w-[160px] truncate">{order.garmentName}</td>
-                      <td className="text-xs capitalize">{order.repairType}</td>
-                      <td>
-                        <StatusBadge
-                          status={order.status}
-                          label={statusLabel(order.status)}
-                        />
-                      </td>
-                      <td>
-                        <span className={cn('text-sm', overdue && 'text-red-600 dark:text-red-400 font-medium')}>
-                          {formatDate(order.deliveryDate)}
-                        </span>
-                      </td>
-                      <td className="font-medium">{formatCurrency(order.price, tenant.currency)}</td>
-                      <td>
-                        <div className="flex items-center justify-end gap-1">
-                          {tenant.features.whatsappNotifications && order.clientPhone && (
-                            <button
-                              onClick={() => handleWhatsApp(order)}
-                              title="Enviar WhatsApp"
-                              className="p-1.5 rounded-lg hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 transition-colors text-muted-foreground"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => openEdit(order)}
-                            title="Editar"
-                            className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(order)}
-                            title="Eliminar"
-                            className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile cards */}
-          <div className="md:hidden space-y-2">
-            {filtered.map((order) => {
-              const overdue = isOverdue(order.deliveryDate, order.status);
+      {/* Data view — desktop table + mobile cards */}
+      {(() => {
+        const columns: ColumnDef<Order>[] = [
+          {
+            key: 'orderNumber',
+            header: '#',
+            sortable: true,
+            width: '90px',
+            render: (val) => (
+              <span className="font-mono text-xs text-muted-foreground">#{val as number}</span>
+            ),
+          },
+          {
+            key: 'clientName',
+            header: 'Cliente',
+            sortable: true,
+            render: (val, item) => (
+              <div>
+                <p className="font-medium">{val as string}</p>
+                <p className="text-xs text-muted-foreground">{item.clientPhone}</p>
+              </div>
+            ),
+          },
+          { key: 'garmentName', header: 'Prenda', hideOnMobile: true },
+          { key: 'repairType', header: 'Tipo', sortable: true, hideOnMobile: true },
+          {
+            key: 'status',
+            header: 'Estado',
+            render: (val) => (
+              <StatusBadge status={val as string} label={statusLabel(val as string)} />
+            ),
+          },
+          {
+            key: 'deliveryDate',
+            header: 'Entrega',
+            sortable: true,
+            hideOnMobile: true,
+            render: (val, item) => {
+              const overdue = isOverdue(item.deliveryDate, item.status);
               return (
-                <div key={order.id} className="rounded-xl border bg-card p-3 shadow-sm">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[10px] font-mono text-muted-foreground">#{order.orderNumber}</span>
-                        <StatusBadge status={order.status} label={statusLabel(order.status)} />
-                      </div>
-                      <p className="font-semibold text-sm truncate">{order.clientName}</p>
-                      <p className="text-xs text-muted-foreground truncate">{order.garmentName} · {order.repairType}</p>
-                    </div>
-                    <p className="font-bold text-sm flex-shrink-0">{formatCurrency(order.price, tenant.currency)}</p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className={cn('text-xs', overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted-foreground')}>
-                      Entrega: {formatDate(order.deliveryDate)}
-                    </span>
-                    <div className="flex gap-1">
-                      {tenant.features.whatsappNotifications && order.clientPhone && (
-                        <button
-                          onClick={() => handleWhatsApp(order)}
-                          className="p-1.5 rounded-lg hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 transition-colors text-muted-foreground"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button onClick={() => openEdit(order)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => setConfirmDelete(order)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <span className={cn('text-sm', overdue && 'text-red-600 dark:text-red-400 font-medium')}>
+                  {formatDate(val as string)}
+                </span>
               );
-            })}
-          </div>
-        </>
-      )}
+            },
+          },
+          {
+            key: 'price',
+            header: 'Precio',
+            sortable: true,
+            hideOnMobile: true,
+            render: (val) => (
+              <span className="font-medium">{formatCurrency(val as number, tenant.currency)}</span>
+            ),
+          },
+          {
+            key: 'id',
+            header: '',
+            render: (_val, item) => (
+              <div className="flex items-center justify-end gap-1">
+                {tenant.features.whatsappNotifications && item.clientPhone && (
+                  <button
+                    onClick={() => handleWhatsApp(item)}
+                    title="Enviar WhatsApp"
+                    className="p-1.5 rounded-lg hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 transition-colors text-muted-foreground"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <button
+                  onClick={() => openEdit(item)}
+                  title="Editar"
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(item)}
+                  title="Eliminar"
+                  className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ),
+          },
+        ];
+
+        const renderCard = (item: Order) => {
+          const overdue = isOverdue(item.deliveryDate, item.status);
+          return (
+            <div className="p-3">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[10px] font-mono text-muted-foreground">#{item.orderNumber}</span>
+                    <StatusBadge status={item.status} label={statusLabel(item.status)} />
+                  </div>
+                  <p className="font-semibold text-sm truncate">{item.clientName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{item.garmentName} · {item.repairType}</p>
+                </div>
+                <p className="font-bold text-sm flex-shrink-0">{formatCurrency(item.price, tenant.currency)}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={cn('text-xs', overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted-foreground')}>
+                  Entrega: {formatDate(item.deliveryDate)}
+                </span>
+                <div className="flex gap-1">
+                  {tenant.features.whatsappNotifications && item.clientPhone && (
+                    <button
+                      onClick={() => handleWhatsApp(item)}
+                      className="p-1.5 rounded-lg hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 transition-colors text-muted-foreground"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button onClick={() => openEdit(item)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => setConfirmDelete(item)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        return (
+          <DataView
+            data={filtered}
+            columns={columns}
+            renderCard={renderCard}
+            rowKey="id"
+            loading={loading}
+            emptyState={
+              <p className="text-center text-muted-foreground py-16 text-sm">
+                No se encontraron órdenes
+              </p>
+            }
+          />
+        );
+      })()}
 
       {/* Create modal */}
       {isCreateOpen && (

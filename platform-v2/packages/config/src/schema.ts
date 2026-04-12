@@ -25,6 +25,8 @@ export const FeaturesSchema = z.object({
   finances: z.boolean().default(false),
   /** WhatsApp Business API integration */
   whatsapp: z.boolean().default(false),
+  /** WhatsApp notification actions (send ready/reminder messages) */
+  whatsappNotifications: z.boolean().default(false),
   /** AI chat assistant */
   aiChat: z.boolean().default(false),
   /** Photo gallery per order / patient */
@@ -50,6 +52,13 @@ export const ThemeSchema = z.object({
   colorScheme: z.enum(['light', 'dark', 'system']).default('light'),
 })
 
+export const GarmentStatusSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  color: z.string(),
+  icon: z.string().optional(),
+})
+
 export const AIToolSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
@@ -66,8 +75,10 @@ export const AIConfigSchema = z.object({
 })
 
 export const WhatsAppConfigSchema = z.object({
-  phoneNumberId: z.string().min(1, 'phoneNumberId is required when whatsapp is enabled'),
-  businessAccountId: z.string().min(1, 'businessAccountId is required when whatsapp is enabled'),
+  phoneNumberId: z.string().default(''),
+  businessAccountId: z.string().default(''),
+  webhookVerifyToken: z.string().default(''),
+  accessToken: z.string().default(''),
   /** Map of logical template name → actual Meta template name */
   templateNames: z.record(z.string(), z.string()).default({}),
   /** Default language code for templates */
@@ -111,6 +122,12 @@ export const TenantConfigSchema = z
     /** Catalog of services offered */
     services: z.array(ServiceSchema).default([]),
 
+    /** Available service / repair types (quick-pick list in forms) */
+    serviceTypes: z.array(z.string()).optional(),
+
+    /** Garment order statuses with display labels and colors */
+    statuses: z.array(GarmentStatusSchema).optional(),
+
     /** Feature flags */
     features: FeaturesSchema.default({
       garments: false,
@@ -118,6 +135,7 @@ export const TenantConfigSchema = z
       patientRecords: false,
       finances: false,
       whatsapp: false,
+      whatsappNotifications: false,
       aiChat: false,
       photoGallery: false,
       publicStatus: false,
@@ -159,6 +177,7 @@ export const TenantConfigSchema = z
 // ---------------------------------------------------------------------------
 
 export type ServiceConfig = z.infer<typeof ServiceSchema>
+export type GarmentStatus = z.infer<typeof GarmentStatusSchema>
 export type FeaturesConfig = z.infer<typeof FeaturesSchema>
 export type ThemeConfig = z.infer<typeof ThemeSchema>
 export type AITool = z.infer<typeof AIToolSchema>

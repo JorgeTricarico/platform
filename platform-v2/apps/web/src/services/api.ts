@@ -87,7 +87,7 @@ export async function replayOfflineQueue(): Promise<number> {
 function buildHeaders(hasBody = false): Record<string, string> {
   const h: Record<string, string> = {};
   const token = getToken();
-  if (token) h['Authorization'] = `Bearer ${token}`;
+  if (token && token !== 'demo') h['Authorization'] = `Bearer ${token}`;
   if (hasBody) h['Content-Type'] = 'application/json';
   return h;
 }

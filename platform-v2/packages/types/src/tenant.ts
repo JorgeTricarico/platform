@@ -88,6 +88,8 @@ export interface TenantConfig {
   serviceTypes: string[];
   /** Statuses with display labels and sort order */
   statuses: ReadonlyArray<{ key: string; label: string; order: number }>;
+  /** Garment order statuses with id/color/icon (platform-v2 multi-tenant config) */
+  coloredStatuses?: Array<{ id: string; label: string; color: string; icon?: string }>;
   /** Singular service label (e.g. "arreglo", "turno") */
   serviceLabel: string;
   /** Service description for ticket subtitles */

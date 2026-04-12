@@ -189,16 +189,20 @@ Para reservas y cancelaciones, usá las herramientas disponibles.`,
   },
 
   // ── WhatsApp ──────────────────────────────────────────────────────────────
-  whatsapp: {
-    phoneNumberId: process.env['MG_WA_PHONE_NUMBER_ID'] ?? '',
-    businessAccountId: process.env['MG_WA_BUSINESS_ACCOUNT_ID'] ?? '',
-    defaultLanguage: 'es_AR',
-    templateNames: {
-      appointmentConfirmation: 'mg_turno_confirmado',
-      appointmentReminder: 'mg_recordatorio_turno',
-      appointmentCancellation: 'mg_turno_cancelado',
+  ...(process.env['MG_WA_PHONE_NUMBER_ID'] ? {
+    whatsapp: {
+      phoneNumberId: process.env['MG_WA_PHONE_NUMBER_ID']!,
+      businessAccountId: process.env['MG_WA_BUSINESS_ACCOUNT_ID'] ?? '',
+      webhookVerifyToken: process.env['MG_WA_WEBHOOK_TOKEN'] ?? '',
+      accessToken: process.env['MG_WA_ACCESS_TOKEN'] ?? '',
+      defaultLanguage: 'es_AR',
+      templateNames: {
+        appointmentConfirmation: 'mg_turno_confirmado',
+        appointmentReminder: 'mg_recordatorio_turno',
+        appointmentCancellation: 'mg_turno_cancelado',
+      },
     },
-  },
+  } : {}),
 }
 
 export default config

@@ -87,6 +87,26 @@ const config: TenantConfigInput = {
     },
   ],
 
+  // ── Service types (quick-pick in order forms) ──────────────────────────────
+  serviceTypes: [
+    'Basta',
+    'Cierre',
+    'Parche',
+    'Achicado/Agrandado',
+    'Botones',
+    'Entalle Cintura',
+    'Forro',
+    'Otro',
+  ],
+
+  // ── Garment statuses ───────────────────────────────────────────────────────
+  statuses: [
+    { id: 'recibido',   label: 'Recibido',   color: 'bg-blue-100 text-blue-800' },
+    { id: 'en_proceso', label: 'En proceso', color: 'bg-yellow-100 text-yellow-800' },
+    { id: 'listo',      label: 'Listo',      color: 'bg-green-100 text-green-800' },
+    { id: 'entregado',  label: 'Entregado',  color: 'bg-gray-100 text-gray-600' },
+  ],
+
   // ── Features ──────────────────────────────────────────────────────────────
   features: {
     garments: true,
@@ -94,6 +114,7 @@ const config: TenantConfigInput = {
     patientRecords: false,
     finances: true,
     whatsapp: true,
+    whatsappNotifications: true,
     aiChat: true,
     photoGallery: true,
     publicStatus: true,
@@ -205,15 +226,19 @@ Reglas importantes:
   },
 
   // ── WhatsApp ──────────────────────────────────────────────────────────────
-  whatsapp: {
-    phoneNumberId: process.env['ZENCO_WA_PHONE_NUMBER_ID'] ?? '',
-    businessAccountId: process.env['ZENCO_WA_BUSINESS_ACCOUNT_ID'] ?? '',
-    defaultLanguage: 'es_AR',
-    templateNames: {
-      orderReady: 'zenko_prenda_lista',
-      reminder: 'zenko_recordatorio_retiro',
+  ...(process.env['ZENCO_WA_PHONE_NUMBER_ID'] ? {
+    whatsapp: {
+      phoneNumberId: process.env['ZENCO_WA_PHONE_NUMBER_ID']!,
+      businessAccountId: process.env['ZENCO_WA_BUSINESS_ACCOUNT_ID'] ?? '',
+      webhookVerifyToken: process.env['ZENCO_WA_WEBHOOK_TOKEN'] ?? '',
+      accessToken: process.env['ZENCO_WA_ACCESS_TOKEN'] ?? '',
+      defaultLanguage: 'es_AR',
+      templateNames: {
+        orderReady: 'zenko_prenda_lista',
+        reminder: 'zenko_recordatorio_retiro',
+      },
     },
-  },
+  } : {}),
 }
 
 export default config

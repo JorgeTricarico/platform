@@ -6,7 +6,7 @@
 #   ./infra/scripts/create-tenant.sh <slug> [--domain <domain>] [--port-offset <n>]
 #
 # Examples:
-#   ./infra/scripts/create-tenant.sh zenko
+#   ./infra/scripts/create-tenant.sh zenco
 #   ./infra/scripts/create-tenant.sh mg-masajes --domain mgmasajes.com --port-offset 2
 #
 # What it does:
@@ -52,7 +52,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INFRA_DIR="$(dirname "$SCRIPT_DIR")"
 REPO_ROOT="$(dirname "$INFRA_DIR")"
 
-# Convert slug to UPPER_SNAKE for env var names (zenko → ZENKO, mg-masajes → MG_MASAJES)
+# Convert slug to UPPER_SNAKE for env var names (zenco → ZENCO, mg-masajes → MG_MASAJES)
 SLUG_UPPER="${SLUG^^}"
 SLUG_UPPER="${SLUG_UPPER//-/_}"
 

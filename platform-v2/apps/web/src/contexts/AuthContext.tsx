@@ -30,6 +30,8 @@ interface AuthContextValue {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  /** True if logged in via demo (no real backend auth) */
+  isDemo: boolean;
   /** True if the backend requires auth (non-demo mode) */
   authRequired: boolean;
   loading: boolean;
@@ -61,9 +63,12 @@ interface AuthProviderProps {
 export function AuthProvider({ children, apiUrl, tenantSlug }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const [loading, setLoading] = useState(true);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref to logout so scheduleRefresh can call it without circular dependency
+  const logoutRef = useRef<() => void>(() => {/* initialized below */});
 
   const clearRefreshTimer = () => {
     if (refreshTimerRef.current !== null) {
@@ -84,14 +89,20 @@ export function AuthProvider({ children, apiUrl, tenantSlug }: AuthProviderProps
             setToken(res.token);
             scheduleRefresh(res.expiresAt);
           })
-          .catch(() => {/* noop — will prompt re-login */});
+          .catch(() => { logoutRef.current(); });
         return;
       }
       refreshTimerRef.current = setTimeout(async () => {
-        const res = await refreshTokenRequest(apiUrl, tenantSlug);
-        if (res) {
-          setToken(res.token);
-          scheduleRefresh(res.expiresAt);
+        try {
+          const res = await refreshTokenRequest(apiUrl, tenantSlug);
+          if (res) {
+            setToken(res.token);
+            scheduleRefresh(res.expiresAt);
+          } else {
+            logoutRef.current();
+          }
+        } catch {
+          logoutRef.current();
         }
       }, msUntilRefresh);
     },
@@ -103,7 +114,11 @@ export function AuthProvider({ children, apiUrl, tenantSlug }: AuthProviderProps
     logoutRequest(apiUrl, tenantSlug);
     setToken(null);
     setUser(null);
+    setIsDemo(false);
   }, [apiUrl, tenantSlug]);
+
+  // Keep logoutRef in sync so scheduleRefresh can call it
+  logoutRef.current = logout;
 
   // Initialise from storage on mount
   useEffect(() => {
@@ -153,6 +168,7 @@ export function AuthProvider({ children, apiUrl, tenantSlug }: AuthProviderProps
     clearAuth();
     setToken('demo');
     setUser(DEMO_USER);
+    setIsDemo(true);
   }, []);
 
   const isAuthenticated = !!token && !!user;
@@ -163,6 +179,7 @@ export function AuthProvider({ children, apiUrl, tenantSlug }: AuthProviderProps
         user,
         token,
         isAuthenticated,
+        isDemo,
         authRequired,
         loading,
         login,

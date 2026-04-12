@@ -5,9 +5,9 @@
 # copy at infra/tenants/<slug>/docker-compose.yml for each tenant.
 #
 # Variables to replace (done by create-tenant.sh):
-#   ${TENANT}         — tenant slug, e.g. "zenko" or "mg-masajes"
+#   ${TENANT}         — tenant slug, e.g. "zenco" or "mg-masajes"
 #   ${TENANT_UPPER}   — uppercase slug for env var names
-#   ${TRAEFIK_HOST}   — public hostname, e.g. "zenko.yourplatform.com"
+#   ${TRAEFIK_HOST}   — public hostname, e.g. "zenco.yourplatform.com"
 #   ${BACKEND_PORT}   — unique host port for backend (e.g. 3001, 3002 …)
 #   ${WEB_PORT}       — unique host port for web (e.g. 8081, 8082 …)
 #   ${IMAGE_TAG}      — Docker image tag (default: latest)
@@ -43,7 +43,7 @@ services:
     labels:
       # ── Traefik / Coolify routing ─────────────────────────────────────────
       traefik.enable: "true"
-      # API subdomain: api.zenko.yourplatform.com
+      # API subdomain: api.zenco.yourplatform.com
       traefik.http.routers.backend-${TENANT}.rule: "Host(`api.${TRAEFIK_HOST}`)"
       traefik.http.routers.backend-${TENANT}.entrypoints: "websecure"
       traefik.http.routers.backend-${TENANT}.tls.certresolver: "letsencrypt"
@@ -81,7 +81,7 @@ services:
       - traefik-public
     labels:
       traefik.enable: "true"
-      # Root domain: zenko.yourplatform.com
+      # Root domain: zenco.yourplatform.com
       traefik.http.routers.web-${TENANT}.rule: "Host(`${TRAEFIK_HOST}`)"
       traefik.http.routers.web-${TENANT}.entrypoints: "websecure"
       traefik.http.routers.web-${TENANT}.tls.certresolver: "letsencrypt"
