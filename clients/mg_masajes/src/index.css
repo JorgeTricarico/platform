@@ -718,7 +718,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 .ambient-player-panel {
   flex: 0 0 380px;
   background: linear-gradient(160deg, var(--player-bg-1) 0%, var(--player-bg-2) 60%, var(--player-bg-3) 100%);
-  padding: 32px 28px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -733,14 +733,14 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 /* Artwork circle with animated glow */
 .ambient-artwork {
-  width: 110px;
-  height: 110px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   transition: transform 0.4s ease;
   flex-shrink: 0;
 }
@@ -810,7 +810,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 
 /* Track info */
 .ambient-now-playing-info {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .ambient-now-playing-title {
@@ -861,7 +861,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .ambient-ctrl-btn {
@@ -912,7 +912,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
 /* Progress bar */
 .ambient-progress {
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .ambient-progress-bar-wrap {
@@ -965,10 +965,10 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: var(--player-overlay);
   border-radius: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 0px;
 }
 
 .ambient-volume-row {
