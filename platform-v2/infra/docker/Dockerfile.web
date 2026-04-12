@@ -1,0 +1,51 @@
+# ─── Stage 1: Builder ────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+ARG VITE_TENANT
+ARG VITE_API_URL
+
+ENV VITE_TENANT=${VITE_TENANT}
+ENV VITE_API_URL=${VITE_API_URL}
+
+# Copy workspace manifests
+COPY package.json package-lock.json* ./
+
+# Copy app's package.json (path will be overridden per tenant at build time)
+# Convention: clients/<tenant>/
+ARG TENANT_PATH=clients/zenko
+COPY ${TENANT_PATH}/package.json ./${TENANT_PATH}/
+
+# Install dependencies
+RUN npm ci --workspace=${TENANT_PATH} --include-workspace-root
+
+# Copy source files
+COPY ${TENANT_PATH} ./${TENANT_PATH}
+
+# Build Vite app
+RUN cd ${TENANT_PATH} && npm run build
+
+
+# ─── Stage 2: Nginx server ───────────────────────────────────────────────────
+FROM nginx:1.27-alpine AS runner
+
+# Remove default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy our custom nginx config
+COPY infra/docker/nginx.conf /etc/nginx/conf.d/app.conf
+
+# Copy built assets from builder
+COPY --from=builder /app/${TENANT_PATH:-clients/zenko}/dist /usr/share/nginx/html
+
+# Expose standard HTTP port
+EXPOSE 80
+
+# nginx runs as root to bind port 80; drop to less privileged inside worker
+# (nginx.conf sets worker_processes auto; no extra config needed here)
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost/health || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

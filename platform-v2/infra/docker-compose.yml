@@ -1,0 +1,141 @@
+##############################################################################
+# docker-compose.yml — Development environment
+#
+# Usage:
+#   cp infra/.env.example .env          # fill in your values
+#   docker compose -f infra/docker-compose.yml up
+#
+# Hot-reload:
+#   backend — ts-node-dev watches src/ (mounted volume)
+#   web     — Vite dev server watches src/ (mounted volume)
+#
+# Override for prod:
+#   docker compose -f infra/docker-compose.yml \
+#                  -f infra/docker-compose.prod.yml up -d
+##############################################################################
+
+name: platform-dev
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: platform-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-platform}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+      POSTGRES_DB:       ${POSTGRES_DB:-platform_dev}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Optional: drop .sql files here to auto-seed on first run
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - platform-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-platform} -d ${POSTGRES_DB:-platform_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (Node / Express + Prisma) ──────────────────────────────────────
+  backend:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.backend
+      target: builder          # Use builder stage for dev (has devDeps + ts-node)
+    container_name: platform-backend-dev
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV:     development
+      PORT:         ${PORT:-3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-platform_dev}?schema=public
+      JWT_SECRET:   ${JWT_SECRET:-dev-jwt-secret-change-in-prod}
+      TENANT:       ${TENANT:-default}
+      GEMINI_API_KEY:   ${GEMINI_API_KEY:-}
+      WHATSAPP_TOKEN:   ${WHATSAPP_TOKEN:-}
+      WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID:-}
+    volumes:
+      # Mount source for hot-reload (ts-node-dev)
+      - ../backend/src:/app/backend/src:delegated
+      - ../backend/prisma:/app/backend/prisma:delegated
+      # Isolate node_modules inside container (prevents host/container conflicts)
+      - backend-node-modules:/app/node_modules
+      - backend-pkg-node-modules:/app/backend/node_modules
+    ports:
+      - "${PORT:-3000}:3000"
+    networks:
+      - platform-net
+    command: >
+      sh -c "
+        cd backend &&
+        npx prisma migrate deploy &&
+        npm run dev
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${PORT:-3000}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # ── Web (Vite dev server) ───────────────────────────────────────────────────
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.web
+      target: builder          # Builder stage runs Vite; we override CMD below
+      args:
+        VITE_TENANT:   ${VITE_TENANT:-zenko}
+        VITE_API_URL:  ${VITE_API_URL:-http://localhost:3000}
+        TENANT_PATH:   ${TENANT_PATH:-clients/zenko}
+    container_name: platform-web-dev
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_TENANT:  ${VITE_TENANT:-zenko}
+      VITE_API_URL: ${VITE_API_URL:-http://backend:3000}
+    volumes:
+      # Mount source for Vite HMR
+      - ../clients/${VITE_TENANT:-zenko}/src:/app/clients/${VITE_TENANT:-zenko}/src:delegated
+      - web-node-modules:/app/node_modules
+      - web-tenant-node-modules:/app/clients/${VITE_TENANT:-zenko}/node_modules
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    networks:
+      - platform-net
+    command: >
+      sh -c "cd clients/${VITE_TENANT:-zenko} && npm run dev -- --host 0.0.0.0"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5173 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  postgres-data:
+    driver: local
+  backend-node-modules:
+    driver: local
+  backend-pkg-node-modules:
+    driver: local
+  web-node-modules:
+    driver: local
+  web-tenant-node-modules:
+    driver: local
+
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  platform-net:
+    driver: bridge

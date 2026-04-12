@@ -1,0 +1,66 @@
+# ─── Stage 1: Builder ────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install build tools needed for native modules
+RUN apk add --no-cache python3 make g++
+
+# Copy root workspace manifests first for better layer caching
+COPY package.json package-lock.json* ./
+
+# Copy backend package.json
+COPY backend/package.json ./backend/
+
+# Install all dependencies (including devDeps needed for build)
+RUN npm ci --workspace=backend --include-workspace-root
+
+# Copy Prisma schema before generating client
+COPY backend/prisma ./backend/prisma
+
+# Generate Prisma client
+RUN cd backend && npx prisma generate
+
+# Copy backend source
+COPY backend/src ./backend/src
+COPY backend/tsconfig.json ./backend/
+
+# Build TypeScript
+RUN cd backend && npm run build
+
+# Prune dev dependencies — keep only production deps
+RUN npm ci --workspace=backend --omit=dev --include-workspace-root
+
+
+# ─── Stage 2: Runner ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Security: run as non-root
+RUN addgroup --system --gid 1001 appgroup && \
+    adduser  --system --uid 1001 --ingroup appgroup appuser
+
+# Copy production node_modules and compiled output
+COPY --from=builder --chown=appuser:appgroup /app/node_modules          ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/backend/node_modules  ./backend/node_modules
+COPY --from=builder --chown=appuser:appgroup /app/backend/dist          ./backend/dist
+COPY --from=builder --chown=appuser:appgroup /app/backend/prisma        ./backend/prisma
+COPY --from=builder --chown=appuser:appgroup /app/backend/package.json  ./backend/package.json
+
+# Prisma client is generated inside node_modules; keep it accessible
+ENV PRISMA_QUERY_ENGINE_TYPE=library
+
+USER appuser
+
+# Runtime environment defaults (override at deploy time)
+ENV NODE_ENV=production \
+    PORT=3000
+
+EXPOSE 3000
+
+# Health check — expects GET /health → 200
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:${PORT}/health || exit 1
+
+CMD ["node", "backend/dist/index.js"]

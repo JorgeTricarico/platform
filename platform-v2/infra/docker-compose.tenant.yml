@@ -1,0 +1,143 @@
+##############################################################################
+# docker-compose.tenant.yml — Per-tenant deployment template
+#
+# This file is a TEMPLATE.  The create-tenant.sh script generates a filled-in
+# copy at infra/tenants/<slug>/docker-compose.yml for each tenant.
+#
+# Variables to replace (done by create-tenant.sh):
+#   ${TENANT}         — tenant slug, e.g. "zenko" or "mg-masajes"
+#   ${TENANT_UPPER}   — uppercase slug for env var names
+#   ${TRAEFIK_HOST}   — public hostname, e.g. "zenko.yourplatform.com"
+#   ${BACKEND_PORT}   — unique host port for backend (e.g. 3001, 3002 …)
+#   ${WEB_PORT}       — unique host port for web (e.g. 8081, 8082 …)
+#   ${IMAGE_TAG}      — Docker image tag (default: latest)
+#
+# Coolify note:
+#   Coolify reads the `labels` on each service and auto-creates Traefik routes.
+#   Set the Coolify project environment vars instead of hardcoding here.
+##############################################################################
+
+name: platform-${TENANT}
+
+services:
+
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  backend-${TENANT}:
+    image: ghcr.io/${GITHUB_ORG}/platform-backend:${IMAGE_TAG:-latest}
+    container_name: backend-${TENANT}
+    restart: unless-stopped
+    environment:
+      NODE_ENV:     production
+      PORT:         3000
+      TENANT:       ${TENANT}
+      DATABASE_URL: ${${TENANT_UPPER}_DATABASE_URL}
+      JWT_SECRET:   ${${TENANT_UPPER}_JWT_SECRET}
+      GEMINI_API_KEY:    ${${TENANT_UPPER}_GEMINI_API_KEY:-}
+      WHATSAPP_TOKEN:    ${${TENANT_UPPER}_WHATSAPP_TOKEN:-}
+      WHATSAPP_PHONE_ID: ${${TENANT_UPPER}_WHATSAPP_PHONE_ID:-}
+    expose:
+      - "3000"
+    networks:
+      - platform-net
+      - traefik-public
+    labels:
+      # ── Traefik / Coolify routing ─────────────────────────────────────────
+      traefik.enable: "true"
+      # API subdomain: api.zenko.yourplatform.com
+      traefik.http.routers.backend-${TENANT}.rule: "Host(`api.${TRAEFIK_HOST}`)"
+      traefik.http.routers.backend-${TENANT}.entrypoints: "websecure"
+      traefik.http.routers.backend-${TENANT}.tls.certresolver: "letsencrypt"
+      traefik.http.services.backend-${TENANT}.loadbalancer.server.port: "3000"
+      # Coolify metadata
+      coolify.managed: "true"
+      coolify.tenant: "${TENANT}"
+      coolify.service: "backend"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ── Web (nginx) ──────────────────────────────────────────────────────────────
+  web-${TENANT}:
+    image: ghcr.io/${GITHUB_ORG}/platform-web-${TENANT}:${IMAGE_TAG:-latest}
+    container_name: web-${TENANT}
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - platform-net
+      - traefik-public
+    labels:
+      traefik.enable: "true"
+      # Root domain: zenko.yourplatform.com
+      traefik.http.routers.web-${TENANT}.rule: "Host(`${TRAEFIK_HOST}`)"
+      traefik.http.routers.web-${TENANT}.entrypoints: "websecure"
+      traefik.http.routers.web-${TENANT}.tls.certresolver: "letsencrypt"
+      traefik.http.services.web-${TENANT}.loadbalancer.server.port: "80"
+      coolify.managed: "true"
+      coolify.tenant: "${TENANT}"
+      coolify.service: "web"
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: "0.25"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Optional: dedicated PostgreSQL per tenant ─────────────────────────────
+  # Remove this block if using Supabase or a shared managed DB.
+  # postgres-${TENANT}:
+  #   image: postgres:16-alpine
+  #   container_name: postgres-${TENANT}
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER:     ${TENANT}
+  #     POSTGRES_PASSWORD: ${${TENANT_UPPER}_DB_PASSWORD}
+  #     POSTGRES_DB:       ${TENANT}
+  #   volumes:
+  #     - postgres-${TENANT}-data:/var/lib/postgresql/data
+  #   networks:
+  #     - platform-net
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${TENANT}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+# volumes:
+#   postgres-${TENANT}-data:
+#     driver: local
+
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  platform-net:
+    driver: bridge
+  # External network shared with Traefik/Coolify
+  traefik-public:
+    external: true
+    name: coolify

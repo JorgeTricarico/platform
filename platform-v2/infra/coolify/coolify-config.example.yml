@@ -1,0 +1,110 @@
+##############################################################################
+# coolify-config.example.yml
+#
+# This file documents the structure Coolify uses internally for a
+# Docker Compose service deployment.  You don't write this file manually —
+# Coolify generates it when you configure a service through the UI or API.
+# It is provided here as a reference so you know which fields to fill in.
+#
+# Coolify API docs: https://coolify.io/docs/api-reference
+##############################################################################
+
+# ── Project ───────────────────────────────────────────────────────────────────
+project:
+  name: "Platform - Zenko"
+  description: "Zenko tenant — massage booking platform"
+
+# ── Server ────────────────────────────────────────────────────────────────────
+server:
+  # UUID of the Hetzner VPS added in Coolify → Servers
+  uuid: "YOUR_SERVER_UUID"
+  # IP of your Hetzner VPS
+  ip: "YOUR_SERVER_IP"
+
+# ── Application (Docker Compose service) ─────────────────────────────────────
+application:
+  name: "zenko"
+  type: "docker-compose"
+
+  # Source: GitHub repository with your compose file
+  source:
+    type: "github"
+    repository: "your-org/Platform"
+    branch: "main"
+    # Path to the compose file relative to repo root
+    compose_file: "platform-v2/infra/tenants/zenko/docker-compose.yml"
+
+  # Build pack: "dockerfile" or "nixpacks" — use dockerfile since we have Dockerfiles
+  build_pack: "dockerfile"
+
+  # Domain configuration — Coolify auto-provisions Let's Encrypt certs
+  domains:
+    - fqdn: "zenko.yourplatform.com"
+      service: "web-zenko"
+      port: 80
+    - fqdn: "api.zenko.yourplatform.com"
+      service: "backend-zenko"
+      port: 3000
+
+  # Health check (overrides Dockerfile HEALTHCHECK if needed)
+  health_check:
+    path: "/health"
+    port: 3000
+    interval: 30
+    timeout: 10
+    retries: 3
+
+  # Environment variables (set in Coolify UI → Service → Environment Variables)
+  # These override the values inside the compose file.
+  environment_variables:
+    - key: "TENANT"
+      value: "zenko"
+    - key: "NODE_ENV"
+      value: "production"
+    - key: "ZENKO_DATABASE_URL"
+      value: "postgresql://..."    # Fill in real value in Coolify UI
+      is_multiline: false
+    - key: "ZENKO_JWT_SECRET"
+      value: ""                    # Fill in Coolify UI
+    - key: "IMAGE_TAG"
+      value: "latest"
+    - key: "GITHUB_ORG"
+      value: "your-org"
+    - key: "TRAEFIK_HOST"
+      value: "zenko.yourplatform.com"
+
+  # Deployment settings
+  deployment:
+    # Coolify will pull the new image and do a rolling restart
+    strategy: "rolling"
+    # Wait for health check to pass before marking deploy as successful
+    wait_for_health: true
+    # Timeout (seconds) for the new container to become healthy
+    health_check_timeout: 120
+
+  # Persistent volumes (declared in compose file; Coolify manages them)
+  # No additional volume config needed here — Coolify reads from compose file.
+
+  # Notification webhook (optional — Coolify can POST to Slack/Discord on deploy)
+  notifications:
+    - type: "slack"
+      webhook_url: "https://hooks.slack.com/..."   # Set in Coolify UI
+
+# ── Coolify Proxy (Traefik) ───────────────────────────────────────────────────
+# Coolify runs Traefik internally and auto-configures it from service labels.
+# The labels in docker-compose.tenant.yml handle this automatically.
+# Manual Traefik config is only needed for advanced routing.
+proxy:
+  type: "traefik"
+  # TLS cert resolver configured in Coolify UI → Server → Proxy
+  tls_resolver: "letsencrypt"
+  letsencrypt_email: "admin@yourplatform.com"
+
+# ── Backup (optional Coolify backup integration) ──────────────────────────────
+# Alternatively use the backup-db.sh script on a cron schedule.
+backup:
+  # S3-compatible storage configured in Coolify → Storages
+  storage_name: "platform-s3-backups"
+  schedule: "0 2 * * *"    # 02:00 UTC daily
+  retain_daily: 7
+  retain_weekly: 4

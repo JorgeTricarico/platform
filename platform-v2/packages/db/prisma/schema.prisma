@@ -1,0 +1,207 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output          = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================
+// TENANTS — Multi-tenant registry
+// =============================================
+
+model Tenant {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("tenants")
+}
+
+// =============================================
+// USERS — JWT Authentication
+// =============================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("admin")  // "admin" | "viewer"
+  business     String                       // tenant slug or "all"
+  createdAt    DateTime @default(now())
+
+  @@index([business])
+  @@map("users")
+}
+
+// =============================================
+// CLIENTS — Shared registry (scoped by business)
+// =============================================
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  altPhone  String?
+  business  String               // tenant slug
+  createdAt DateTime @default(now())
+
+  patientRecords PatientRecord[]
+  notifications  Notification[]
+
+  @@unique([phone, business])
+  @@index([business])
+  @@map("clients")
+}
+
+// =============================================
+// ORDERS — Zenco garment repairs
+// =============================================
+
+model Order {
+  id              String   @id
+  orderNumber     Int      @unique @default(autoincrement())
+  clientName      String
+  clientPhone     String
+  garmentName     String
+  repairType      String
+  description     String
+  status          String   @default("recibido")
+  statusChangedAt String?
+  intakeDate      String   @default("")
+  deliveryDate    String
+  price           Float
+  deposit         Float    @default(0)
+  location        String?
+  createdAt       DateTime @default(now())
+
+  @@index([status])
+  @@index([deliveryDate])
+  @@index([clientPhone])
+  @@map("orders")
+}
+
+model GarmentPhoto {
+  id        String   @id @default(uuid())
+  garmentId String
+  filename  String
+  url       String
+  createdAt DateTime @default(now())
+
+  @@index([garmentId])
+  @@map("garment_photos")
+}
+
+// =============================================
+// FINANCES — Shared structure, separate tables per tenant
+// =============================================
+
+model ZencoFinance {
+  id          String @id
+  date        String
+  type        String  // "ingreso" | "gasto"
+  category    String
+  amount      Float
+  description String
+
+  @@index([date])
+  @@index([type])
+  @@map("zenco_finances")
+}
+
+model MgMasajesFinance {
+  id          String @id
+  date        String
+  type        String  // "ingreso" | "gasto"
+  category    String
+  amount      Float
+  description String
+
+  @@index([date])
+  @@index([type])
+  @@map("mg_masajes_finances")
+}
+
+// =============================================
+// APPOINTMENTS — MG Masajes bookings
+// =============================================
+
+model Appointment {
+  id          String   @id
+  clientName  String
+  clientPhone String
+  service     String
+  duration    Int
+  date        String
+  time        String
+  status      String   @default("pendiente")
+  price       Float
+  notes       String?
+  location    String   @default("Consultorio")
+  createdAt   DateTime @default(now())
+
+  @@index([date])
+  @@index([status])
+  @@index([clientPhone])
+  @@map("appointments")
+}
+
+// =============================================
+// PATIENT RECORDS — Clinical history (MG Masajes)
+// =============================================
+
+model PatientRecord {
+  id           String   @id @default(uuid())
+  clientId     String
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  date         String
+  reason       String
+  symptoms     String?
+  areas        String?
+  treatment    String?
+  observations String?
+  nextSession  String?
+  createdAt    DateTime @default(now())
+
+  @@index([clientId])
+  @@map("patient_records")
+}
+
+// =============================================
+// NOTIFICATIONS — WhatsApp / push alerts
+// =============================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  message   String
+  type      String   @default("prenda_lista")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([read])
+  @@map("notifications")
+}
+
+// =============================================
+// CHAT — AI assistant message history
+// =============================================
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  business  String
+  role      String   // "user" | "assistant"
+  content   String
+  sessionId String
+  createdAt DateTime @default(now())
+
+  @@index([business, sessionId])
+  @@map("chat_messages")
+}

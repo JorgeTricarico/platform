@@ -1,0 +1,84 @@
+##############################################################################
+# docker-compose.prod.yml — Production overrides
+#
+# Usage (standalone):
+#   docker compose \
+#     -f infra/docker-compose.yml \
+#     -f infra/docker-compose.prod.yml \
+#     up -d
+#
+# In Coolify: point to docker-compose.yml + this file as override.
+# Images are pulled from GHCR (set IMAGE_TAG in environment).
+##############################################################################
+
+name: platform-prod
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    restart: unless-stopped
+    # In prod prefer managed DB (Supabase / Hetzner Managed DB).
+    # Keep this service only for single-VPS setups.
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    # No ports exposed externally — backend reaches it via internal network
+    ports: []
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  backend:
+    # In prod: use pre-built image from GHCR instead of building on the VPS
+    image: ghcr.io/${GITHUB_ORG:-your-org}/platform-backend:${IMAGE_TAG:-latest}
+    build:
+      target: runner          # Use the final minimal runner stage
+    restart: unless-stopped
+    # No source mounts in production
+    volumes: []
+    environment:
+      NODE_ENV: production
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "1.0"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ── Web (nginx) ──────────────────────────────────────────────────────────────
+  web:
+    image: ghcr.io/${GITHUB_ORG:-your-org}/platform-web-${VITE_TENANT:-zenko}:${IMAGE_TAG:-latest}
+    build:
+      target: runner          # nginx stage
+    restart: unless-stopped
+    # No source mounts
+    volumes: []
+    # In prod, Coolify/Traefik terminates TLS; web only listens on 80 internally
+    ports:
+      - "80:80"
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: "0.25"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
