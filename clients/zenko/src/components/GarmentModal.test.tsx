@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useState } from 'react';
-import GarmentModal, { EMPTY_FORM, GarmentFormState } from './GarmentModal';
+import GarmentModal, { EMPTY_FORM } from './GarmentModal';
+import type { GarmentFormState } from './GarmentModal';
 
 vi.mock('../services/api', () => ({
   searchClients: vi.fn().mockResolvedValue([]),
