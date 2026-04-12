@@ -23,25 +23,31 @@ export default function Login() {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg-primary, #f5f0eb)' }}>
-      <div className="card" style={{ width: '100%', maxWidth: 400, padding: '2rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <img src={logoUrl} alt="MG Masajes Logo" style={{ width: 64, height: 64, borderRadius: '16px', objectFit: 'cover', marginBottom: '0.5rem' }} />
-          <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Damian<span style={{ color: 'var(--primary-color)' }}>.masajes</span></h1>
-          <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0' }}>Inicia sesion para continuar</p>
+    <div className="flex items-center justify-center min-h-screen bg-(--color-background)">
+      <div className="bg-(--color-card) rounded-2xl shadow-sm border border-(--color-border) w-full max-w-sm p-8">
+        <div className="text-center mb-6">
+          <img
+            src={logoUrl}
+            alt="MG Masajes Logo"
+            className="w-16 h-16 rounded-2xl object-cover mx-auto mb-3"
+          />
+          <h1 className="text-2xl font-extrabold text-(--color-foreground) m-0">
+            Damian<span className="text-(--color-primary)">.masajes</span>
+          </h1>
+          <p className="text-(--color-muted-foreground) text-sm mt-2">Inicia sesion para continuar</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {error && (
-            <div style={{ background: 'var(--error-bg)', color: 'var(--error-text)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+            <div className="bg-red-50 text-red-700 border border-red-200 px-3 py-2 rounded-md text-sm">
               {error}
             </div>
           )}
 
-          <div className="form-group">
-            <label>Nombre</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-(--color-foreground)">Nombre</label>
             <input
-              className="input"
+              className="w-full px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50"
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -51,10 +57,10 @@ export default function Login() {
             />
           </div>
 
-          <div className="form-group">
-            <label>Contrasena</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-(--color-foreground)">Contrasena</label>
             <input
-              className="input"
+              className="w-full px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -64,10 +70,9 @@ export default function Login() {
           </div>
 
           <button
-            className="btn btn-primary"
+            className="w-full inline-flex items-center justify-center px-5 py-3 rounded-full bg-(--color-primary) text-white font-semibold hover:bg-(--color-accent) transition-all disabled:opacity-60 mt-1"
             type="submit"
             disabled={loading}
-            style={{ width: '100%', marginTop: '0.5rem' }}
           >
             {loading ? 'Ingresando...' : 'Iniciar Sesion'}
           </button>
@@ -75,9 +80,8 @@ export default function Login() {
 
         {!authRequired && (
           <button
-            className="btn"
+            className="w-full mt-3 px-5 py-3 rounded-full bg-transparent border border-(--color-border) text-(--color-muted-foreground) font-semibold hover:bg-(--color-muted) transition-colors"
             onClick={loginAsDemo}
-            style={{ width: '100%', marginTop: '1rem', background: 'transparent', border: '1px solid var(--border-color, #ddd)', color: 'var(--text-secondary)' }}
           >
             Probar Demo
           </button>

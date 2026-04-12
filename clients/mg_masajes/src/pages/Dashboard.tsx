@@ -51,58 +51,64 @@ export default function Dashboard() {
       setSubmitting(false);
     }
   }, [formData, toast, triggerRefresh]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between mb-5 flex-shrink-0">
         <div>
           <h1>{BUSINESS.greeting}</h1>
           <p className="subtitle" style={{ margin: 0 }}>{BUSINESS.subtitle}</p>
         </div>
-        <button className="btn btn-primary" onClick={handleOpenModal}>+ Nueva Cita</button>
+        <button
+          className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-(--color-primary) text-white font-semibold text-[15px] hover:bg-(--color-accent) hover:shadow-md transition-all"
+          onClick={handleOpenModal}
+        >
+          + Nueva Cita
+        </button>
       </div>
 
-      <div className="grid grid-cols-3" style={{ marginBottom: '24px', flexShrink: 0 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6 flex-shrink-0">
         <TodayAppointmentsWidget />
         <MonthlyIncomeWidget />
         <StalePatientWidget />
       </div>
 
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div className="flex-1 overflow-hidden flex flex-col">
         <UpcomingAppointmentsWidget />
       </div>
 
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-md">
-            <h2 style={{ marginTop: 0 }}>Agendar Nueva Cita</h2>
-            <form onSubmit={handleSubmit} className="form-group">
-              <div className="form-row">
-                <input required name="clientName" placeholder="Nombre Cliente" value={formData.clientName} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="clientPhone" placeholder="Telefono" value={formData.clientPhone} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-(--color-card) rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
+            <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">Agendar Nueva Cita</h2>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <input required name="clientName" placeholder="Nombre Cliente" value={formData.clientName} onChange={handleInputChange} className="flex-1 px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50" />
+                <input required name="clientPhone" placeholder="Telefono" value={formData.clientPhone} onChange={handleInputChange} className="flex-1 px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50" />
               </div>
 
-              <select required name="service" value={formData.service} onChange={handleInputChange} className="input">
+              <select required name="service" value={formData.service} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50">
                 <option value="">Tipo de Masaje...</option>
                 {Object.keys(BUSINESS.services).map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
 
-              <div className="form-row">
-                <input required name="duration" type="number" placeholder="Duracion (min)" value={formData.duration} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+              <div className="flex gap-3">
+                <input required name="duration" type="number" placeholder="Duracion (min)" value={formData.duration} onChange={handleInputChange} className="flex-1 px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50" />
+                <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className="flex-1 px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50" />
               </div>
 
-              <div className="form-row">
-                <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
-                <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input" style={{ flex: 1 }} />
+              <div className="flex gap-3">
+                <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="flex-1 px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50" />
+                <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="flex-1 px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50" />
               </div>
 
-              <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
+              <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className="w-full px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50" />
 
-              <div className="form-actions">
-                <button type="button" onClick={handleCloseModal} className="btn-secondary">Cancelar</button>
-                <button type="submit" disabled={submitting} className="btn btn-primary">
+              <div className="flex justify-end gap-3 mt-2">
+                <button type="button" onClick={handleCloseModal} className="px-4 py-2 rounded-md font-semibold text-sm text-(--color-muted-foreground) hover:bg-(--color-muted) transition-colors">Cancelar</button>
+                <button type="submit" disabled={submitting} className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-(--color-primary) text-white font-semibold hover:bg-(--color-accent) transition-all disabled:opacity-60">
                   {submitting ? 'Agendando...' : 'Agendar Cita'}
                 </button>
               </div>

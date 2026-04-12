@@ -91,51 +91,49 @@ export default function ChatDemo() {
 
   return (
     <div>
-      <div className="flex-between" style={{ marginBottom: '24px' }}>
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1>Demo del Bot de WhatsApp</h1>
           <p className="subtitle">Simula como responderia {BUSINESS.ownerName} (IA) a los mensajes de tus clientes.</p>
         </div>
-        <span className="badge completed" style={{ padding: '8px 16px', fontSize: '14px' }}>Modo Demo</span>
+        <span className="inline-flex px-4 py-2 rounded-full text-sm font-bold bg-green-100 text-(--color-success)">Modo Demo</span>
       </div>
 
       {/* Scenario Tabs */}
-      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
+      <div className="flex gap-2 justify-center mb-4 flex-wrap">
         {SCENARIOS.map(s => (
           <button
             key={s.id}
             onClick={() => switchScenario(s.id)}
             disabled={loading}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              border: activeScenario === s.id ? '2px solid #25D366' : '1px solid #ccc',
-              background: activeScenario === s.id ? '#25D366' : 'white',
-              color: activeScenario === s.id ? 'white' : '#333',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '13px',
-              fontWeight: activeScenario === s.id ? 600 : 400,
-            }}
+            className={`px-4 py-2 rounded-full text-[13px] transition-colors ${
+              activeScenario === s.id
+                ? 'bg-[#25D366] text-white font-semibold border-2 border-[#25D366]'
+                : 'bg-white text-[#333] border border-[#ccc] hover:bg-gray-50'
+            } disabled:cursor-not-allowed`}
           >
             {s.label}
           </button>
         ))}
       </div>
 
-      <div className="card" style={{ maxWidth: '600px', margin: '0 auto', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div className="bg-(--color-card) rounded-2xl shadow-sm border border-(--color-border) max-w-[600px] mx-auto overflow-hidden flex flex-col">
         {/* Chat Header */}
-        <div style={{ background: '#25D366', color: 'white', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px' }}>D</div>
+        <div className="bg-[#25D366] text-white px-5 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center font-bold text-lg">D</div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '16px' }}>{BUSINESS.ownerName} de {BUSINESS.name}</div>
-            <div style={{ fontSize: '12px', opacity: 0.9 }}>en linea</div>
+            <div className="font-bold text-base">{BUSINESS.ownerName} de {BUSINESS.name}</div>
+            <div className="text-xs opacity-90">en linea</div>
           </div>
         </div>
 
         {/* Messages */}
-        <div style={{ height: 'max(400px, 50vh)', overflowY: 'auto', padding: '16px', background: '#ECE5DD', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div
+          className="overflow-y-auto p-4 flex flex-col gap-2"
+          style={{ height: 'max(400px, 50vh)', background: '#ECE5DD' }}
+        >
           {messages.length === 0 && !loading && (
-            <div style={{ textAlign: 'center', color: '#999', fontSize: '13px', marginTop: '160px' }}>
+            <div className="text-center text-[#999] text-[13px] mt-[160px]">
               Escribi un mensaje para empezar la conversacion
             </div>
           )}
@@ -163,18 +161,18 @@ export default function ChatDemo() {
         </div>
 
         {/* Input */}
-        <div style={{ display: 'flex', gap: '8px', padding: '12px 16px', borderTop: '1px solid #ddd', background: '#F0F0F0' }}>
+        <div className="flex gap-2 px-4 py-3 border-t border-(--color-border) bg-[#F0F0F0]">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
             placeholder="Escribe un mensaje..."
-            style={{ flex: 1, padding: '10px 14px', borderRadius: '20px', border: 'none', outline: 'none', fontSize: '14px' }}
+            className="flex-1 px-4 py-2.5 rounded-full border-none outline-none text-[14px] bg-white"
           />
           <button
             onClick={sendMessage}
             disabled={loading}
-            style={{ background: '#25D366', color: 'white', border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            className="bg-[#25D366] text-white border-none rounded-full w-10 h-10 flex items-center justify-center cursor-pointer disabled:opacity-60 text-lg"
           >
             &#10148;
           </button>

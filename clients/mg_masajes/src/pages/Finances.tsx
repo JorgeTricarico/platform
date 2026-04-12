@@ -13,6 +13,8 @@ const EMPTY_FORM = {
   description: ''
 };
 
+const inputClass = "w-full px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50";
+
 export default function Finances() {
   const toast = useToast();
   const [finances, setFinances] = useState<DBFinance[]>([]);
@@ -108,25 +110,30 @@ export default function Finances() {
   if (loading && finances.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="flex-between" style={{ marginBottom: '20px', flexShrink: 0 }}>
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between mb-5 flex-shrink-0">
         <div>
           <h1>Control Financiero</h1>
           <p className="subtitle" style={{ margin: 0, fontSize: '14px' }}>Registro de ingresos y gastos del consultorio.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Nuevo Registro</button>
+        <button
+          className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-(--color-primary) text-white font-semibold text-[15px] hover:bg-(--color-accent) hover:shadow-md transition-all"
+          onClick={() => setIsModalOpen(true)}
+        >
+          + Nuevo Registro
+        </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
+      <div className="flex gap-3 items-center mb-4 flex-shrink-0">
         <input
           type="month"
           value={filterMonth}
           onChange={e => setFilterMonth(e.target.value)}
-          className="input"
+          className="input px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50"
         />
         {filterMonth && (
           <button
-            className="btn btn-filter"
+            className="btn btn-filter px-4 py-2 rounded-md border border-(--color-border) bg-(--color-muted) text-(--color-foreground) text-sm font-medium hover:bg-(--color-border) transition-colors"
             onClick={() => setFilterMonth('')}
           >
             Todos
@@ -134,62 +141,62 @@ export default function Finances() {
         )}
       </div>
 
-      <div className="grid grid-cols-3" style={{ marginBottom: '16px', flexShrink: 0 }}>
-        <div className="card" style={{ borderTop: '4px solid var(--success-color)' }}>
-          <div className="stat-title">Ingresos Totales</div>
-          <div className="stat-value" style={{ color: 'var(--success-color)' }}>{BUSINESS.currency}{totalIncome.toLocaleString()}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-4 flex-shrink-0">
+        <div className="bg-(--color-card) rounded-2xl p-5 shadow-sm border border-(--color-border)" style={{ borderTop: '4px solid var(--success-color)' }}>
+          <div className="text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Ingresos Totales</div>
+          <div className="text-3xl font-extrabold text-(--color-success) tracking-tight">{BUSINESS.currency}{totalIncome.toLocaleString()}</div>
         </div>
-        <div className="card" style={{ borderTop: '4px solid var(--urgent-color)' }}>
-          <div className="stat-title">Gastos del Consultorio</div>
-          <div className="stat-value" style={{ color: 'var(--urgent-color)' }}>{BUSINESS.currency}{totalExpenses.toLocaleString()}</div>
+        <div className="bg-(--color-card) rounded-2xl p-5 shadow-sm border border-(--color-border)" style={{ borderTop: '4px solid var(--urgent-color)' }}>
+          <div className="text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Gastos del Consultorio</div>
+          <div className="text-3xl font-extrabold text-(--color-destructive) tracking-tight">{BUSINESS.currency}{totalExpenses.toLocaleString()}</div>
         </div>
-        <div className="card" style={{ borderTop: '4px solid var(--primary-color)' }}>
-          <div className="stat-title">Ganancia Neta</div>
-          <div className="stat-value">{BUSINESS.currency}{netIncome.toLocaleString()}</div>
+        <div className="bg-(--color-card) rounded-2xl p-5 shadow-sm border border-(--color-border)" style={{ borderTop: '4px solid var(--primary-color)' }}>
+          <div className="text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Ganancia Neta</div>
+          <div className="text-3xl font-extrabold text-(--color-foreground) tracking-tight">{BUSINESS.currency}{netIncome.toLocaleString()}</div>
         </div>
       </div>
 
-      <h2 style={{ marginBottom: '12px', fontSize: '18px', flexShrink: 0 }}>Últimos Movimientos</h2>
-      <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div className="table-container">
-          <table>
+      <h2 className="mb-3 text-lg font-bold flex-shrink-0">Últimos Movimientos</h2>
+      <div className="bg-(--color-card) rounded-2xl shadow-sm border border-(--color-border) overflow-hidden flex flex-col">
+        <div className="w-full overflow-hidden">
+          <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Concepto / Descripcion</th>
-                <th>Monto</th>
-                <th>Acciones</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Fecha</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Tipo</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Concepto / Descripcion</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Monto</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {finances.map(f => (
-                <tr key={f.id}>
-                  <td style={{ fontWeight: 600 }}>{new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}</td>
-                  <td>
-                    <span className={`badge ${f.type === 'income' ? 'completed' : 'pending'}`}>
+                <tr key={f.id} className="border-b border-(--color-border) last:border-0">
+                  <td className="px-5 py-4 text-[15px] text-(--color-foreground) font-semibold">{new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}</td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
+                      f.type === 'income' ? 'bg-green-100 text-(--color-success)' : 'bg-yellow-100 text-(--color-accent)'
+                    }`}>
                       {f.type === 'income' ? 'Ingreso' : 'Gasto'}
                     </span>
                   </td>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{f.category}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{f.description}</div>
+                  <td className="px-5 py-4">
+                    <div className="font-semibold text-(--color-foreground)">{f.category}</div>
+                    <div className="text-[13px] text-(--color-muted-foreground)">{f.description}</div>
                   </td>
-                  <td style={{ fontWeight: 800, color: f.type === 'income' ? 'var(--success-color)' : 'var(--urgent-color)' }}>
+                  <td className={`px-5 py-4 text-[15px] font-extrabold ${f.type === 'income' ? 'text-(--color-success)' : 'text-(--color-destructive)'}`}>
                     {f.type === 'income' ? '+' : '-'}{BUSINESS.currency}{f.amount.toLocaleString()}
                   </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2">
                       <button
-                        className="btn btn-small"
-                        style={{ backgroundColor: 'var(--surface-secondary)', border: '1px solid var(--border-color)' }}
+                        className="px-3 py-1 text-xs rounded-md border border-(--color-border) bg-(--color-muted) text-(--color-foreground) hover:bg-(--color-border) transition-colors"
                         onClick={() => openEdit(f)}
                       >
                         Editar
                       </button>
                       <button
-                        className="btn btn-small"
-                        style={{ backgroundColor: '#fff0f0', border: '1px solid #ffcccc', color: '#cc0000' }}
+                        className="px-3 py-1 text-xs rounded-md bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
                         onClick={() => handleDelete(f.id)}
                       >
                         Eliminar
@@ -200,7 +207,7 @@ export default function Finances() {
               ))}
               {finances.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px' }}>No hay registros financieros.</td>
+                  <td colSpan={5} className="text-center px-5 py-8 text-(--color-muted-foreground) text-sm">No hay registros financieros.</td>
                 </tr>
               )}
             </tbody>
@@ -209,40 +216,40 @@ export default function Finances() {
       </div>
 
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-md">
-            <h2 style={{ marginTop: 0 }}>Nuevo Registro Financiero</h2>
-            <form onSubmit={handleSubmit} className="form-group">
-              <div className="form-row">
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Tipo</label>
-                  <select name="type" value={form.type} onChange={handle} className="input">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="modal-card modal-md bg-(--color-card) rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
+            <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">Nuevo Registro Financiero</h2>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-xs text-(--color-muted-foreground) mb-1">Tipo</label>
+                  <select name="type" value={form.type} onChange={handle} className={inputClass}>
                     <option value="income">Ingreso</option>
                     <option value="expense">Gasto</option>
                   </select>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Fecha</label>
-                  <input required name="date" type="date" value={form.date} onChange={handle} className="input" />
+                <div className="flex-1">
+                  <label className="block text-xs text-(--color-muted-foreground) mb-1">Fecha</label>
+                  <input required name="date" type="date" value={form.date} onChange={handle} className={inputClass} />
                 </div>
               </div>
 
-              <div className="form-row">
-                <div style={{ flex: 2 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Concepto</label>
-                  <input required name="category" placeholder={form.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={form.category} onChange={handle} className="input" />
+              <div className="flex gap-3">
+                <div className="flex-[2]">
+                  <label className="block text-xs text-(--color-muted-foreground) mb-1">Concepto</label>
+                  <input required name="category" placeholder={form.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={form.category} onChange={handle} className={inputClass} />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Monto ($)</label>
-                  <input required name="amount" type="number" placeholder="0" value={form.amount || ''} onChange={handle} className="input" />
+                <div className="flex-1">
+                  <label className="block text-xs text-(--color-muted-foreground) mb-1">Monto ($)</label>
+                  <input required name="amount" type="number" placeholder="0" value={form.amount || ''} onChange={handle} className={inputClass} />
                 </div>
               </div>
 
-              <input name="description" placeholder="Descripción adicional (opcional)" value={form.description} onChange={handle} className="input" />
+              <input name="description" placeholder="Descripción adicional (opcional)" value={form.description} onChange={handle} className={inputClass} />
 
-              <div className="form-actions">
-                <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="btn-secondary">Cancelar</button>
-                <button type="submit" disabled={submittingCreate} className="btn btn-primary">
+              <div className="flex justify-end gap-3 mt-2">
+                <button type="button" onClick={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }} className="px-4 py-2 rounded-md font-semibold text-sm text-(--color-muted-foreground) hover:bg-(--color-muted) transition-colors">Cancelar</button>
+                <button type="submit" disabled={submittingCreate} className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-(--color-primary) text-white font-semibold hover:bg-(--color-accent) transition-all disabled:opacity-60">
                   {submittingCreate ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>
@@ -253,23 +260,23 @@ export default function Finances() {
 
       {/* Modal Editar Registro */}
       {editTarget && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-sm">
-            <h2 style={{ marginTop: 0 }}>Editar Registro</h2>
-            <form onSubmit={handleEditSubmit} className="form-group">
-              <div className="form-row">
-                <select name="type" value={editForm.type} onChange={handleEditChange} className="input" style={{ flex: 1 }}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-(--color-card) rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
+            <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">Editar Registro</h2>
+            <form onSubmit={handleEditSubmit} className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <select name="type" value={editForm.type} onChange={handleEditChange} className={`flex-1 ${inputClass}`}>
                   <option value="income">Ingreso</option>
                   <option value="expense">Gasto</option>
                 </select>
-                <input required name="date" type="date" value={editForm.date} onChange={handleEditChange} className="input" style={{ flex: 1 }} />
+                <input required name="date" type="date" value={editForm.date} onChange={handleEditChange} className={`flex-1 ${inputClass}`} />
               </div>
-              <input required name="category" placeholder={editForm.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={editForm.category} onChange={handleEditChange} className="input" />
-              <input required name="amount" type="number" placeholder="Monto ($)" value={editForm.amount || ''} onChange={handleEditChange} className="input" />
-              <input name="description" placeholder="Descripcion adicional (opcional)" value={editForm.description} onChange={handleEditChange} className="input" />
-              <div className="form-actions">
-                <button type="button" onClick={() => setEditTarget(null)} className="btn-secondary">Cancelar</button>
-                <button type="submit" disabled={submittingEdit} className="btn btn-primary">
+              <input required name="category" placeholder={editForm.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={editForm.category} onChange={handleEditChange} className={inputClass} />
+              <input required name="amount" type="number" placeholder="Monto ($)" value={editForm.amount || ''} onChange={handleEditChange} className={inputClass} />
+              <input name="description" placeholder="Descripcion adicional (opcional)" value={editForm.description} onChange={handleEditChange} className={inputClass} />
+              <div className="flex justify-end gap-3 mt-2">
+                <button type="button" onClick={() => setEditTarget(null)} className="px-4 py-2 rounded-md font-semibold text-sm text-(--color-muted-foreground) hover:bg-(--color-muted) transition-colors">Cancelar</button>
+                <button type="submit" disabled={submittingEdit} className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-(--color-primary) text-white font-semibold hover:bg-(--color-accent) transition-all disabled:opacity-60">
                   {submittingEdit ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>

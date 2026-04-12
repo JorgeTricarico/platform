@@ -37,9 +37,9 @@ export default function Agent() {
 
     try {
       const { reply, actions } = await sendAgentMessage(text, history);
-      
+
       setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
-      
+
       // Update history for the next turn
       setHistory(prev => [
         ...prev,
@@ -61,63 +61,40 @@ export default function Agent() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)' }}>
-      <div style={{ flexShrink: 0 }}>
-        <h1 style={{ margin: '0 0 4px 0' }}>Asistente Inteligente</h1>
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 100px)' }}>
+      <div className="flex-shrink-0">
+        <h1 className="m-0 mb-1">Asistente Inteligente</h1>
         <p className="subtitle" style={{ margin: 0 }}>Gestiona pacientes, turnos y música con lenguaje natural.</p>
       </div>
 
-      <div className="card" style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        padding: 0, 
-        overflow: 'hidden', 
-        marginTop: '20px',
-        flex: 1,
-        minHeight: 0
-      }}>
+      <div className="bg-(--color-card) rounded-2xl shadow-sm border border-(--color-border) flex flex-col overflow-hidden mt-5 flex-1 min-h-0">
         {/* Messages Area */}
-        <div style={{ 
-          flex: 1, 
-          overflowY: 'auto', 
-          padding: '24px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '20px',
-          backgroundColor: '#fafafa'
-        }}>
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-5 bg-(--color-background)">
           {messages.map((msg, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{
-                maxWidth: '85%',
-                padding: '14px 18px',
-                borderRadius: msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                backgroundColor: msg.role === 'user' ? 'var(--primary-color, #6366f1)' : 'white',
-                color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-                boxShadow: msg.role === 'user' ? '0 4px 12px rgba(99, 102, 241, 0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
-                fontSize: '14.5px',
-                lineHeight: '1.6',
-                whiteSpace: 'pre-wrap',
-                border: msg.role === 'user' ? 'none' : '1px solid var(--border-color)',
-              }}>
+            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`max-w-[85%] px-[18px] py-[14px] text-[14.5px] leading-relaxed whitespace-pre-wrap ${
+                  msg.role === 'user'
+                    ? 'bg-(--color-primary) text-white shadow-[0_4px_12px_rgba(214,109,38,0.2)]'
+                    : 'bg-(--color-card) text-(--color-foreground) border border-(--color-border) shadow-sm'
+                }`}
+                style={{
+                  borderRadius: msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+                }}
+              >
                 {msg.text}
               </div>
             </div>
           ))}
           {loading && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div className="typing-indicator" style={{ 
-                padding: '14px 18px', 
-                borderRadius: '20px 20px 20px 4px', 
-                backgroundColor: 'white', 
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                gap: '4px'
-              }}>
-                <span className="dot"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
+            <div className="flex justify-start">
+              <div
+                className="px-[18px] py-[14px] bg-(--color-card) border border-(--color-border) text-(--color-muted-foreground) flex gap-1"
+                style={{ borderRadius: '20px 20px 20px 4px' }}
+              >
+                <span className="agent-dot"></span>
+                <span className="agent-dot"></span>
+                <span className="agent-dot"></span>
               </div>
             </div>
           )}
@@ -125,13 +102,7 @@ export default function Agent() {
         </div>
 
         {/* Input Area */}
-        <div style={{ 
-          padding: '20px 24px', 
-          borderTop: '1px solid var(--border-color)', 
-          display: 'flex', 
-          gap: '12px',
-          backgroundColor: 'white'
-        }}>
+        <div className="px-6 py-5 border-t border-(--color-border) flex gap-3 bg-(--color-card)">
           <input
             type="text"
             placeholder="Ej: ¿Qué turnos tengo para hoy?, busca a Ariel..."
@@ -139,27 +110,12 @@ export default function Agent() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && send()}
             disabled={loading}
-            style={{ 
-              flex: 1, 
-              padding: '14px 20px', 
-              borderRadius: '12px', 
-              border: '1px solid var(--border-color)', 
-              outline: 'none', 
-              fontFamily: 'inherit', 
-              fontSize: '15px',
-              transition: 'border-color 0.2s',
-              backgroundColor: loading ? '#f9fafb' : 'white'
-            }}
+            className="flex-1 px-5 py-[14px] rounded-xl border border-(--color-border) bg-(--color-muted) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50 text-[15px] font-[inherit] disabled:opacity-60"
           />
-          <button 
-            className="btn btn-primary" 
-            onClick={send} 
-            disabled={loading} 
-            style={{ 
-              padding: '0 28px', 
-              borderRadius: '12px',
-              fontWeight: 600
-            }}
+          <button
+            className="inline-flex items-center justify-center px-7 py-0 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-accent) transition-all disabled:opacity-60"
+            onClick={send}
+            disabled={loading}
           >
             {loading ? '...' : 'Enviar'}
           </button>
@@ -167,16 +123,16 @@ export default function Agent() {
       </div>
 
       <style>{`
-        .dot {
+        .agent-dot {
           width: 5px;
           height: 5px;
           background: #9ca3af;
           border-radius: 50%;
-          animation: bounce 1.4s infinite ease-in-out both;
+          animation: agent-bounce 1.4s infinite ease-in-out both;
         }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce {
+        .agent-dot:nth-child(1) { animation-delay: -0.32s; }
+        .agent-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes agent-bounce {
           0%, 80%, 100% { transform: scale(0); }
           40% { transform: scale(1.0); }
         }

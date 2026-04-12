@@ -7,6 +7,8 @@ import { SkeletonLoader, Spinner } from '../components/SkeletonLoader';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '' };
 
+const inputClass = "w-full px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50";
+
 export default function Clients() {
   const toast = useToast();
   const navigate = useNavigate();
@@ -82,60 +84,65 @@ export default function Clients() {
   if (loading && clients.length === 0) return <SkeletonLoader rows={5} />;
 
   return (
-    <div className="clients-page">
-      <div className="flex-between clients-header">
+    <div>
+      <div className="flex items-center justify-between mb-5">
         <div>
           <h1>Clientes</h1>
-          <p className="subtitle clients-subtitle">Base de datos de clientes de Damian.</p>
+          <p className="subtitle" style={{ margin: 0 }}>Base de datos de clientes de Damian.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)}>+ Nuevo Cliente</button>
+        <button
+          className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-(--color-primary) text-white font-semibold text-[15px] hover:bg-(--color-accent) hover:shadow-md transition-all"
+          onClick={() => setIsCreateOpen(true)}
+        >
+          + Nuevo Cliente
+        </button>
       </div>
 
-      <div className="card clients-table-card">
-        <div className="clients-search-bar">
+      <div className="bg-(--color-card) rounded-2xl shadow-sm border border-(--color-border) overflow-hidden">
+        <div className="p-4 border-b border-(--color-border)">
           <input
             type="text"
             placeholder="Buscar por nombre, telefono..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-search"
+            className="w-full px-4 py-2 rounded-xl border border-(--color-border) bg-(--color-muted) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50 text-sm"
           />
         </div>
-        <div className="table-container">
-          <table>
+        <div className="w-full overflow-hidden">
+          <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th>Nombre</th>
-                <th>Telefono</th>
-                <th>Registrado</th>
-                <th>Acciones</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Nombre</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Telefono</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Registrado</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {clients.map(c => (
-                <tr key={c.id}>
-                  <td className="clients-td-name">{c.name}</td>
-                  <td>
+                <tr key={c.id} className="border-b border-(--color-border) last:border-0">
+                  <td className="px-5 py-4 text-[15px] text-(--color-foreground) font-semibold">{c.name}</td>
+                  <td className="px-5 py-4 text-[15px] text-(--color-foreground) font-medium">
                     <div>{c.phone}</div>
-                    {c.altPhone && <div className="clients-td-secondary">{c.altPhone}</div>}
+                    {c.altPhone && <div className="text-xs text-(--color-muted-foreground) mt-0.5">{c.altPhone}</div>}
                   </td>
-                  <td className="clients-td-secondary">{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                  <td>
-                    <div className="clients-actions-row">
+                  <td className="px-5 py-4 text-sm text-(--color-muted-foreground)">{new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2">
                       <button
-                        className="btn btn-primary btn-small"
+                        className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-(--color-primary) text-white text-xs font-semibold hover:bg-(--color-accent) transition-all"
                         onClick={() => createRecord(c)}
                       >
                         Crear Ficha
                       </button>
                       <button
-                        className="btn btn-small clients-btn-edit"
+                        className="px-3 py-1.5 rounded-md text-xs font-semibold border border-(--color-border) bg-(--color-muted) text-(--color-foreground) hover:bg-(--color-border) transition-colors"
                         onClick={() => openEdit(c)}
                       >
                         Editar
                       </button>
                       <button
-                        className="btn btn-small clients-btn-history"
+                        className="px-3 py-1.5 rounded-md text-xs font-semibold border border-(--color-border) bg-(--color-muted) text-(--color-muted-foreground) hover:bg-(--color-border) transition-colors"
                         onClick={() => openHistory(c)}
                       >
                         Ver Historial
@@ -146,7 +153,7 @@ export default function Clients() {
               ))}
               {clients.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="clients-td-empty">
+                  <td colSpan={4} className="text-center px-5 py-8 text-(--color-muted-foreground) text-sm">
                     No se encontraron clientes.
                   </td>
                 </tr>
@@ -165,50 +172,61 @@ export default function Clients() {
       )}
 
       {historyTarget && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-lg clients-history-modal">
-            <div className="clients-history-modal-header">
-              <h2 className="clients-modal-h2">Historial de {historyTarget.name}</h2>
-              <button className="btn-secondary" onClick={() => setHistoryTarget(null)}>Cerrar</button>
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-(--color-card) rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-(--color-foreground) m-0">Historial de {historyTarget.name}</h2>
+              <button
+                className="px-4 py-2 rounded-md font-semibold text-sm text-(--color-muted-foreground) hover:bg-(--color-muted) transition-colors"
+                onClick={() => setHistoryTarget(null)}
+              >
+                Cerrar
+              </button>
             </div>
 
             {!history ? (
-              <div className="flex-center" style={{ padding: '16px' }}><Spinner /></div>
+              <div className="flex justify-center p-4"><Spinner /></div>
             ) : (
-              <div className="clients-history-body">
-                <div className="clients-history-summary-row">
-                  <div className="card glass-card clients-history-stat-card">
-                    <div className="clients-history-stat-number">{history.summary.totalAppointments}</div>
-                    <div className="clients-td-secondary">Citas Totales</div>
+              <div className="flex flex-col gap-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-(--color-muted) rounded-xl p-4 border border-(--color-border)">
+                    <div className="text-2xl font-bold text-(--color-foreground)">{history.summary.totalAppointments}</div>
+                    <div className="text-xs text-(--color-muted-foreground) mt-1">Citas Totales</div>
                   </div>
-                  <div className="card glass-card clients-history-stat-card">
-                    <div className="clients-history-stat-number">{history.summary.totalRecords}</div>
-                    <div className="clients-td-secondary">Fichas Clínicas</div>
+                  <div className="bg-(--color-muted) rounded-xl p-4 border border-(--color-border)">
+                    <div className="text-2xl font-bold text-(--color-foreground)">{history.summary.totalRecords}</div>
+                    <div className="text-xs text-(--color-muted-foreground) mt-1">Fichas Clínicas</div>
                   </div>
                 </div>
 
                 <section>
-                  <h3 className="clients-section-heading">Citas y Turnos</h3>
+                  <h3 className="text-base font-bold text-(--color-foreground) mb-3">Citas y Turnos</h3>
                   {history.appointments.length === 0 ? (
-                    <p className="clients-empty-text">No hay citas registradas.</p>
+                    <p className="text-sm text-(--color-muted-foreground) italic">No hay citas registradas.</p>
                   ) : (
-                    <div className="table-container clients-history-table-wrap">
-                      <table className="clients-history-table">
+                    <div className="w-full overflow-hidden rounded-xl border border-(--color-border)">
+                      <table className="w-full border-collapse">
                         <thead>
                           <tr>
-                            <th>Fecha</th>
-                            <th>Servicio</th>
-                            <th>Precio</th>
-                            <th>Estado</th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Fecha</th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Servicio</th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Precio</th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Estado</th>
                           </tr>
                         </thead>
                         <tbody>
                           {history.appointments.map(a => (
-                            <tr key={a.id}>
-                              <td>{new Date(a.date + 'T00:00:00').toLocaleDateString('es-AR')} {a.time}</td>
-                              <td>{a.service}</td>
-                              <td>${a.price.toLocaleString()}</td>
-                              <td><span className={`badge ${a.status === 'completado' ? 'completed' : a.status === 'cancelado' ? 'urgent' : 'pending'}`}>{a.status}</span></td>
+                            <tr key={a.id} className="border-b border-(--color-border) last:border-0">
+                              <td className="px-4 py-3 text-sm text-(--color-foreground)">{new Date(a.date + 'T00:00:00').toLocaleDateString('es-AR')} {a.time}</td>
+                              <td className="px-4 py-3 text-sm text-(--color-foreground)">{a.service}</td>
+                              <td className="px-4 py-3 text-sm text-(--color-foreground)">${a.price.toLocaleString()}</td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${
+                                  a.status === 'completado' ? 'bg-green-100 text-(--color-success)' :
+                                  a.status === 'cancelado' ? 'bg-red-100 text-(--color-destructive)' :
+                                  'bg-yellow-100 text-(--color-accent)'
+                                }`}>{a.status}</span>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -218,17 +236,17 @@ export default function Clients() {
                 </section>
 
                 <section>
-                  <h3 className="clients-section-heading">Fichas Clínicas</h3>
+                  <h3 className="text-base font-bold text-(--color-foreground) mb-3">Fichas Clínicas</h3>
                   {history.records.length === 0 ? (
-                    <p className="clients-empty-text">No hay fichas registradas.</p>
+                    <p className="text-sm text-(--color-muted-foreground) italic">No hay fichas registradas.</p>
                   ) : (
-                    <div className="clients-records-list">
+                    <div className="flex flex-col gap-3">
                       {history.records.map(r => (
-                        <div key={r.id} className="card clients-record-card">
-                          <div className="clients-record-date">{new Date(r.date + 'T00:00:00').toLocaleDateString('es-AR')}</div>
-                          <div className="clients-record-reason">{r.reason}</div>
-                          {r.treatment && <div className="clients-record-detail">tratamiento: {r.treatment}</div>}
-                          {r.observations && <div className="clients-record-observations">"{r.observations}"</div>}
+                        <div key={r.id} className="bg-(--color-card) rounded-xl p-4 border border-(--color-border) shadow-sm">
+                          <div className="text-xs text-(--color-muted-foreground) mb-1">{new Date(r.date + 'T00:00:00').toLocaleDateString('es-AR')}</div>
+                          <div className="font-semibold text-(--color-foreground)">{r.reason}</div>
+                          {r.treatment && <div className="text-sm text-(--color-muted-foreground) mt-1">tratamiento: {r.treatment}</div>}
+                          {r.observations && <div className="text-sm text-(--color-muted-foreground) mt-1 italic">"{r.observations}"</div>}
                         </div>
                       ))}
                     </div>
@@ -267,25 +285,27 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="card modal-card modal-md">
-        <h2 className="clients-modal-title">{title}</h2>
-        <form onSubmit={handleSubmit} className="form-group">
+    <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="modal-card modal-md bg-(--color-card) rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
+        <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">{title}</h2>
+        <form onSubmit={handleSubmit} className="form-group flex flex-col gap-3">
           {/* Identity & Contact Group */}
-          <div className="clients-modal-section">
-            <label className="clients-modal-section-label">Identidad y Contacto</label>
-            <div className="form-group clients-modal-fields">
-              <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className="input" />
-              <div className="form-row">
-                <input required name="phone" placeholder="Teléfono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className="input clients-input-flex" style={{ opacity: phoneDisabled ? 0.6 : 1 }} />
-                <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className="input clients-input-flex" />
+          <div className="bg-(--color-muted) rounded-xl p-4">
+            <label className="block text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Identidad y Contacto</label>
+            <div className="flex flex-col gap-3">
+              <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className={inputClass} />
+              <div className="flex gap-3">
+                <input required name="phone" placeholder="Teléfono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className={`flex-1 ${inputClass}`} style={{ opacity: phoneDisabled ? 0.6 : 1 }} />
+                <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className={`flex-1 ${inputClass}`} />
               </div>
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
-            <button type="submit" disabled={submitting} className="btn btn-primary">{submitting ? 'Guardando...' : 'Guardar'}</button>
+          <div className="flex justify-end gap-3 mt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md font-semibold text-sm text-(--color-muted-foreground) hover:bg-(--color-muted) transition-colors">Cancelar</button>
+            <button type="submit" disabled={submitting} className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-(--color-primary) text-white font-semibold hover:bg-(--color-accent) transition-all disabled:opacity-60">
+              {submitting ? 'Guardando...' : 'Guardar'}
+            </button>
           </div>
         </form>
       </div>

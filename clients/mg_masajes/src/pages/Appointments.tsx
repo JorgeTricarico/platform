@@ -157,41 +157,52 @@ export default function Appointments() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pendiente': return <span className="badge pending">Pendiente</span>;
-      case 'confirmado': return <span className="badge completed">Confirmado</span>;
-      case 'cancelado': return <span className="badge urgent">Cancelado</span>;
-      case 'completado': return <span className="badge">Completado</span>;
+      case 'pendiente': return <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-(--color-accent)">Pendiente</span>;
+      case 'confirmado': return <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-(--color-success)">Confirmado</span>;
+      case 'cancelado': return <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-(--color-destructive)">Cancelado</span>;
+      case 'completado': return <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-(--color-muted) text-(--color-foreground)">Completado</span>;
       default: return null;
     }
   };
 
+  const inputClass = "w-full px-3 py-2 rounded-md border border-(--color-border) bg-(--color-card) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50";
+
   return (
-    <div className="appointments-page">
-      <div className="flex-between appointments-page-header">
+    <div>
+      <div className="flex items-center justify-between mb-5">
         <div>
           <h1>Gestion de Citas</h1>
-          <p className="subtitle appointments-subtitle">Administra los turnos de tus clientes.</p>
+          <p className="subtitle" style={{ margin: 0 }}>Administra los turnos de tus clientes.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setIsModalOpen(true); setConflictError(''); }}>+ Nueva Cita</button>
+        <button
+          className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-(--color-primary) text-white font-semibold text-[15px] hover:bg-(--color-accent) hover:shadow-md transition-all"
+          onClick={() => { setIsModalOpen(true); setConflictError(''); }}
+        >
+          + Nueva Cita
+        </button>
       </div>
 
-      <div className="card appointments-list-card">
-        <div className="appointments-filters-bar">
+      <div className="bg-(--color-card) rounded-2xl shadow-sm border border-(--color-border) overflow-hidden">
+        <div className="flex flex-col gap-3 p-4 border-b border-(--color-border)">
           <input
             type="text"
             placeholder="Buscar por cliente o servicio..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-search"
+            className="input-search w-full px-4 py-2 rounded-xl border border-(--color-border) bg-(--color-muted) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50 text-sm"
           />
-          <div className="appointments-chip-row">
+          <div className="flex flex-wrap gap-2">
             {(['todos', 'proximas', 'historial', 'hoy', 'semana', 'mes'] as const).map((f) => {
               const label = { todos: 'Todos', proximas: 'Próximas', historial: 'Historial', hoy: 'Hoy', semana: 'Esta semana', mes: 'Este mes' }[f];
               return (
                 <button
                   key={f}
                   onClick={() => setDateFilter(f)}
-                  className={`chip${dateFilter === f ? ' chip-active' : ''}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                    dateFilter === f
+                      ? 'bg-(--color-primary) text-white border-(--color-primary)'
+                      : 'bg-(--color-muted) text-(--color-muted-foreground) border-(--color-border) hover:bg-(--color-border)'
+                  }`}
                 >
                   {label}
                 </button>
@@ -199,43 +210,43 @@ export default function Appointments() {
             })}
           </div>
         </div>
-        <div className="table-container">
-          <table>
+        <div className="w-full overflow-hidden">
+          <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th>Cliente</th>
-                <th>Servicio</th>
-                <th>Fecha / Hora</th>
-                <th>Precio</th>
-                <th>Estado</th>
-                <th>Acciones</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Cliente</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Servicio</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Fecha / Hora</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Precio</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Estado</th>
+                <th className="text-left px-5 py-4 text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider bg-(--color-muted) border-b border-(--color-border)">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(a => (
-                <tr key={a.id} className={a.status === 'cancelado' ? 'row-cancelled' : ''}>
-                  <td>
-                    <div className="appointments-client-name">{a.clientName}</div>
-                    <div className="appointments-client-phone">
+                <tr key={a.id} className={`border-b border-(--color-border) last:border-0 ${a.status === 'cancelado' ? 'opacity-60' : ''}`}>
+                  <td className="px-5 py-4 text-[15px] text-(--color-foreground) font-medium">
+                    <div className="font-semibold">{a.clientName}</div>
+                    <div className="flex items-center gap-1 text-xs text-(--color-muted-foreground) mt-0.5">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                       {a.clientPhone}
                     </div>
                   </td>
-                  <td>
-                    <div className="appointments-service-name">{a.service}</div>
-                    <div className="appointments-service-duration">{a.duration} min</div>
+                  <td className="px-5 py-4 text-[15px] text-(--color-foreground) font-medium">
+                    <div className="font-semibold">{a.service}</div>
+                    <div className="text-xs text-(--color-muted-foreground) mt-0.5">{a.duration} min</div>
                   </td>
-                  <td className="appointments-cell-bold">
+                  <td className="px-5 py-4 text-[15px] text-(--color-foreground) font-semibold">
                     {new Date(a.date + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })} {a.time}
                   </td>
-                  <td className="appointments-cell-bold">{BUSINESS.currency}{a.price.toLocaleString()}</td>
-                  <td>{getStatusBadge(a.status)}</td>
-                  <td>
-                    <div className="appointments-table-actions">
+                  <td className="px-5 py-4 text-[15px] text-(--color-foreground) font-semibold">{BUSINESS.currency}{a.price.toLocaleString()}</td>
+                  <td className="px-5 py-4">{getStatusBadge(a.status)}</td>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2">
                       <select
                         value={a.status}
                         onChange={(e) => handleStatusChange(a.id, e.target.value)}
-                        className="btn-small appointments-btn-cursor"
+                        className="px-2 py-1 text-xs rounded-md border border-(--color-border) bg-(--color-muted) text-(--color-foreground) cursor-pointer focus:outline-none"
                       >
                         <option value="pendiente">Pendiente</option>
                         <option value="confirmado">Confirmado</option>
@@ -244,12 +255,12 @@ export default function Appointments() {
                       </select>
                       <button
                         type="button"
-                        className="btn-small appointments-btn-cursor"
+                        className="px-3 py-1 text-xs rounded-md border border-(--color-border) bg-(--color-muted) text-(--color-foreground) hover:bg-(--color-border) transition-colors cursor-pointer"
                         onClick={() => openEdit(a)}
                       >Editar</button>
                       <button
                         type="button"
-                        className="btn-small appointments-btn-delete"
+                        className="px-3 py-1 text-xs rounded-md bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors cursor-pointer"
                         onClick={() => handleDelete(a.id)}
                       >Eliminar</button>
                     </div>
@@ -262,64 +273,64 @@ export default function Appointments() {
       </div>
 
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-md">
-            <h2 className="appointments-modal-title">Agendar Nueva Cita</h2>
-            <form onSubmit={handleSubmit} className="form-group">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="modal-card modal-md bg-(--color-card) rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
+            <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">Agendar Nueva Cita</h2>
+            <form onSubmit={handleSubmit} className="form-group flex flex-col gap-3">
               {/* Patient Group */}
-              <div className="appointments-form-section appointments-form-section-bg">
-                <label className="appointments-form-section-label">Información del Paciente</label>
-                <div className="form-row">
-                  <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className="input appointments-form-field-flex1" />
-                  <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className="input appointments-form-field-flex1" />
+              <div className="bg-(--color-muted) rounded-xl p-4">
+                <label className="block text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Información del Paciente</label>
+                <div className="flex gap-3">
+                  <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
+                  <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
                 </div>
               </div>
 
               {/* Service Details */}
-              <div className="appointments-form-section appointments-form-section-border">
-                <label className="appointments-form-section-label">Detalles del Servicio</label>
-                <select required name="service" value={formData.service} onChange={handleInputChange} className="input appointments-select-mb">
+              <div className="border border-(--color-border) rounded-xl p-4">
+                <label className="block text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Detalles del Servicio</label>
+                <select required name="service" value={formData.service} onChange={handleInputChange} className={`${inputClass} mb-3`}>
                   <option value="">Tipo de Masaje...</option>
                   {Object.keys(BUSINESS.services).map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
-                <div className="form-row">
-                  <div className="appointments-form-field-flex1">
-                    <label className="appointments-form-field-label">Duración (min)</label>
-                    <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className="input" />
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs text-(--color-muted-foreground) mb-1">Duración (min)</label>
+                    <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className={inputClass} />
                   </div>
-                  <div className="appointments-form-field-flex1">
-                    <label className="appointments-form-field-label">Precio ($)</label>
-                    <input required name="price" type="number" value={formData.price || ''} onChange={handleInputChange} className="input" placeholder="Precio ($)" />
+                  <div className="flex-1">
+                    <label className="block text-xs text-(--color-muted-foreground) mb-1">Precio ($)</label>
+                    <input required name="price" type="number" value={formData.price || ''} onChange={handleInputChange} className={inputClass} placeholder="Precio ($)" />
                   </div>
                 </div>
               </div>
 
               {/* Date/Time Group */}
-              <div className="appointments-form-section appointments-form-section-blue">
-                <label className="appointments-form-section-label-blue">Programación</label>
-                <div className="form-row">
-                  <div className="appointments-form-field-flex1">
-                    <label className="appointments-form-field-label">Fecha</label>
-                    <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input" />
+              <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4">
+                <label className="block text-xs font-semibold text-blue-600 uppercase tracking-wider mb-3">Programación</label>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs text-(--color-muted-foreground) mb-1">Fecha</label>
+                    <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className={inputClass} />
                   </div>
-                  <div className="appointments-form-field-flex1">
-                    <label className="appointments-form-field-label">Hora</label>
-                    <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input" />
+                  <div className="flex-1">
+                    <label className="block text-xs text-(--color-muted-foreground) mb-1">Hora</label>
+                    <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className={inputClass} />
                   </div>
                 </div>
               </div>
 
-              <input name="notes" placeholder="Notas adicionales (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
+              <input name="notes" placeholder="Notas adicionales (opcional)..." value={formData.notes} onChange={handleInputChange} className={inputClass} />
 
               {conflictError && (
-                <p className="appointments-conflict-error">{conflictError}</p>
+                <p className="text-sm text-(--color-destructive) bg-red-50 border border-red-100 rounded-md px-3 py-2">{conflictError}</p>
               )}
 
-              <div className="form-actions">
-                <button type="button" onClick={() => { setIsModalOpen(false); setConflictError(''); }} className="btn-secondary">Cancelar</button>
-                <button type="submit" disabled={submitting} className="btn btn-primary">
+              <div className="form-actions flex justify-end gap-3 mt-2">
+                <button type="button" onClick={() => { setIsModalOpen(false); setConflictError(''); }} className="px-4 py-2 rounded-md font-semibold text-sm text-(--color-muted-foreground) hover:bg-(--color-muted) transition-colors">Cancelar</button>
+                <button type="submit" disabled={submitting} className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-(--color-primary) text-white font-semibold hover:bg-(--color-accent) transition-all disabled:opacity-60">
                   {submitting ? 'Agendando...' : 'Agendar Cita'}
                 </button>
               </div>
@@ -329,41 +340,41 @@ export default function Appointments() {
       )}
 
       {editTarget !== null && (
-        <div className="modal-overlay">
-          <div className="card modal-card modal-md">
-            <h2 className="appointments-modal-title">Editar Cita</h2>
-            <form onSubmit={handleEditSubmit} className="form-group">
-              <div className="form-row">
-                <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className="input appointments-form-field-flex1" />
-                <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className="input appointments-form-field-flex1" />
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="modal-card modal-md bg-(--color-card) rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
+            <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">Editar Cita</h2>
+            <form onSubmit={handleEditSubmit} className="form-group flex flex-col gap-3">
+              <div className="flex gap-3">
+                <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
+                <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
               </div>
 
-              <select required name="service" value={formData.service} onChange={handleInputChange} className="input">
+              <select required name="service" value={formData.service} onChange={handleInputChange} className={inputClass}>
                 <option value="">Tipo de Masaje...</option>
                 {Object.keys(BUSINESS.services).map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
 
-              <div className="form-row">
-                <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className="input appointments-form-field-flex1" />
-                <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className="input appointments-form-field-flex1" />
+              <div className="flex gap-3">
+                <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
+                <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
               </div>
 
-              <div className="form-row">
-                <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className="input appointments-form-field-flex1" />
-                <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className="input appointments-form-field-flex1" />
+              <div className="flex gap-3">
+                <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
+                <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
               </div>
 
-              <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className="input" />
+              <input name="notes" placeholder="Notas (opcional)..." value={formData.notes} onChange={handleInputChange} className={inputClass} />
 
               {conflictError && (
-                <p className="appointments-conflict-error">{conflictError}</p>
+                <p className="text-sm text-(--color-destructive) bg-red-50 border border-red-100 rounded-md px-3 py-2">{conflictError}</p>
               )}
 
-              <div className="form-actions">
-                <button type="button" onClick={() => { setEditTarget(null); setConflictError(''); }} className="btn-secondary">Cancelar</button>
-                <button type="submit" disabled={submitting} className="btn btn-primary">
+              <div className="flex justify-end gap-3 mt-2">
+                <button type="button" onClick={() => { setEditTarget(null); setConflictError(''); }} className="px-4 py-2 rounded-md font-semibold text-sm text-(--color-muted-foreground) hover:bg-(--color-muted) transition-colors">Cancelar</button>
+                <button type="submit" disabled={submitting} className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-(--color-primary) text-white font-semibold hover:bg-(--color-accent) transition-all disabled:opacity-60">
                   {submitting ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
               </div>
