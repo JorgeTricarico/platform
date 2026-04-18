@@ -112,7 +112,7 @@ export default function Clients() {
       </div>
 
       {/* Mobile: cards */}
-      <div className="flex flex-col gap-3 md:hidden">
+      <div className="flex flex-col gap-3 lg:hidden">
         {clients.length === 0 ? (
           <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">
             No se encontraron clientes.
@@ -155,7 +155,7 @@ export default function Clients() {
       </div>
 
       {/* Desktop: table */}
-      <div className="hidden md:block rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+      <div className="hidden lg:block rounded-xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

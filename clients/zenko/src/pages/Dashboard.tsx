@@ -166,7 +166,7 @@ export default function Dashboard() {
         ) : (
           <>
             {/* Mobile: cards */}
-            <div className="flex flex-col gap-3 md:hidden">
+            <div className="flex flex-col gap-3 lg:hidden">
               {urgentGarments.map(g => (
                 <Card key={g.id}>
                   <CardContent className="p-4">
@@ -194,7 +194,7 @@ export default function Dashboard() {
             </div>
 
             {/* Desktop: table */}
-            <Card className="hidden md:block overflow-hidden">
+            <Card className="hidden lg:block overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>

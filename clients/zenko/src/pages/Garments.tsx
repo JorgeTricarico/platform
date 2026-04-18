@@ -16,11 +16,11 @@ import { Search, SlidersHorizontal, X, Smartphone } from 'lucide-react';
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.matchMedia('(max-width: 768px)').matches;
+    return window.matchMedia('(max-width: 1024px)').matches;
   });
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
+    const mq = window.matchMedia('(max-width: 1024px)');
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
