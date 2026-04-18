@@ -5,8 +5,7 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "apps/*",
-    "tenants/*"
+    "apps/*"
   ],
   "scripts": {
     "dev": "turbo dev",

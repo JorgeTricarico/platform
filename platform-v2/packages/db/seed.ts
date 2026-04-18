@@ -40,8 +40,7 @@ async function main() {
       id: 'client-1',
       name: 'María González',
       phone: '1123456789',
-      email: 'maria@example.com',
-      business: 'zenco',
+      tenantId: 'zenco',
     },
     update: {},
   });
@@ -72,7 +71,7 @@ async function main() {
       id: 'client-2',
       name: 'Carlos Pérez',
       phone: '1198765432',
-      business: 'mg_masajes',
+      tenantId: 'mg_masajes',
     },
     update: {},
   });
@@ -87,11 +86,11 @@ async function main() {
     create: {
       id: 'appt-1',
       tenantId: 'mg_masajes',
-      clientId: 'client-2',
       clientName: 'Carlos Pérez',
       clientPhone: '1198765432',
       service: 'Masaje Relajante',
-      date: tomorrow,
+      date: tomorrow.toISOString().split('T')[0]!,
+      time: '10:00',
       duration: 60,
       price: 8000,
       status: 'pendiente',
