@@ -42,7 +42,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, true); // Still allow but log — don't block yet
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
