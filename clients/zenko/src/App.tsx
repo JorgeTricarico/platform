@@ -235,7 +235,7 @@ function AppContent() {
         </header>
 
         {/* Page content */}
-        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-6">
+        <div className="flex-1 flex flex-col overflow-y-auto bg-background p-4 md:p-6">
           <ErrorBoundary>
             <Suspense fallback={<div className="flex items-center justify-center min-h-60 text-muted-foreground">Cargando...</div>}>
               {activeTab === 'dashboard' && <Dashboard />}

@@ -184,7 +184,7 @@ export default function Finances() {
         ) : (
           <>
             {/* Mobile: cards */}
-            <div className="flex flex-col gap-3 md:hidden">
+            <div className="flex flex-col gap-3 lg:hidden">
               {finances.map(f => (
                 <div key={f.id} className="rounded-xl border border-border bg-card shadow-sm p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -215,7 +215,7 @@ export default function Finances() {
             </div>
 
             {/* Desktop: table */}
-            <div className="hidden md:block rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+            <div className="hidden lg:block rounded-xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
