@@ -1,26 +1,41 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db.js';
+import { whatsappService } from './services/whatsapp.js';
 
-const prisma = new PrismaClient();
+export async function checkOrders() {
+  console.log(`[${new Date().toISOString()}] Checking orders for Zenco...`);
 
-async function checkOrders() {
-  const orders = await prisma.order.findMany({
-    orderBy: { createdAt: 'asc' },
-    select: {
-      id: true,
-      orderNumber: true,
-      createdAt: true,
-      clientName: true,
-      intakeDate: true
+  try {
+    // 1. Find orders that are 'listo'
+    const readyOrders = await prisma.order.findMany({
+      where: {
+        status: 'listo',
+      },
+    });
+
+    console.log(`Encontrados ${readyOrders.length} pedidos listos.`);
+
+    for (const order of readyOrders) {
+      try {
+        await whatsappService.sendMessage(
+          order.clientPhone,
+          `Hola ${order.clientName}, tu prenda "${order.garmentName}" está lista para retirar!`
+        );
+      } catch (wsError) {
+        console.error(`Error enviando WhatsApp para pedido ${order.id}:`, wsError);
+      }
     }
-  });
 
-  console.log('ID | OrderNumber | CreatedAt | IntakeDate | Client');
-  console.log('---|-------------|-----------|------------|-------');
-  orders.forEach(o => {
-    console.log(`${o.id.slice(0, 8)}... | ${o.orderNumber} | ${o.createdAt.toISOString()} | ${o.intakeDate} | ${o.clientName}`);
-  });
+    return readyOrders;
+  } catch (error) {
+    console.error('Error al verificar pedidos:', error);
+    throw error;
+  }
 }
 
-checkOrders()
-  .catch(e => console.error(e))
-  .finally(() => prisma.$disconnect());
+// Ejecutar si se llama directamente
+const isMain = import.meta.url.endsWith(process.argv[1]) || (process.argv[1] && import.meta.url.includes(process.argv[1]));
+if (isMain && process.env.NODE_ENV !== 'test') {
+  checkOrders()
+    .catch(e => console.error(e))
+    .finally(() => prisma.$disconnect());
+}
