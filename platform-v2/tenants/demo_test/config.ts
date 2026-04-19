@@ -16,9 +16,9 @@ import type { TenantConfigInput } from '@platform/config'
 
 const config: TenantConfigInput = {
   // ── Identity ─────────────────────────────────────────────────────────────
-  slug: 'mg_masajes',
-  name: 'MG Masajes',
-  businessName: 'MG Masajes & Bienestar',
+  slug: 'demo_test',
+  name: 'Demo Test',
+  businessName: 'Demo Test Negocio',
   currency: 'ARS',
   timezone: 'America/Buenos_Aires',
   locale: 'es-AR',

@@ -68,12 +68,12 @@ function RecordModal({ title, onClose, onSubmit, form, onChange, submitting }: R
       >
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0 bg-card z-10">
           <h2 className="font-semibold text-base">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
         <form onSubmit={onSubmit} className="p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Fecha *</label>
               <input
@@ -153,7 +153,7 @@ function RecordModal({ title, onClose, onSubmit, form, onChange, submitting }: R
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted transition-colors"
+              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               Cancelar
             </button>
@@ -190,7 +190,7 @@ function RecordCard({ record, onEdit, onDelete }: RecordCardProps) {
         <div className="flex gap-1 flex-shrink-0">
           <button
             onClick={onEdit}
-            className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+            className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground"
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
@@ -488,7 +488,7 @@ function PatientRow({ client, tenant, isExpanded, onToggle }: PatientRowProps) {
             <div className="flex gap-2">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted transition-colors"
+                className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
               >
                 Cancelar
               </button>

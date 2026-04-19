@@ -15,12 +15,14 @@ import api from './router.js';
 
 import zencoConfigRaw from '../../../tenants/zenco/config.js';
 import mgMasajesConfigRaw from '../../../tenants/mg_masajes/config.js';
+import demoTestConfigRaw from '../../../tenants/demo_test/config.js';
 import { TenantConfigSchema } from '@platform/config';
 import type { TenantConfig } from '@platform/config';
 
 const TENANT_CONFIGS: Record<string, TenantConfig> = {
   zenco: TenantConfigSchema.parse(zencoConfigRaw),
   mg_masajes: TenantConfigSchema.parse(mgMasajesConfigRaw),
+  demo_test: TenantConfigSchema.parse(demoTestConfigRaw),
 };
 
 async function loadTenantRegistry(): Promise<void> {

@@ -183,10 +183,10 @@ export function Sidebar({
         {/* Mobile close */}
         <button
           onClick={onClose}
-          className="md:hidden flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-sidebar-foreground/50 hover:bg-sidebar-accent transition-colors"
+          className="md:hidden flex w-full items-center justify-center gap-2 rounded-lg px-2.5 py-3 mt-2 text-sm font-medium text-sidebar-foreground bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors border border-sidebar-border"
         >
           <X className="w-4 h-4" />
-          {!isCollapsed && <span>Cerrar</span>}
+          {!isCollapsed && <span>Cerrar menú</span>}
         </button>
       </div>
     </aside>

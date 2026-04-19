@@ -100,12 +100,12 @@ function AppointmentModal({ title, onClose, onSubmit, form, onChange, tenant, su
       >
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h2 className="font-semibold text-base">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
         <form onSubmit={onSubmit} className="p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Nombre cliente *</label>
               <input
@@ -139,7 +139,7 @@ function AppointmentModal({ title, onClose, onSubmit, form, onChange, tenant, su
                     'px-3 py-1 rounded-full text-xs font-medium border transition-colors capitalize',
                     form.service === t
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'border-border hover:bg-muted',
+                      : 'border-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   )}
                 >
                   {t}
@@ -154,7 +154,7 @@ function AppointmentModal({ title, onClose, onSubmit, form, onChange, tenant, su
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Fecha *</label>
               <input
@@ -177,7 +177,7 @@ function AppointmentModal({ title, onClose, onSubmit, form, onChange, tenant, su
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Duración (min)</label>
               <input
@@ -234,7 +234,7 @@ function AppointmentModal({ title, onClose, onSubmit, form, onChange, tenant, su
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted transition-colors"
+              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               Cancelar
             </button>
@@ -448,14 +448,14 @@ export default function Appointments({ tenant }: AppointmentsProps) {
           <div className="flex rounded-lg border overflow-hidden">
             <button
               onClick={() => setViewMode('list')}
-              className={cn('p-2 text-sm transition-colors', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+              className={cn('p-2 text-sm transition-colors', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring')}
               title="Vista lista"
             >
               <List className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={cn('p-2 text-sm transition-colors', viewMode === 'calendar' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+              className={cn('p-2 text-sm transition-colors', viewMode === 'calendar' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring')}
               title="Vista calendario"
             >
               <Calendar className="w-4 h-4" />
@@ -492,7 +492,7 @@ export default function Appointments({ tenant }: AppointmentsProps) {
                 'px-3 py-1 rounded-full text-xs font-medium border transition-colors',
                 dateFilter === key
                   ? 'bg-primary text-primary-foreground border-primary'
-                  : 'border-border hover:bg-muted',
+                  : 'border-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               )}
             >
               {label}
@@ -539,7 +539,7 @@ export default function Appointments({ tenant }: AppointmentsProps) {
                           <MessageCircle className="w-3.5 h-3.5" />
                         </button>
                       )}
-                      <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                      <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button onClick={() => setConfirmDelete(a)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
@@ -587,7 +587,7 @@ export default function Appointments({ tenant }: AppointmentsProps) {
                             <MessageCircle className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                        <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button onClick={() => setConfirmDelete(a)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
@@ -622,7 +622,7 @@ export default function Appointments({ tenant }: AppointmentsProps) {
                         <MessageCircle className="w-3.5 h-3.5" />
                       </button>
                     )}
-                    <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                    <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button onClick={() => setConfirmDelete(a)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
@@ -673,7 +673,7 @@ export default function Appointments({ tenant }: AppointmentsProps) {
               ¿Seguro que querés eliminar el turno de <strong>{confirmDelete.clientName}</strong> del {formatDate(confirmDelete.date)}?
             </p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted transition-colors">
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
                 Cancelar
               </button>
               <button onClick={handleDelete} className="flex-1 rounded-lg bg-destructive text-destructive-foreground py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity">
