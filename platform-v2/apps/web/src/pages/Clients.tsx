@@ -79,7 +79,7 @@ function ClientHistoryModal({ client, tenant, onClose }: HistoryModalProps) {
             <h2 className="font-semibold">{client.name}</h2>
             <p className="text-xs text-muted-foreground">{client.phone}</p>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -192,7 +192,7 @@ function ClientModal({ title, onClose, onSubmit, form, onChange, submitting }: C
       <div className="bg-card rounded-2xl border shadow-xl w-full max-w-sm">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h2 className="font-semibold text-base">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -232,7 +232,7 @@ function ClientModal({ title, onClose, onSubmit, form, onChange, submitting }: C
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted transition-colors"
+              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               Cancelar
             </button>
@@ -422,13 +422,13 @@ export default function Clients({ tenant }: ClientsProps) {
                             <Phone className="w-3.5 h-3.5" />
                           </a>
                         )}
-                        <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                        <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button onClick={() => setConfirmDelete(c)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => setHistoryClient(c)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                        <button onClick={() => setHistoryClient(c)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                           <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -458,7 +458,7 @@ export default function Clients({ tenant }: ClientsProps) {
                   {c.phone && <p className="text-xs text-muted-foreground">{c.phone}</p>}
                 </div>
                 <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                  <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => setConfirmDelete(c)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
@@ -511,7 +511,7 @@ export default function Clients({ tenant }: ClientsProps) {
               ¿Seguro que querés eliminar a <strong>{confirmDelete.name}</strong>? Esta acción no se puede deshacer.
             </p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted transition-colors">
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
                 Cancelar
               </button>
               <button onClick={handleDelete} className="flex-1 rounded-lg bg-destructive text-destructive-foreground py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity">

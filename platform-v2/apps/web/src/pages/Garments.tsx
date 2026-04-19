@@ -102,12 +102,12 @@ function GarmentModal({
       >
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h2 className="font-semibold text-base">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
         <form onSubmit={onSubmit} className="p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Nombre cliente *</label>
               <input
@@ -152,7 +152,7 @@ function GarmentModal({
                     'px-3 py-1 rounded-full text-xs font-medium border transition-colors capitalize',
                     form.repairType === t
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'border-border hover:bg-muted',
+                      : 'border-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   )}
                 >
                   {t}
@@ -178,7 +178,7 @@ function GarmentModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Estado</label>
               <select
@@ -202,7 +202,7 @@ function GarmentModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Precio *</label>
               <input
@@ -241,7 +241,7 @@ function GarmentModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted transition-colors"
+              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               Cancelar
             </button>
@@ -445,7 +445,7 @@ export default function Garments({ tenant }: GarmentsProps) {
             onClick={() => setShowFilters((v) => !v)}
             className={cn(
               'flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-colors',
-              showFilters ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
+              showFilters ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             )}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -463,7 +463,7 @@ export default function Garments({ tenant }: GarmentsProps) {
                 'px-3 py-1 rounded-full text-xs font-medium border transition-colors',
                 statusFilter === key
                   ? 'bg-primary text-primary-foreground border-primary'
-                  : 'border-border hover:bg-muted',
+                  : 'border-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               )}
             >
               {label}
@@ -577,7 +577,7 @@ export default function Garments({ tenant }: GarmentsProps) {
                 <button
                   onClick={() => openEdit(item)}
                   title="Editar"
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                  className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
@@ -621,7 +621,7 @@ export default function Garments({ tenant }: GarmentsProps) {
                       <MessageCircle className="w-3.5 h-3.5" />
                     </button>
                   )}
-                  <button onClick={() => openEdit(item)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                  <button onClick={() => openEdit(item)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => setConfirmDelete(item)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
@@ -686,7 +686,7 @@ export default function Garments({ tenant }: GarmentsProps) {
               ¿Seguro que querés eliminar la orden de <strong>{confirmDelete.clientName}</strong>? Esta acción no se puede deshacer.
             </p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted transition-colors">
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
                 Cancelar
               </button>
               <button onClick={handleDelete} className="flex-1 rounded-lg bg-destructive text-destructive-foreground py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity">

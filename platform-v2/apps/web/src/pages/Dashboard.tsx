@@ -169,7 +169,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
         <button
           onClick={() => loadData(true)}
           disabled={refreshing}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <RefreshCw className={cn('w-3.5 h-3.5', refreshing && 'animate-spin')} />
           <span className="hidden sm:inline">Actualizar</span>
@@ -177,7 +177,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {loading ? (
           <>
             <StatCardSkeleton />
@@ -282,11 +282,11 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
       {/* Quick actions */}
       <div className="mt-4 rounded-xl border bg-card p-4 shadow-sm">
         <h3 className="text-sm font-semibold mb-3">Acciones rápidas</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2">
           {features.orders && (
             <button
               onClick={() => onNavigate('garments')}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
+              className="flex items-center justify-center md:justify-start gap-1.5 text-sm px-3 py-2 rounded-lg border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               Nueva orden
@@ -295,7 +295,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
           {features.appointments && (
             <button
               onClick={() => onNavigate('appointments')}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
+              className="flex items-center justify-center md:justify-start gap-1.5 text-sm px-3 py-2 rounded-lg border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               Nuevo turno
@@ -304,7 +304,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
           {features.finance && (
             <button
               onClick={() => onNavigate('finances')}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
+              className="flex items-center justify-center md:justify-start gap-1.5 text-sm px-3 py-2 rounded-lg border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               Registrar ingreso
@@ -312,7 +312,7 @@ export default function Dashboard({ tenant, onNavigate }: DashboardProps) {
           )}
           <button
             onClick={() => onNavigate('clients')}
-            className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
+            className="flex items-center justify-center md:justify-start gap-1.5 text-sm px-3 py-2 rounded-lg border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Nuevo cliente

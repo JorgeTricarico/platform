@@ -113,7 +113,7 @@ const config: TenantConfigInput = {
     appointments: false,
     patientRecords: false,
     finances: true,
-    whatsapp: true,
+    whatsapp: false,
     whatsappNotifications: true,
     aiChat: true,
     photoGallery: true,

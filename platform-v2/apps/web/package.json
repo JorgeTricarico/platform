@@ -14,9 +14,11 @@
     "@platform/api-client": "*",
     "@platform/config": "*",
     "@platform/types": "*",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.2",

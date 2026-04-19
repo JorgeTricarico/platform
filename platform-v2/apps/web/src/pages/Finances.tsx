@@ -53,7 +53,7 @@ function FinanceModal({ title, onClose, onSubmit, form, onChange, submitting }: 
       <div className="bg-card rounded-2xl border shadow-xl w-full max-w-sm">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h2 className="font-semibold text-base">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -65,7 +65,7 @@ function FinanceModal({ title, onClose, onSubmit, form, onChange, submitting }: 
               onClick={() => { onChange('type', 'ingreso'); onChange('category', ''); }}
               className={cn(
                 'flex-1 py-2 text-sm font-medium transition-colors',
-                form.type === 'ingreso' ? 'bg-emerald-600 text-white' : 'hover:bg-muted',
+                form.type === 'ingreso' ? 'bg-emerald-600 text-white' : 'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               )}
             >
               Ingreso
@@ -75,7 +75,7 @@ function FinanceModal({ title, onClose, onSubmit, form, onChange, submitting }: 
               onClick={() => { onChange('type', 'gasto'); onChange('category', ''); }}
               className={cn(
                 'flex-1 py-2 text-sm font-medium transition-colors',
-                form.type === 'gasto' ? 'bg-red-600 text-white' : 'hover:bg-muted',
+                form.type === 'gasto' ? 'bg-red-600 text-white' : 'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               )}
             >
               Gasto
@@ -94,7 +94,7 @@ function FinanceModal({ title, onClose, onSubmit, form, onChange, submitting }: 
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Monto *</label>
               <input
@@ -132,7 +132,7 @@ function FinanceModal({ title, onClose, onSubmit, form, onChange, submitting }: 
                     'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors capitalize',
                     form.category === cat
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'border-border hover:bg-muted',
+                      : 'border-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   )}
                 >
                   {cat}
@@ -151,7 +151,7 @@ function FinanceModal({ title, onClose, onSubmit, form, onChange, submitting }: 
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted transition-colors"
+              className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             >
               Cancelar
             </button>
@@ -327,7 +327,7 @@ export default function Finances({ tenant }: FinancesProps) {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
         <div className="stat-card">
           <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1">
             <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> Ingresos
@@ -368,7 +368,7 @@ export default function Finances({ tenant }: FinancesProps) {
             onClick={() => setTypeFilter(t)}
             className={cn(
               'px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors capitalize',
-              typeFilter === t ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
+              typeFilter === t ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             )}
           >
             {t === 'all' ? 'Todos' : t === 'ingreso' ? 'Ingresos' : 'Gastos'}
@@ -430,7 +430,7 @@ export default function Finances({ tenant }: FinancesProps) {
                     </td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => openEdit(f)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                        <button onClick={() => openEdit(f)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button onClick={() => setConfirmDelete(f)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
@@ -465,7 +465,7 @@ export default function Finances({ tenant }: FinancesProps) {
                   {formatCurrency(f.amount, tenant.currency)}
                 </p>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => openEdit(f)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                  <button onClick={() => openEdit(f)} className="p-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-muted-foreground">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => setConfirmDelete(f)} className="p-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors text-muted-foreground">
@@ -509,7 +509,7 @@ export default function Finances({ tenant }: FinancesProps) {
               ¿Eliminar "<strong>{confirmDelete.description}</strong>"?
             </p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted transition-colors">Cancelar</button>
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border py-2.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors">Cancelar</button>
               <button onClick={handleDelete} className="flex-1 rounded-lg bg-destructive text-destructive-foreground py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity">Eliminar</button>
             </div>
           </div>
