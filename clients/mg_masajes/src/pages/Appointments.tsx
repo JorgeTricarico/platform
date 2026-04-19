@@ -224,7 +224,7 @@ export default function Appointments() {
             })}
           </div>
         </div>
-        <div className="w-full overflow-hidden">
+        <div className="w-full overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr>

@@ -171,7 +171,7 @@ export default function Finances() {
 
       <h2 className="mb-3 text-lg font-bold flex-shrink-0">Últimos Movimientos</h2>
       <div className="bg-(--color-card) rounded-2xl shadow-sm border border-(--color-border) overflow-hidden flex flex-col">
-        <div className="w-full overflow-hidden">
+        <div className="w-full overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr>
