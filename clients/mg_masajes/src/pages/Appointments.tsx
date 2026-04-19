@@ -280,7 +280,7 @@ export default function Appointments() {
               {/* Patient Group */}
               <div className="bg-(--color-muted) rounded-xl p-4">
                 <label className="block text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Información del Paciente</label>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
                   <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
                 </div>
@@ -295,7 +295,7 @@ export default function Appointments() {
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
                     <label className="block text-xs text-(--color-muted-foreground) mb-1">Duración (min)</label>
                     <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className={inputClass} />
@@ -310,7 +310,7 @@ export default function Appointments() {
               {/* Date/Time Group */}
               <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4">
                 <label className="block text-xs font-semibold text-blue-600 uppercase tracking-wider mb-3">Programación</label>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
                     <label className="block text-xs text-(--color-muted-foreground) mb-1">Fecha</label>
                     <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className={inputClass} />
@@ -344,7 +344,7 @@ export default function Appointments() {
           <div className="modal-card modal-md bg-(--color-card) rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
             <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">Editar Cita</h2>
             <form onSubmit={handleEditSubmit} className="form-group flex flex-col gap-3">
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input required name="clientName" placeholder="Nombre completo" value={formData.clientName} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
                 <input required name="clientPhone" placeholder="Teléfono" value={formData.clientPhone} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
               </div>
@@ -356,12 +356,12 @@ export default function Appointments() {
                 ))}
               </select>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input required name="duration" type="number" placeholder="Duración (min)" value={formData.duration} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
                 <input required name="price" type="number" placeholder="Precio ($)" value={formData.price || ''} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input required name="date" type="date" value={formData.date} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
                 <input required name="time" type="time" value={formData.time} onChange={handleInputChange} className={`flex-1 ${inputClass}`} />
               </div>

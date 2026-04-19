@@ -195,7 +195,7 @@ export default function Patients() {
               <form onSubmit={handleNewRecord} className="flex flex-col gap-3">
                 <div className="bg-(--color-muted) rounded-xl p-4">
                   <label className="block text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Detalles de la Consulta</label>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex-1">
                       <label className="block text-xs text-(--color-muted-foreground) mb-1">Fecha</label>
                       <input required name="date" type="date" value={recordForm.date} onChange={e => setRecordForm(p => ({ ...p, date: e.target.value }))} className={inputClass} />

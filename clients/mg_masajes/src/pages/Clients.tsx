@@ -294,7 +294,7 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
             <label className="block text-xs font-semibold text-(--color-muted-foreground) uppercase tracking-wider mb-3">Identidad y Contacto</label>
             <div className="flex flex-col gap-3">
               <input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} className={inputClass} />
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input required name="phone" placeholder="Teléfono principal" value={form.phone} onChange={handle} disabled={phoneDisabled} className={`flex-1 ${inputClass}`} style={{ opacity: phoneDisabled ? 0.6 : 1 }} />
                 <input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} className={`flex-1 ${inputClass}`} />
               </div>

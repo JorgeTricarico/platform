@@ -220,7 +220,7 @@ export default function Finances() {
           <div className="modal-card modal-md bg-(--color-card) rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
             <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">Nuevo Registro Financiero</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <label className="block text-xs text-(--color-muted-foreground) mb-1">Tipo</label>
                   <select name="type" value={form.type} onChange={handle} className={inputClass}>
@@ -234,7 +234,7 @@ export default function Finances() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-[2]">
                   <label className="block text-xs text-(--color-muted-foreground) mb-1">Concepto</label>
                   <input required name="category" placeholder={form.type === 'income' ? 'Ej: Masaje Descontracturante' : 'Ej: Aceites y cremas'} value={form.category} onChange={handle} className={inputClass} />
@@ -264,7 +264,7 @@ export default function Finances() {
           <div className="bg-(--color-card) rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl border border-(--color-border)">
             <h2 className="text-xl font-bold text-(--color-foreground) mb-4 mt-0">Editar Registro</h2>
             <form onSubmit={handleEditSubmit} className="flex flex-col gap-3">
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <select name="type" value={editForm.type} onChange={handleEditChange} className={`flex-1 ${inputClass}`}>
                   <option value="income">Ingreso</option>
                   <option value="expense">Gasto</option>
