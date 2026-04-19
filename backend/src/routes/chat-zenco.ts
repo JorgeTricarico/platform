@@ -53,13 +53,18 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
           take: 3,
         });
         if (clients.length > 0) {
+          const clientPhones = clients.map(c => c.phone);
+          const allOrders = await prisma.order.findMany({
+            where: { clientPhone: { in: clientPhones } },
+            orderBy: { createdAt: 'desc' },
+          });
+
           for (const client of clients) {
             parts.push(`CLIENTE ENCONTRADO POR NOMBRE: ${client.name} (tel: ${client.phone})`);
-            const orders = await prisma.order.findMany({
-              where: { clientPhone: client.phone },
-              orderBy: { createdAt: 'desc' },
-              take: 5,
-            });
+            const orders = allOrders
+              .filter(o => o.clientPhone === client.phone)
+              .slice(0, 5);
+
             if (orders.length > 0) {
               parts.push(`  Pedidos:`);
               for (const o of orders) {
