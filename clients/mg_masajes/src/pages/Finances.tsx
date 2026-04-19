@@ -24,6 +24,14 @@ export default function Finances() {
   const [filterMonth, setFilterMonth] = useState('');
   const [submittingCreate, setSubmittingCreate] = useState(false);
   const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Auto-reset delete confirmation after 2 seconds
+  useEffect(() => {
+    if (!deleteConfirm) return;
+    const timer = setTimeout(() => setDeleteConfirm(null), 2000);
+    return () => clearTimeout(timer);
+  }, [deleteConfirm]);
 
   // Edit state
   const [editTarget, setEditTarget] = useState<DBFinance | null>(null);
@@ -97,10 +105,15 @@ export default function Finances() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) return;
+    if (deleteConfirm !== id) {
+      setDeleteConfirm(id);
+      return;
+    }
+
     try {
       await deleteFinance(id);
       toast.success('Registro eliminado correctamente');
+      setDeleteConfirm(null);
       load(filterMonth);
     } catch {
       toast.error('Error al eliminar el registro');
@@ -195,12 +208,21 @@ export default function Finances() {
                       >
                         Editar
                       </button>
-                      <button
-                        className="px-3 py-1 text-xs rounded-md bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
-                        onClick={() => handleDelete(f.id)}
-                      >
-                        Eliminar
-                      </button>
+                      {deleteConfirm === f.id ? (
+                        <button
+                          className="px-3 py-1 text-xs rounded-md bg-red-600 border border-red-600 text-white hover:bg-red-700 transition-colors font-bold animate-[confirm-shake_0.3s_ease]"
+                          onClick={() => handleDelete(f.id)}
+                        >
+                          Borrar?
+                        </button>
+                      ) : (
+                        <button
+                          className="px-3 py-1 text-xs rounded-md bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
+                          onClick={() => handleDelete(f.id)}
+                        >
+                          Eliminar
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

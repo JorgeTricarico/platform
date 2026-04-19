@@ -359,6 +359,13 @@ export default function Ambient() {
     }
   }, []);
 
+  // Auto-reset delete confirmation after 2 seconds
+  useEffect(() => {
+    if (!deleteConfirm) return;
+    const timer = setTimeout(() => setDeleteConfirm(null), 2000);
+    return () => clearTimeout(timer);
+  }, [deleteConfirm]);
+
   // BUG FIX: inline delete confirmation instead of window.confirm
   const handleDeleteClick = useCallback((e: React.MouseEvent, trackId: string) => {
     e.stopPropagation();
@@ -369,17 +376,19 @@ export default function Ambient() {
         setActiveTrack(null);
         setIsPlaying(false);
       }
+
+      const trackToDelete = tracksRef.current.find(t => t.id === trackId);
+      if (trackToDelete) {
+        URL.revokeObjectURL(trackToDelete.url);
+        objectUrlsRef.current = objectUrlsRef.current.filter(url => url !== trackToDelete.url);
+      }
+
       deleteFromDB(trackId);
-      setTracks(prev => {
-        const t = prev.find(x => x.id === trackId);
-        if (t) URL.revokeObjectURL(t.url);
-        return prev.filter(x => x.id !== trackId);
-      });
+      setTracks(prev => prev.filter(x => x.id !== trackId));
       setDeleteConfirm(null);
     } else {
-      // Start confirmation — auto-reset after 2s
+      // Start confirmation
       setDeleteConfirm(trackId);
-      setTimeout(() => setDeleteConfirm(prev => prev === trackId ? null : prev), 2000);
     }
   }, [deleteConfirm, activeTrack]);
 

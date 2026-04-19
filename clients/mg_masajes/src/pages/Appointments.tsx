@@ -14,6 +14,15 @@ export default function Appointments() {
   const [editTarget, setEditTarget] = useState<DBAppointment | null>(null);
   const [conflictError, setConflictError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Auto-reset delete confirmation after 2 seconds
+  useEffect(() => {
+    if (!deleteConfirm) return;
+    const timer = setTimeout(() => setDeleteConfirm(null), 2000);
+    return () => clearTimeout(timer);
+  }, [deleteConfirm]);
+
   const [dateFilter, setDateFilter] = useState<'todos' | 'hoy' | 'semana' | 'mes' | 'proximas' | 'historial'>('todos');
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', service: '', duration: 40, date: new Date().toISOString().split('T')[0], time: '', price: 0, notes: ''
@@ -108,10 +117,15 @@ export default function Appointments() {
   useEffect(() => { loadData(); }, []);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Eliminar esta cita?')) return;
+    if (deleteConfirm !== id) {
+      setDeleteConfirm(id);
+      return;
+    }
+
     try {
       await deleteAppointment(id);
       toast.success('Cita eliminada');
+      setDeleteConfirm(null);
       loadData();
     } catch {
       toast.error('Error al eliminar la cita');
@@ -258,11 +272,19 @@ export default function Appointments() {
                         className="px-3 py-1 text-xs rounded-md border border-(--color-border) bg-(--color-muted) text-(--color-foreground) hover:bg-(--color-border) transition-colors cursor-pointer"
                         onClick={() => openEdit(a)}
                       >Editar</button>
-                      <button
-                        type="button"
-                        className="px-3 py-1 text-xs rounded-md bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors cursor-pointer"
-                        onClick={() => handleDelete(a.id)}
-                      >Eliminar</button>
+                      {deleteConfirm === a.id ? (
+                        <button
+                          type="button"
+                          className="px-3 py-1 text-xs rounded-md bg-red-600 border border-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer font-bold animate-[confirm-shake_0.3s_ease]"
+                          onClick={() => handleDelete(a.id)}
+                        >Borrar?</button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="px-3 py-1 text-xs rounded-md bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors cursor-pointer"
+                          onClick={() => handleDelete(a.id)}
+                        >Eliminar</button>
+                      )}
                     </div>
                   </td>
                 </tr>
