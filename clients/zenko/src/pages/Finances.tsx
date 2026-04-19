@@ -183,46 +183,14 @@ export default function Finances() {
           </div>
         ) : (
           <>
-            {/* Mobile: cards */}
-            <div className="flex flex-col gap-3 md:hidden">
-              {finances.map(f => (
-                <div key={f.id} className="rounded-xl border border-border bg-card shadow-sm p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant={f.type === 'income' ? 'listo' : 'overdue'}>
-                      {f.type === 'income' ? 'Ingreso' : 'Gasto'}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(f.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
-                    </span>
-                  </div>
-                  <div className="font-semibold text-sm">{f.category}</div>
-                  {f.description && <div className="text-xs text-muted-foreground">{f.description}</div>}
-                  <div className={cn('text-lg font-bold mt-2', f.type === 'income' ? 'text-status-positive' : 'text-status-negative')}>
-                    {f.type === 'income' ? '+' : '-'}${f.amount.toLocaleString()}
-                  </div>
-                  <div className="flex gap-2 mt-3 pt-2 border-t border-border">
-                    <Button variant="outline" size="sm" onClick={() => openEdit(f)}>
-                      <Edit2 className="h-3.5 w-3.5" />
-                      Editar
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(f.id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Eliminar
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop: table */}
-            <div className="hidden md:block rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+              <div className="w-full overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-muted/40">
                       <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Fecha</th>
                       <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Tipo</th>
-                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Concepto / Descripción</th>
+                      <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Concepto / Descripcion</th>
                       <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Monto</th>
                       <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Acciones</th>
                     </tr>
@@ -271,7 +239,7 @@ export default function Finances() {
 
       {/* Dialog Nuevo Registro */}
       <Dialog open={isModalOpen} onOpenChange={open => { if (!open) { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); } }}>
-        <DialogContent onClose={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto" onClose={() => { setIsModalOpen(false); setForm({ ...EMPTY_FORM }); }}>
           <DialogHeader>
             <DialogTitle>Nuevo Registro Financiero</DialogTitle>
           </DialogHeader>
@@ -292,7 +260,7 @@ export default function Finances() {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex flex-col gap-1.5 sm:flex-[2]">
-                <label className="text-xs font-medium text-muted-foreground">Categoría / Concepto</label>
+                <label className="text-xs font-medium text-muted-foreground">Concepto</label>
                 <Input
                   required
                   name="category"
@@ -323,7 +291,7 @@ export default function Finances() {
 
       {/* Dialog Editar Registro */}
       <Dialog open={!!editTarget} onOpenChange={open => { if (!open) setEditTarget(null); }}>
-        <DialogContent onClose={() => setEditTarget(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto" onClose={() => setEditTarget(null)}>
           <DialogHeader>
             <DialogTitle>Editar Registro</DialogTitle>
           </DialogHeader>
