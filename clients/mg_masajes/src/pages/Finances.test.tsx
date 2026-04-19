@@ -244,6 +244,7 @@ describe('D19 — Delete finance', () => {
       expect(screen.getByText('Sesion')).toBeDefined();
     });
     fireEvent.click(screen.getByText('Eliminar'));
+    fireEvent.click(screen.getByText('Borrar?'));
     await waitFor(() => {
       expect(deleteFinance).toHaveBeenCalledWith('f1');
     });

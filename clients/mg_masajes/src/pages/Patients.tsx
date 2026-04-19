@@ -258,7 +258,7 @@ export default function Patients() {
             className="w-full px-4 py-2 rounded-xl border border-(--color-border) bg-(--color-muted) text-(--color-foreground) focus:outline-none focus:ring-2 focus:ring-(--color-primary)/50 text-sm"
           />
         </div>
-        <div className="w-full overflow-hidden">
+        <div className="w-full overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr>
