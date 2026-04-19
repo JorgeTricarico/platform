@@ -15,10 +15,17 @@ interface GeminiHistoryEntry {
   parts: { text: string }[];
 }
 
+interface GeminiSchema {
+  type: string;
+  description?: string;
+  required?: string[];
+  properties?: Record<string, GeminiSchema>;
+}
+
 interface FunctionDecl {
   name: string;
   description: string;
-  parameters: any;
+  parameters: GeminiSchema;
 }
 
 interface ChatOptions {
@@ -26,7 +33,30 @@ interface ChatOptions {
   message: string;
   history?: GeminiHistoryEntry[];
   tools?: { functionDeclarations: FunctionDecl[] }[];
-  onFunctionCall?: (name: string, args: Record<string, string>) => Promise<any>;
+  onFunctionCall?: (name: string, args: Record<string, string>) => Promise<unknown>;
+}
+
+interface OpenAIMessage {
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string | null;
+  tool_calls?: {
+    id: string;
+    type: 'function';
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }[];
+  tool_call_id?: string;
+}
+
+interface OpenAITool {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+  };
 }
 
 interface ChatResult {
@@ -49,8 +79,8 @@ const PROVIDERS: Provider[] = [
 ];
 
 /** Convert Gemini history to OpenAI messages */
-function toOpenAIMessages(systemPrompt: string, history: GeminiHistoryEntry[], message: string) {
-  const messages: any[] = [{ role: 'system', content: systemPrompt }];
+function toOpenAIMessages(systemPrompt: string, history: GeminiHistoryEntry[], message: string): OpenAIMessage[] {
+  const messages: OpenAIMessage[] = [{ role: 'system', content: systemPrompt }];
   for (const h of history) {
     messages.push({
       role: h.role === 'user' ? 'user' : 'assistant',
@@ -62,8 +92,8 @@ function toOpenAIMessages(systemPrompt: string, history: GeminiHistoryEntry[], m
 }
 
 /** Convert our tool declarations to OpenAI format */
-function toOpenAITools(tools: { functionDeclarations: FunctionDecl[] }[]) {
-  const result: any[] = [];
+function toOpenAITools(tools: { functionDeclarations: FunctionDecl[] }[]): OpenAITool[] {
+  const result: OpenAITool[] = [];
   for (const group of tools) {
     for (const fn of group.functionDeclarations) {
       result.push({
@@ -80,9 +110,9 @@ function toOpenAITools(tools: { functionDeclarations: FunctionDecl[] }[]) {
 }
 
 /** Convert Gemini SchemaType to JSON Schema */
-function convertSchemaType(param: any): any {
+function convertSchemaType(param: GeminiSchema): Record<string, unknown> {
   if (!param) return {};
-  const result: any = {};
+  const result: Record<string, unknown> = {};
 
   // Map Gemini schema types to JSON Schema
   const typeMap: Record<string, string> = { OBJECT: 'object', STRING: 'string', NUMBER: 'number', BOOLEAN: 'boolean', ARRAY: 'array' };
@@ -94,11 +124,24 @@ function convertSchemaType(param: any): any {
   if (param.properties) {
     result.properties = {};
     for (const [key, val] of Object.entries(param.properties)) {
-      result.properties[key] = convertSchemaType(val);
+      (result.properties as Record<string, unknown>)[key] = convertSchemaType(val);
     }
   }
 
   return result;
+}
+
+interface GeminiModelConfig {
+  model: string;
+  systemInstruction?: string;
+  tools?: { functionDeclarations: FunctionDecl[] }[];
+}
+
+interface OpenAIRequestBody {
+  model: string;
+  messages: OpenAIMessage[];
+  max_tokens: number;
+  tools?: OpenAITool[];
 }
 
 /** Try Gemini (native function calling) */
@@ -107,13 +150,13 @@ async function tryGemini(opts: ChatOptions): Promise<ChatResult> {
   if (!apiKey) throw new Error('No GEMINI_API_KEY');
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const modelConfig: any = {
+  const modelConfig: GeminiModelConfig = {
     model: 'gemini-2.0-flash',
     systemInstruction: opts.systemPrompt,
   };
   if (opts.tools) modelConfig.tools = opts.tools;
 
-  const model = genAI.getGenerativeModel(modelConfig);
+  const model = genAI.getGenerativeModel(modelConfig as any);
   const chat = model.startChat({ history: opts.history || [] });
 
   let response = await chat.sendMessage(opts.message);
@@ -149,7 +192,7 @@ async function tryOpenAI(provider: Provider, opts: ChatOptions): Promise<ChatRes
   const messages = toOpenAIMessages(opts.systemPrompt, opts.history || [], opts.message);
   const useTools = provider.supportsTools && opts.tools && opts.tools.length > 0;
 
-  const body: any = {
+  const body: OpenAIRequestBody = {
     model: provider.model,
     messages,
     max_tokens: 500,
@@ -162,7 +205,7 @@ async function tryOpenAI(provider: Provider, opts: ChatOptions): Promise<ChatRes
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
-    let response: any;
+    let response: OpenAIMessage | undefined;
     let maxRounds = 3;
 
     while (maxRounds-- > 0) {
@@ -232,16 +275,18 @@ export async function chatWithFallback(opts: ChatOptions): Promise<ChatResult> {
   // 1. Try Gemini first
   try {
     return await tryGemini(opts);
-  } catch (e: any) {
-    errors.push(`gemini: ${e.message?.slice(0, 100)}`);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    errors.push(`gemini: ${msg.slice(0, 100)}`);
   }
 
   // 2. Fallback through OpenAI-compatible providers
   for (const provider of PROVIDERS) {
     try {
       return await tryOpenAI(provider, opts);
-    } catch (e: any) {
-      errors.push(`${provider.name}: ${e.message?.slice(0, 100)}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      errors.push(`${provider.name}: ${msg.slice(0, 100)}`);
     }
   }
 
