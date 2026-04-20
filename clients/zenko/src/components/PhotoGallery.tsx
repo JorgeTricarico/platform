@@ -29,6 +29,18 @@ export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
 
   useEffect(() => { load(); }, [garmentId]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && lightbox) {
+        setLightbox(null);
+      }
+    };
+    if (lightbox) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [lightbox]);
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -139,8 +151,9 @@ export default function PhotoGallery({ garmentId }: PhotoGalleryProps) {
             onClick={e => e.stopPropagation()}
           />
           <button
-            className="absolute top-5 right-5 bg-transparent border-none text-white text-4xl cursor-pointer leading-none flex items-center justify-center"
+            className="absolute top-5 right-5 bg-transparent border-none text-white text-4xl cursor-pointer leading-none flex items-center justify-center hover:opacity-75 transition-opacity"
             onClick={() => setLightbox(null)}
+            aria-label="Cerrar vista ampliada"
           >
             <X className="w-8 h-8" />
           </button>

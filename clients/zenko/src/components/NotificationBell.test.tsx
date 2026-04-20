@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import NotificationBell from './NotificationBell';
 import { mockNotifications } from '../mocks/data';
@@ -21,13 +21,13 @@ beforeEach(() => {
 });
 
 describe('NotificationBell', () => {
-  it('renders bell button', () => {
-    render(<NotificationBell clientId="all" />);
+  it('renders bell button', async () => {
+    await act(async () => { render(<NotificationBell clientId="all" />); });
     expect(screen.getByLabelText('Notificaciones')).toBeInTheDocument();
   });
 
   it('shows unread badge with correct count', async () => {
-    render(<NotificationBell clientId="all" />);
+    await act(async () => { render(<NotificationBell clientId="all" />); });
     await waitFor(() => {
       expect(screen.getByTestId('unread-badge')).toHaveTextContent('2');
     });
@@ -35,7 +35,7 @@ describe('NotificationBell', () => {
 
   it('does not show badge when all notifications are read', async () => {
     mockFetch.mockResolvedValue(mockNotifications.map(n => ({ ...n, read: true })));
-    render(<NotificationBell clientId="all" />);
+    await act(async () => { render(<NotificationBell clientId="all" />); });
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalled();
     });
@@ -85,6 +85,21 @@ describe('NotificationBell', () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('all');
     });
+  });
+
+  it('closes dropdown on Escape key', async () => {
+    render(<NotificationBell clientId="all" />);
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByLabelText('Notificaciones'));
+    expect(screen.getByTestId('notification-dropdown')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
+    });
+    expect(screen.queryByTestId('notification-dropdown')).not.toBeInTheDocument();
   });
 
   it('closes dropdown on outside click', async () => {

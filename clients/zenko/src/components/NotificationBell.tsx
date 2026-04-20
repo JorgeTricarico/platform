@@ -33,6 +33,18 @@ export default function NotificationBell({ clientId, pollInterval = 30000 }: Not
 
   // Close dropdown on outside click
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && open) {
+        setOpen(false);
+      }
+    };
+    if (open) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
+  useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
@@ -72,6 +84,8 @@ export default function NotificationBell({ clientId, pollInterval = 30000 }: Not
         size="icon"
         onClick={() => setOpen(!open)}
         aria-label="Notificaciones"
+        aria-expanded={open}
+        aria-haspopup="true"
         className="relative"
       >
         <Bell className="w-5 h-5" />
