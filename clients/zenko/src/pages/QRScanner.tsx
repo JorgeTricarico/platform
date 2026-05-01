@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import jsQR from 'jsqr';
-import { QrCode, Camera, CameraOff, Package, Truck, CheckCheck, FlipHorizontal2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { QrCode, Camera, Package, Truck, CheckCheck, FlipHorizontal2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { fetchGarments, updateGarmentStatus } from '../services/api';
 import type { DBGarment } from '../services/api';
@@ -107,6 +106,12 @@ export default function QRScanner() {
     fetchGarments()
       .then(g => { garmentsRef.current = g; })
       .catch(() => {});
+  }, []);
+
+  // Auto-start camera on mount
+  useEffect(() => {
+    startCamera('environment');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // scan line animation
@@ -425,18 +430,6 @@ export default function QRScanner() {
       </div>
 
       <canvas ref={canvasRef} className="hidden" />
-
-      <Button
-        onClick={scanning ? stopCamera : () => startCamera(facingMode)}
-        variant={scanning ? 'outline' : 'default'}
-        className="w-full gap-2"
-        size="lg"
-      >
-        {scanning
-          ? <><CameraOff className="w-5 h-5" /> Detener cámara</>
-          : <><Camera className="w-5 h-5" /> Activar cámara</>
-        }
-      </Button>
 
       {error && (
         <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
