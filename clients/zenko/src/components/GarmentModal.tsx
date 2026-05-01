@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { searchClients } from '../services/api';
 import type { DBClient, DBGarment } from '../services/api';
 import PhotoGallery from './PhotoGallery';
+import CameraCapture from './CameraCapture';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Search, User, Phone, Shirt, Scissors, FileText, CalendarDays, DollarSign, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Search, User, Phone, Shirt, Scissors, FileText, CalendarDays, DollarSign, Loader2, Plus, Trash2, Camera, X as XIcon } from 'lucide-react';
 
 export type GarmentItem = {
   garmentName: string;
@@ -50,7 +51,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   title: string;
   form: GarmentFormState;
   setForm: React.Dispatch<React.SetStateAction<GarmentFormState>>;
-  onSubmit: (e: React.FormEvent) => Promise<void>;
+  onSubmit: (e: React.FormEvent, capturedPhotos?: File[]) => Promise<void>;
   onClose: () => void;
   showStatus: boolean;
   garmentId?: string;
@@ -66,6 +67,20 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
 
   // Client search
   const isEditing = !!garmentId;
+
+  // Fotos capturadas en modo creación
+  const [capturedPhotos, setCapturedPhotos] = useState<File[]>([]);
+  const [showCamera, setShowCamera] = useState(false);
+
+  const handleCapture = (file: File) => {
+    setCapturedPhotos(prev => [...prev, file]);
+    setShowCamera(false);
+  };
+
+  const removePhoto = (index: number) => {
+    setCapturedPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
   const [clientMode, setClientMode] = useState<'existing' | 'new'>(isEditing ? 'new' : 'existing');
   const [clientQuery, setClientQuery] = useState('');
   const [clientResults, setClientResults] = useState<DBClient[]>([]);
@@ -169,7 +184,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
     setClientError('');
     setSubmitting(true);
     try {
-      await onSubmit(e);
+      await onSubmit(e, isEditing ? undefined : capturedPhotos);
     } finally {
       setSubmitting(false);
     }
@@ -431,6 +446,50 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                 <Plus className="h-4 w-4" />
                 Añadir prenda
               </Button>
+
+              {/* Sección de fotos — solo en creación */}
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-semibold text-muted-foreground">Fotos (opcional)</p>
+                {!showCamera && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCamera(true)}
+                    aria-label="Agregar foto"
+                  >
+                    <Camera className="h-4 w-4" />
+                    Agregar foto
+                  </Button>
+                )}
+                {showCamera && (
+                  <CameraCapture
+                    onCapture={handleCapture}
+                    onClose={() => setShowCamera(false)}
+                  />
+                )}
+                {capturedPhotos.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {capturedPhotos.map((file, i) => (
+                      <div key={i} className="relative">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`foto-${i + 1}`}
+                          className="h-16 w-16 rounded-md object-cover border border-border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(i)}
+                          aria-label={`Eliminar foto ${i + 1}`}
+                          className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-white text-[10px]"
+                        >
+                          <XIcon className="h-2.5 w-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
 

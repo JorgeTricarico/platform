@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { fetchGarments, createGarment, updateGarment, deleteGarment } from '../services/api';
+import { fetchGarments, createGarment, updateGarment, deleteGarment, uploadGarmentPhoto } from '../services/api';
 import type { DBGarment } from '../services/api';
 import { useToast } from '../components/ToastContext';
 import { BUSINESS } from '../config';
@@ -167,7 +167,7 @@ export default function Garments() {
     return list;
   }, [garments, statusFilter, searchTerm, repairTypeFilter, dateFrom, dateTo, onlyOverdue, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent, capturedPhotos?: File[]) => {
     e.preventDefault();
     if (!createForm.deliveryDate) {
       toast.error('Ingresá la fecha de entrega');
@@ -176,7 +176,7 @@ export default function Garments() {
     try {
       const items = createForm.items && createForm.items.length > 0 ? createForm.items : [createForm];
       for (const item of items) {
-        await createGarment({
+        const created = await createGarment({
           clientName: createForm.clientName,
           clientPhone: createForm.clientPhone,
           intakeDate: createForm.intakeDate,
@@ -189,6 +189,12 @@ export default function Garments() {
           price: Number(item.price),
           deposit: Number(item.deposit),
         });
+        // Subir fotos capturadas a la primera prenda creada
+        if (capturedPhotos && capturedPhotos.length > 0 && created?.id) {
+          for (const photo of capturedPhotos) {
+            await uploadGarmentPhoto(created.id, photo).catch(() => {});
+          }
+        }
       }
       toast.success('Orden guardada correctamente');
       setIsCreateOpen(false);
@@ -205,7 +211,8 @@ export default function Garments() {
       clientName: g.clientName, clientPhone: g.clientPhone,
       garmentName: g.garmentName, repairType: g.repairType,
       description: g.description, intakeDate: g.intakeDate || '', deliveryDate: g.deliveryDate,
-      price: g.price, deposit: g.deposit || 0, status: g.status, location: g.location || ''
+      price: g.price, deposit: g.deposit || 0, status: g.status, location: g.location || '',
+      items: [],
     });
   };
 

@@ -13,6 +13,10 @@ vi.mock('./PhotoGallery', () => ({
   default: () => <div data-testid="photo-gallery">Photos</div>,
 }));
 
+vi.mock('./CameraCapture', () => ({
+  default: () => <div data-testid="camera-capture">Camera</div>,
+}));
+
 Element.prototype.scrollIntoView = vi.fn();
 
 beforeEach(() => {
@@ -183,6 +187,16 @@ describe('GarmentModal', () => {
     fireEvent.change(garmentInputs[1], { target: { value: 'camisa' } });
     // Las sugerencias deben aparecer para el segundo ítem
     expect(screen.getByText(/cierre/i)).toBeInTheDocument();
+  });
+
+  it('muestra botón Agregar foto en modo creación', () => {
+    render(<Wrapper />);
+    expect(screen.getByRole('button', { name: /agregar foto/i })).toBeInTheDocument();
+  });
+
+  it('no muestra botón Agregar foto en modo edición', () => {
+    render(<Wrapper garmentId="abc-123" />);
+    expect(screen.queryByRole('button', { name: /agregar foto/i })).not.toBeInTheDocument();
   });
 
   it('llama onClose al cancelar', () => {
