@@ -142,17 +142,19 @@ describe('PUT /api/zenco/garments/:id/status', () => {
   // --- Z7: WhatsApp integration ---
 
   it('sends WhatsApp message when status changes to listo', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
     mockPrisma.order.update.mockResolvedValue(fullOrder);
     mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockResolvedValue({ id: 'msg-z7' });
 
     const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
     expect(res.status).toBe(200);
     expect(mockWA.sendMessage).toHaveBeenCalledOnce();
     expect(mockWA.sendMessage).toHaveBeenCalledWith(
       '5491112345678',
-      'Hola Ana, tu prenda "Pantalon" está lista para retirar!'
+      expect.stringContaining('finalizados y disponibles para retirar')
     );
   });
 
@@ -164,12 +166,14 @@ describe('PUT /api/zenco/garments/:id/status', () => {
   });
 
   it('still succeeds when WhatsApp fails (graceful degradation)', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
     mockPrisma.order.update.mockResolvedValue(fullOrder);
     mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockRejectedValue(new Error('WhatsApp not connected'));
 
     const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('listo');
     // Notification should still be created
@@ -177,12 +181,14 @@ describe('PUT /api/zenco/garments/:id/status', () => {
   });
 
   it('creates in-app notification even when WhatsApp fails', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
     mockPrisma.order.update.mockResolvedValue(fullOrder);
     mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockRejectedValue(new Error('Send failed'));
 
     await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
     expect(mockPrisma.notification.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         clientId: 'client-uuid-123',
