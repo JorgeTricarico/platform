@@ -316,7 +316,7 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
         </a>
       )}
       <Button
-        variant="info"
+        variant="outline"
         size="sm"
         onClick={async () => {
           const { generateTicket } = await import('../services/generateTicket');
@@ -378,21 +378,13 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
       {/* ── Filtros de estado ──────────────────────────────────────── */}
       <div className="flex gap-2 mb-4 flex-wrap shrink-0">
         {[
-          { key: 'all',        label: 'Todos',      count: garments.length,               color: '' },
-          { key: 'recibido',   label: 'Recibido',   count: statusCounts['recibido']   || 0, color: 'border-slate-400 data-active:bg-slate-500' },
-          { key: 'en_proceso', label: 'En Proceso', count: statusCounts['en_proceso'] || 0, color: 'border-blue-400' },
-          { key: 'listo',      label: 'Listo',      count: statusCounts['listo']      || 0, color: 'border-green-400' },
-          { key: 'entregado',  label: 'Entregado',  count: statusCounts['entregado']  || 0, color: 'border-purple-400' },
-        ].map(({ key, label, count, color }) => {
+          { key: 'all',        label: 'Todos',      count: garments.length               },
+          { key: 'recibido',   label: 'Recibido',   count: statusCounts['recibido']   || 0 },
+          { key: 'en_proceso', label: 'En Proceso', count: statusCounts['en_proceso'] || 0 },
+          { key: 'listo',      label: 'Listo',      count: statusCounts['listo']      || 0 },
+          { key: 'entregado',  label: 'Entregado',  count: statusCounts['entregado']  || 0 },
+        ].map(({ key, label, count }) => {
           const isActive = statusFilter === key;
-          const colorMap: Record<string, { active: string; inactive: string }> = {
-            '':                   { active: 'bg-foreground text-background border-foreground', inactive: 'border-border text-muted-foreground hover:border-foreground hover:text-foreground' },
-            'border-slate-400 data-active:bg-slate-500': { active: 'bg-slate-500 text-white border-slate-500', inactive: 'border-slate-300 text-slate-600 dark:text-slate-400 hover:border-slate-500' },
-            'border-blue-400':    { active: 'bg-blue-500 text-white border-blue-500', inactive: 'border-blue-300 text-blue-600 dark:text-blue-400 hover:border-blue-500' },
-            'border-green-400':   { active: 'bg-green-500 text-white border-green-500', inactive: 'border-green-300 text-green-600 dark:text-green-400 hover:border-green-500' },
-            'border-purple-400':  { active: 'bg-purple-500 text-white border-purple-500', inactive: 'border-purple-300 text-purple-600 dark:text-purple-400 hover:border-purple-500' },
-          };
-          const styles = colorMap[color] ?? colorMap[''];
           return (
             <button
               key={key}
@@ -400,7 +392,9 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
               onClick={() => setStatusFilter(key)}
               className={cn(
                 'px-3 py-1 rounded-full border text-xs font-semibold transition-colors cursor-pointer',
-                isActive ? styles.active : styles.inactive
+                isActive
+                  ? 'bg-foreground text-background border-foreground'
+                  : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
               )}
             >
               {label} ({count})
