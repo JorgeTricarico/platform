@@ -50,7 +50,7 @@ const VALID_TABS: Tab[] = ['dashboard', 'garments', 'finances', 'clients', 'chat
 
 function readTabFromHash(): Tab {
   const hash = window.location.hash.replace('#', '');
-  return VALID_TABS.includes(hash as Tab) ? (hash as Tab) : 'dashboard';
+  return VALID_TABS.includes(hash as Tab) ? (hash as Tab) : 'garments';
 }
 
 const NAV_ITEMS: { id: Tab; label: string; Icon: React.ComponentType<{ className?: string }> }[] = [

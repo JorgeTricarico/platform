@@ -351,3 +351,39 @@ describe('Garments page', () => {
     });
   });
 });
+
+describe('Cancelar pedido', () => {
+  it('muestra botón "Cancelar pedido" para órdenes activas (no entregado)', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      const cancelBtns = screen.getAllByText('Cancelar pedido');
+      // Solo órdenes no-entregado deben tener el botón
+      const nonDelivered = mockGarments.filter(g => g.status !== 'entregado');
+      expect(cancelBtns.length).toBeGreaterThanOrEqual(nonDelivered.length);
+    });
+  });
+
+  it('no muestra "Cancelar pedido" para órdenes entregadas', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText('Cancelar pedido').length).toBeGreaterThan(0);
+    });
+    // Hay menos botones Cancelar que órdenes totales (porque la entregada no tiene)
+    const cancelBtns = screen.getAllByText('Cancelar pedido');
+    expect(cancelBtns.length).toBeLessThan(mockGarments.length);
+  });
+
+  it('llama deleteGarment al confirmar cancelación', async () => {
+    const { deleteGarment } = await import('../services/api');
+    (deleteGarment as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    window.confirm = vi.fn(() => true);
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText('Cancelar pedido').length).toBeGreaterThan(0);
+    });
+    fireEvent.click(screen.getAllByText('Cancelar pedido')[0]);
+    await waitFor(() => {
+      expect(deleteGarment).toHaveBeenCalledTimes(1);
+    });
+  });
+});
