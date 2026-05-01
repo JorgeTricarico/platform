@@ -3,7 +3,7 @@ import jsQR from 'jsqr';
 import { QrCode, Camera, CameraOff, Package, Truck, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { fetchGarments, updateGarment } from '../services/api';
+import { fetchGarments, updateGarmentStatus } from '../services/api';
 import type { DBGarment } from '../services/api';
 import { useToast } from '../components/ToastContext';
 
@@ -126,17 +126,26 @@ export default function QRScanner() {
 
     try {
       beep();
-      await updateGarment(garment.id, { status: targetStatus });
+      const updated = await updateGarmentStatus(garment.id, targetStatus);
+
+      // use fresh data from backend; fallback to local if response incomplete
+      const fresh: DBGarment = {
+        ...garment,
+        ...updated,
+        price: Number(updated.price ?? garment.price ?? 0),
+        deposit: Number(updated.deposit ?? garment.deposit ?? 0),
+        status: targetStatus,
+      };
 
       // refresh local cache
       garmentsRef.current = garmentsRef.current.map(g =>
-        g.id === garment.id ? { ...g, status: targetStatus } : g
+        g.id === garment.id ? fresh : g
       );
 
-      const remaining = (garment.price ?? 0) - (garment.deposit ?? 0);
+      const remaining = fresh.price - (fresh.deposit ?? 0);
 
       setLastResult({
-        garment: { ...garment, status: targetStatus },
+        garment: fresh,
         appliedStatus: targetStatus,
         remaining: targetStatus === 'entregado' ? Math.max(0, remaining) : 0,
       });

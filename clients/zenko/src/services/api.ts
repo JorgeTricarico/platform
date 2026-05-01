@@ -106,6 +106,12 @@ export const updateGarment = async (id: string, data: Partial<DBGarment>): Promi
   return res.json();
 };
 
+export const updateGarmentStatus = async (id: string, status: string): Promise<DBGarment> => {
+  const res = await mutationFetch(`${API_URL}/garments/${id}/status`, 'PUT', { status });
+  if (!res.ok && res.status !== 202) throw new Error("Error al actualizar estado");
+  return res.json();
+};
+
 export const deleteGarment = async (id: string): Promise<void> => {
   const res = await mutationFetch(`${API_URL}/garments/${id}`, 'DELETE');
   if (!res.ok && res.status !== 202) throw new Error("Error al eliminar la orden");
