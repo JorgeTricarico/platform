@@ -189,6 +189,10 @@ export default function Garments() {
           price: Number(item.price),
           deposit: Number(item.deposit),
         });
+        if (created?.id) {
+          const { generateTicket } = await import('../services/generateTicket');
+          generateTicket(created).catch(() => {}); // fire and forget, no bloquear el flujo
+        }
         // Subir fotos capturadas a la primera prenda creada
         if (capturedPhotos && capturedPhotos.length > 0 && created?.id) {
           for (const photo of capturedPhotos) {

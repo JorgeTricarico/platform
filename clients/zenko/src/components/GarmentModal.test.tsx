@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useState } from 'react';
-import GarmentModal, { EMPTY_FORM, EMPTY_ITEM } from './GarmentModal';
+import GarmentModal, { EMPTY_FORM, EMPTY_ITEM, getPriceSuggestion } from './GarmentModal';
 import type { GarmentFormState } from './GarmentModal';
 import type { DBGarment } from '../services/api';
 
@@ -255,5 +255,41 @@ describe('GarmentModal', () => {
     // El repairType del ítem debe haberse llenado
     const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
     expect((repairInputs[0] as HTMLInputElement).value).toBe('dobladillo');
+  });
+});
+
+describe('getPriceSuggestion', () => {
+  const makeGarment = (garmentName: string, repairType: string, price: number): DBGarment => ({
+    id: Math.random().toString(), orderNumber: 1, clientName: 'A', clientPhone: '1',
+    garmentName, repairType, description: '', status: 'entregado',
+    intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price,
+  });
+
+  it('getPriceSuggestion retorna null con menos de 2 coincidencias', () => {
+    const history = [makeGarment('pantalon', 'dobladillo', 1000)];
+    expect(getPriceSuggestion('pantalon', 'dobladillo', history)).toBeNull();
+  });
+
+  it('getPriceSuggestion retorna promedio cuando hay 2+ coincidencias', () => {
+    const history = [
+      makeGarment('pantalon', 'dobladillo', 1000),
+      makeGarment('pantalon azul', 'dobladillo', 2000),
+    ];
+    const result = getPriceSuggestion('pantalon', 'dobladillo', history);
+    expect(result).not.toBeNull();
+    expect(result!.avg).toBe(1500);
+    expect(result!.count).toBe(2);
+  });
+
+  it('getPriceSuggestion filtra por garmentName y repairType', () => {
+    const history = [
+      makeGarment('pantalon', 'dobladillo', 1000),
+      makeGarment('pantalon', 'dobladillo', 2000),
+      makeGarment('pantalon', 'cierre', 5000), // repairType diferente, no debe incluirse
+    ];
+    const result = getPriceSuggestion('pantalon', 'dobladillo', history);
+    expect(result).not.toBeNull();
+    expect(result!.avg).toBe(1500);
+    expect(result!.count).toBe(2);
   });
 });

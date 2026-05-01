@@ -11,13 +11,14 @@ vi.mock('../services/api', () => ({
   searchClients: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('../services/generateTicket', () => ({
-  generateTicket: vi.fn(),
+  generateTicket: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock('../components/PhotoGallery', () => ({
   default: () => <div data-testid="photo-gallery" />,
 }));
 
-import { fetchGarments, searchClients } from '../services/api';
+import { fetchGarments, createGarment as createGarmentImport, searchClients } from '../services/api';
+import { generateTicket } from '../services/generateTicket';
 
 const mockGarments = [
   {
@@ -49,6 +50,7 @@ const mockGarments = [
 beforeEach(() => {
   vi.clearAllMocks();
   (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+  (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 });
 
 describe('Garments page', () => {
@@ -301,6 +303,36 @@ describe('Garments page', () => {
     await waitFor(() => {
       expect(searchClients).toHaveBeenCalledWith('Ana');
     }, { timeout: 500 });
+  });
+
+  it('genera ticket automáticamente después de crear una orden', async () => {
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('+ Registrar Ingreso'));
+    fireEvent.click(screen.getByText('Nuevo cliente'));
+    fireEvent.change(screen.getByPlaceholderText('Nombre y Apellido'), { target: { value: 'Cliente Test' } });
+    fireEvent.change(screen.getByPlaceholderText('Teléfono'), { target: { value: '1234567890' } });
+
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'Pantalón' } });
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    fireEvent.change(repairInputs[0], { target: { value: 'Dobladillo' } });
+    const descInputs = screen.getAllByPlaceholderText(/detalle exacto/i);
+    fireEvent.change(descInputs[0], { target: { value: 'Subir 5cm' } });
+
+    const dateInputs = document.querySelectorAll('input[name="deliveryDate"]');
+    fireEvent.change(dateInputs[0], { target: { value: '2026-12-01' } });
+
+    fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+
+    await waitFor(() => {
+      expect(generateTicket).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('createGarment se llama una vez por cada prenda en el pedido', async () => {

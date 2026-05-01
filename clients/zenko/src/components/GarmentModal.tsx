@@ -30,6 +30,25 @@ export const EMPTY_FORM = {
 
 export type GarmentFormState = typeof EMPTY_FORM;
 
+// Función pura: precio sugerido basado en historial
+export function getPriceSuggestion(
+  garmentName: string,
+  repairType: string,
+  history: DBGarment[]
+): { avg: number; count: number } | null {
+  if (!garmentName.trim() || !history.length) return null;
+  const name = garmentName.toLowerCase();
+  const repair = repairType.toLowerCase().trim();
+  const matches = history.filter(g =>
+    g.garmentName.toLowerCase().includes(name) &&
+    (!repair || g.repairType.toLowerCase().includes(repair)) &&
+    g.price > 0
+  );
+  if (matches.length < 2) return null;
+  const avg = Math.round(matches.reduce((sum, g) => sum + g.price, 0) / matches.length);
+  return { avg, count: matches.length };
+}
+
 // Función pura: sugerencias de repairType basadas en historial
 export function getSuggestions(garmentName: string, history: DBGarment[]): string[] {
   if (!garmentName.trim() || !history.length) return [];
@@ -324,6 +343,16 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                     Precio ($)
                   </label>
                   <Input required name="price" type="number" placeholder="Ej: 1500" value={form.price || ''} onChange={handle} />
+                  {(() => {
+                    const sug = garmentHistory ? getPriceSuggestion(form.garmentName, form.repairType, garmentHistory) : null;
+                    return sug ? (
+                      <p className="text-xs text-muted-foreground mt-0.5 cursor-pointer hover:text-primary"
+                         onClick={() => setForm(prev => ({ ...prev, price: sug.avg }))}
+                      >
+                        Sugerido: ${sug.avg.toLocaleString()} <span className="opacity-60">(basado en {sug.count} pedidos)</span>
+                      </p>
+                    ) : null;
+                  })()}
                 </div>
                 <div className="flex-1">
                   <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
@@ -419,6 +448,16 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                         value={item.price || ''}
                         onChange={(e) => updateItem(index, 'price', Number(e.target.value))}
                       />
+                      {(() => {
+                        const sug = garmentHistory ? getPriceSuggestion(item.garmentName, item.repairType, garmentHistory) : null;
+                        return sug ? (
+                          <p className="text-xs text-muted-foreground mt-0.5 cursor-pointer hover:text-primary"
+                             onClick={() => updateItem(index, 'price', sug.avg)}
+                          >
+                            Sugerido: ${sug.avg.toLocaleString()} <span className="opacity-60">(basado en {sug.count} pedidos)</span>
+                          </p>
+                        ) : null;
+                      })()}
                     </div>
                     <div className="flex-1">
                       <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
