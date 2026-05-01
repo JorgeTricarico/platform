@@ -110,6 +110,23 @@ describe('GarmentModal', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
+  it('bloquea submit si la fecha de entrega es pasada', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const pastDate = '2020-01-01';
+    const [form, setForm] = [{ ...EMPTY_FORM, deliveryDate: pastDate, clientName: 'Test', clientPhone: '123', garmentName: 'Pantalon', repairType: 'dobladillo', description: 'test', price: 1000 }, vi.fn()];
+    render(<GarmentModal title="Nueva Prenda" form={form} setForm={setForm} onSubmit={onSubmit} onClose={vi.fn()} showStatus={false} />);
+    fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText(/fecha.*pasada|pasada|anterior/i)).toBeInTheDocument();
+  });
+
+  it('el input de fecha de entrega tiene atributo min igual a hoy', () => {
+    render(<Wrapper />);
+    const deliveryInput = document.querySelector('input[name="deliveryDate"]') as HTMLInputElement;
+    expect(deliveryInput).not.toBeNull();
+    expect(deliveryInput.min).toBeTruthy();
+  });
+
   it('llama onClose al cancelar', () => {
     const onClose = vi.fn();
     render(<GarmentModal {...defaultProps} onClose={onClose} />);

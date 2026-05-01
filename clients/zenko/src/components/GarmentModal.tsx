@@ -25,9 +25,13 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   showStatus: boolean;
   garmentId?: string;
 }) {
+  const today = new Date().toISOString().split('T')[0];
   const [submitting, setSubmitting] = useState(false);
-  const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+  const [deliveryError, setDeliveryError] = useState('');
+  const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (e.target.name === 'deliveryDate') setDeliveryError('');
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   // Client search
   const isEditing = !!garmentId;
@@ -73,6 +77,11 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   const [clientError, setClientError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (form.deliveryDate && form.deliveryDate < today) {
+      e.preventDefault();
+      setDeliveryError('La fecha de entrega no puede ser una fecha pasada');
+      return;
+    }
     if (clientMode === 'existing' && !isEditing && !form.clientName) {
       e.preventDefault();
       setClientError('Seleccioná un cliente de la lista');
@@ -224,7 +233,8 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                 <CalendarDays className="h-3.5 w-3.5" />
                 Fecha de Entrega
               </label>
-              <Input required name="deliveryDate" type="date" value={form.deliveryDate} onChange={handle} />
+              <Input required name="deliveryDate" type="date" min={today} value={form.deliveryDate} onChange={handle} className={deliveryError ? 'border-destructive' : ''} />
+              {deliveryError && <p className="text-xs text-destructive mt-1">{deliveryError}</p>}
             </div>
           </div>
 
