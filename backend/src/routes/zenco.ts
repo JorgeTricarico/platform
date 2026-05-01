@@ -124,9 +124,12 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
   const prev = await prisma.order.findUnique({ where: { id } });
   if (!prev) throw new NotFoundError('Orden no encontrada');
 
+  // When delivering, set deposit = price so the garment shows as fully paid
+  const extraData = status === 'entregado' ? { deposit: prev.price } : {};
+
   const updated = await prisma.order.update({
     where: { id },
-    data: { status, statusChangedAt: new Date().toISOString() }
+    data: { status, statusChangedAt: new Date().toISOString(), ...extraData }
   });
 
   // When a garment is marked as ready, create a client notification + send WhatsApp
@@ -159,8 +162,9 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
   // Z10 & Z11: Auto-create income when garment is delivered for the remaining balance.
   // Also handles re-scanning already-entregado garments that had no payment recorded yet.
   // Uses a deterministic ID (ORD number) so upsert is idempotent — no duplicate records.
+  // Balance uses prev.deposit (before it was set to price) to capture the original advance.
   if (status === 'entregado') {
-    const balance = updated.price - updated.deposit;
+    const balance = updated.price - prev.deposit;
     if (balance > 0) {
       const finId = `FIN-Z-DEL-${updated.orderNumber}`;
       try {
