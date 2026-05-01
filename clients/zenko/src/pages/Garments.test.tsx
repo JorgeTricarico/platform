@@ -322,7 +322,7 @@ describe('Garments page', () => {
     fireEvent.change(garmentInputs[0], { target: { value: 'Pantalón' } });
     const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
     fireEvent.change(repairInputs[0], { target: { value: 'Dobladillo' } });
-    const descInputs = screen.getAllByPlaceholderText(/detalle exacto/i);
+    const descInputs = screen.getAllByPlaceholderText(/detalle/i);
     fireEvent.change(descInputs[0], { target: { value: 'Subir 5cm' } });
 
     const dateInputs = document.querySelectorAll('input[name="deliveryDate"]');
@@ -357,7 +357,7 @@ describe('Garments page', () => {
     fireEvent.change(garmentInputs[0], { target: { value: 'Pantalón' } });
     const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
     fireEvent.change(repairInputs[0], { target: { value: 'Dobladillo' } });
-    const descInputs = screen.getAllByPlaceholderText(/detalle exacto/i);
+    const descInputs = screen.getAllByPlaceholderText(/detalle/i);
     fireEvent.change(descInputs[0], { target: { value: 'Subir 5cm' } });
 
     // Añadir segunda prenda
@@ -368,7 +368,7 @@ describe('Garments page', () => {
     fireEvent.change(garmentInputs2[1], { target: { value: 'Camisa' } });
     const repairInputs2 = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
     fireEvent.change(repairInputs2[1], { target: { value: 'Cierre' } });
-    const descInputs2 = screen.getAllByPlaceholderText(/detalle exacto/i);
+    const descInputs2 = screen.getAllByPlaceholderText(/detalle/i);
     fireEvent.change(descInputs2[1], { target: { value: 'Cambiar cierre' } });
 
     // Rellenar fecha de entrega (requerida)
@@ -405,7 +405,7 @@ describe('BUG 4: Validación fecha de entrega en handleCreate', () => {
     fireEvent.change(garmentInputs[0], { target: { value: 'Pantalón' } });
     const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
     fireEvent.change(repairInputs[0], { target: { value: 'Dobladillo' } });
-    const descInputs = screen.getAllByPlaceholderText(/detalle exacto/i);
+    const descInputs = screen.getAllByPlaceholderText(/detalle/i);
     fireEvent.change(descInputs[0], { target: { value: 'Subir 5cm' } });
 
     // Asegurarnos de que la fecha quede vacía

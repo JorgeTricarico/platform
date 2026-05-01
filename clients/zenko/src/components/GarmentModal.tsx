@@ -366,11 +366,27 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
           ) : (
             /* Modo creación: lista de ítems */
             <>
+              {/* Header de sección + botón "Añadir prenda" siempre visible arriba */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                  Prendas ({items.length})
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addItem}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Añadir prenda
+                </Button>
+              </div>
+
               {items.map((item, index) => (
                 <div key={index} className="border border-border rounded-lg p-3 flex flex-col gap-3 relative">
-                  {items.length > 1 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-muted-foreground">Prenda {index + 1}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Prenda {index + 1}</span>
+                    {items.length > 1 && (
                       <Button
                         type="button"
                         size="sm"
@@ -381,8 +397,8 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
@@ -426,8 +442,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                   <div className="relative">
                     <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
                     <Textarea
-                      required
-                      placeholder="Detalle exacto del trabajo a realizar..."
+                      placeholder="Detalle del trabajo (opcional)"
                       value={item.description}
                       onChange={(e) => updateItem(index, 'description', e.target.value)}
                       rows={2}
@@ -474,17 +489,6 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                   </div>
                 </div>
               ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addItem}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4" />
-                Añadir prenda
-              </Button>
 
               {/* Sección de fotos — solo en creación */}
               <div className="flex flex-col gap-2">
