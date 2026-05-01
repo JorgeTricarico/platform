@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Search, User, Phone, Shirt, Scissors, FileText, CalendarDays, DollarSign, Loader2, Plus, Trash2, Camera, X as XIcon } from 'lucide-react';
+import { Search, User, Phone, Shirt, Scissors, FileText, CalendarDays, DollarSign, Loader2, Trash2, Camera, X as XIcon } from 'lucide-react';
 
 export type GarmentItem = {
   garmentName: string;
