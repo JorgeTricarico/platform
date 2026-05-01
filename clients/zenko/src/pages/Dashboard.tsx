@@ -41,7 +41,10 @@ export default function Dashboard() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createGarment({ ...formData, price: Number(formData.price) });
+      const items = (formData.items && formData.items.length > 0)
+        ? formData.items
+        : [{ garmentName: formData.garmentName, repairType: formData.repairType, description: formData.description, price: Number(formData.price) }];
+      await createGarment({ clientName: formData.clientName, clientPhone: formData.clientPhone, deliveryDate: formData.deliveryDate, intakeDate: formData.intakeDate, deposit: Number(formData.deposit || 0), items: items.map(i => ({ garmentName: i.garmentName, repairType: i.repairType, description: i.description || '', price: Number(i.price) })) });
       toast.success('Orden guardada correctamente');
       setIsModalOpen(false);
       setFormData({ ...EMPTY_FORM });
@@ -182,8 +185,9 @@ export default function Dashboard() {
                       {g.clientPhone}
                     </div>
                     <div className="mt-2 text-sm">
-                      <span className="font-semibold">{g.garmentName}</span>
-                      <span className="text-muted-foreground"> — {g.repairType}</span>
+                      {(g.items ?? []).map((item, idx) => (
+                        <div key={idx}><span className="font-semibold">{item.garmentName}</span><span className="text-muted-foreground"> — {item.repairType}</span></div>
+                      ))}
                     </div>
                     <div className="mt-2 text-xs font-bold text-status-negative">
                       Entrega: {formatDate(g.deliveryDate)}
@@ -222,8 +226,8 @@ export default function Dashboard() {
                             ORD-{String(g.orderNumber).padStart(6, '0')}
                           </div>
                         </td>
-                        <td className="px-4 py-3">{g.garmentName}</td>
-                        <td className="px-4 py-3 capitalize">{g.repairType}</td>
+                        <td className="px-4 py-3">{(g.items ?? []).map(i => i.garmentName).join(', ')}</td>
+                        <td className="px-4 py-3 capitalize">{(g.items ?? []).map(i => i.repairType).join(', ')}</td>
                         <td className="px-4 py-3">{getStatusBadge(g.status)}</td>
                         <td className="px-4 py-3 font-semibold text-status-negative">
                           {formatDate(g.deliveryDate)}

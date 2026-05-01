@@ -17,14 +17,18 @@ const positivePrice = z.union([
   }),
 ]);
 
+const orderItemSchema = z.object({
+  garmentName: z.string().min(1),
+  repairType: z.string().min(1),
+  description: z.string().default(''),
+  price: positivePrice,
+});
+
 export const createGarmentSchema = z.object({
   clientName: z.string().min(1),
   clientPhone: z.string().min(1),
-  garmentName: z.string().min(1),
-  repairType: z.string().min(1),
-  description: z.string().min(1),
   deliveryDate: z.string().min(1),
-  price: positivePrice,
+  items: z.array(orderItemSchema).min(1, 'Se requiere al menos una prenda'),
   intakeDate: z.string().optional(),
   status: z.enum(GARMENT_STATUSES).optional(),
   deposit: positivePrice.optional(),

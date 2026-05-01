@@ -60,7 +60,7 @@ export default function Finances() {
 
   const { pendingGarments, pendingTotal } = useMemo(() => {
     const pending = garments.filter(g => g.status !== 'entregado');
-    const total = pending.reduce((acc, g) => acc + (g.price - (g.deposit ?? 0)), 0);
+    const total = pending.reduce((acc, g) => acc + ((g.items ?? []).reduce((s, i) => s + i.price, 0) - (g.deposit ?? 0)), 0);
     return { pendingGarments: pending, pendingTotal: total };
   }, [garments]);
 
@@ -210,7 +210,7 @@ export default function Finances() {
             ) : (
               <div className="divide-y divide-border">
                 {pendingGarments.map(g => {
-                  const saldo = g.price - (g.deposit ?? 0);
+                  const saldo = (g.items ?? []).reduce((s, i) => s + i.price, 0) - (g.deposit ?? 0);
                   const STATUS_LABEL: Record<string, string> = { recibido: 'Recibido', en_proceso: 'En Proceso', listo: 'Listo' };
                   return (
                     <div key={g.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
@@ -218,7 +218,7 @@ export default function Finances() {
                         <p className="font-medium text-foreground truncate">
                           ORD-{String(g.orderNumber).padStart(6, '0')} · {g.clientName}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">{g.garmentName} · {g.repairType}</p>
+                        <p className="text-xs text-muted-foreground truncate">{(g.items ?? []).map(i => i.garmentName).join(', ')}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0 ml-3">
                         <Badge variant={g.status === 'listo' ? 'listo' : g.status === 'en_proceso' ? 'en_proceso' : 'recibido'} className="text-xs">

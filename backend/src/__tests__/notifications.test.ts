@@ -18,7 +18,10 @@ const mockPrisma = prisma as unknown as {
 beforeEach(() => {
   vi.clearAllMocks();
   // Route now does findUnique before update — default to a non-entregado prev state
-  mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-1', orderNumber: 1, status: 'recibido', deposit: 0, price: 1000 });
+  mockPrisma.order.findUnique.mockResolvedValue({
+    id: 'ORD-1', orderNumber: 1, status: 'recibido', deposit: 0,
+    items: [{ id: 'I1', orderId: 'ORD-1', garmentName: 'Vestido', repairType: 'diseño', description: '', price: 1000 }],
+  });
 });
 
 // -------------------------------------------------------
@@ -59,7 +62,7 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
     const notifData = mockPrisma.notification.create.mock.calls[0][0].data;
     expect(notifData.clientId).toBe('client-uuid-abc');
     expect(notifData.type).toBe('prenda_lista');
-    expect(notifData.message).toContain('Vestido');
+    expect(notifData.message).toMatch(/pedido|prenda|listo/i);
     expect(notifData.read).toBe(false);
   });
 

@@ -44,27 +44,37 @@ model Client {
 // =============================================
 
 model Order {
-  id           String   @id
-  orderNumber  Int      @unique @default(autoincrement())
-  clientName   String
-  clientPhone  String
-  garmentName  String
-  repairType   String
-  description  String
-  status          String   @default("recibido")
+  id              String      @id
+  orderNumber     Int         @unique @default(autoincrement())
+  clientName      String
+  clientPhone     String
+  status          String      @default("recibido")
   statusChangedAt String?
-  intakeDate      String   @default("")
-  deliveryDate String
-  price        Float
-  deposit      Float    @default(0)
-  location     String?
-  createdAt     DateTime @default(now())
-  scanCount     Int      @default(0)
-  lastScannedAt String?
+  intakeDate      String      @default("")
+  deliveryDate    String
+  deposit         Float       @default(0)
+  location        String?
+  createdAt       DateTime    @default(now())
+  scanCount       Int         @default(0)
+  lastScannedAt   String?
+  items           OrderItem[]
 
   @@index([status])
   @@index([deliveryDate])
   @@map("orders")
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  garmentName String
+  repairType  String
+  description String  @default("")
+  price       Float
+
+  @@index([orderId])
+  @@map("order_items")
 }
 
 model GarmentPhoto {

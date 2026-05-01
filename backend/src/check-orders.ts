@@ -7,18 +7,18 @@ export async function checkOrders() {
   try {
     // 1. Find orders that are 'listo'
     const readyOrders = await prisma.order.findMany({
-      where: {
-        status: 'listo',
-      },
+      where: { status: 'listo' },
+      include: { items: true },
     });
 
     console.log(`Encontrados ${readyOrders.length} pedidos listos.`);
 
     for (const order of readyOrders) {
       try {
+        const itemNames = order.items.map(i => i.garmentName).join(', ');
         await whatsappService.sendMessage(
           order.clientPhone,
-          `Hola ${order.clientName}, tu prenda "${order.garmentName}" está lista para retirar!`
+          `Hola ${order.clientName}, tu pedido (${itemNames}) está listo para retirar!`
         );
       } catch (wsError) {
         console.error(`Error enviando WhatsApp para pedido ${order.id}:`, wsError);

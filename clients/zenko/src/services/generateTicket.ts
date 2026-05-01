@@ -57,23 +57,26 @@ export async function generateTicket(order: DBGarment): Promise<void> {
 
   doc.text(`Tel: ${order.clientPhone}`, ML, 51 + clientH);
 
-  const garmentLines = doc.splitTextToSize(`Prenda: ${order.garmentName}`, COL_W);
+  const items = order.items ?? [];
+  const firstItem = items[0];
+  const garmentLines = doc.splitTextToSize(`Prenda: ${firstItem?.garmentName ?? '-'}`, COL_W);
   doc.text(garmentLines, ML, 56 + clientH);
   const garmentH = (garmentLines.length - 1) * 4;
 
   // After logo area (y ≥ 58), full-width content
   let y = Math.max(58, 56 + clientH + garmentH + 4);
 
-  // Arreglo y descripción — full width below logo
-  const repairLines = doc.splitTextToSize(`Arreglo: ${order.repairType}`, MR - ML);
-  doc.text(repairLines, ML, y);
-  y += repairLines.length * 4 + 1;
-
-  const desc = order.description?.slice(0, 40) || '';
-  if (desc) {
-    const descLines = doc.splitTextToSize(`Detalle: ${desc}`, MR - ML);
-    doc.text(descLines, ML, y);
-    y += descLines.length * 4 + 1;
+  // Items — full width below logo
+  for (const item of items) {
+    const repairLines = doc.splitTextToSize(`${item.garmentName}: ${item.repairType}`, MR - ML);
+    doc.text(repairLines, ML, y);
+    y += repairLines.length * 4 + 1;
+    const desc = item.description?.slice(0, 40) || '';
+    if (desc) {
+      const descLines = doc.splitTextToSize(`Detalle: ${desc}`, MR - ML);
+      doc.text(descLines, ML, y);
+      y += descLines.length * 4 + 1;
+    }
   }
 
   const fmtDate = (d: string) => {
@@ -85,11 +88,12 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   doc.text(`Ingreso: ${fmtDate(order.intakeDate)}`, ML, y); y += 5;
   doc.text(`Entrega: ${new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('es-AR')}`, ML, y); y += 5;
 
+  const total = (order.items ?? []).reduce((s, i) => s + i.price, 0);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Precio: $${order.price.toLocaleString()}`, ML, y); y += 5;
+  doc.text(`Precio: $${total.toLocaleString()}`, ML, y); y += 5;
   if (order.deposit) {
     doc.text(`Seña: $${order.deposit.toLocaleString()}`, ML, y); y += 5;
-    doc.text(`RESTA: $${(order.price - order.deposit).toLocaleString()}`, ML, y); y += 5;
+    doc.text(`RESTA: $${(total - order.deposit).toLocaleString()}`, ML, y); y += 5;
   }
 
   // Separator before QR

@@ -103,14 +103,14 @@ describe('Z18 — Historial de órdenes por cliente', () => {
     client: mockClients[0],
     orders: [
       {
-        id: 'ORD-001', clientName: 'Ana Lopez', clientPhone: '1234567890',
-        garmentName: 'Campera', repairType: 'cierre', description: 'Cambiar cierre',
-        status: 'entregado', intakeDate: '2026-03-01', deliveryDate: '2026-03-05', price: 15000
+        id: 'ORD-001', orderNumber: 1, clientName: 'Ana Lopez', clientPhone: '1234567890',
+        status: 'entregado', intakeDate: '2026-03-01', deliveryDate: '2026-03-05',
+        items: [{ id: 'I1', orderId: 'ORD-001', garmentName: 'Campera', repairType: 'cierre', description: 'Cambiar cierre', price: 15000 }],
       },
       {
-        id: 'ORD-002', clientName: 'Ana Lopez', clientPhone: '1234567890',
-        garmentName: 'Pantalón', repairType: 'dobladillo', description: 'Dobladillo',
-        status: 'listo', intakeDate: '2026-04-01', deliveryDate: '2026-04-05', price: 5000
+        id: 'ORD-002', orderNumber: 2, clientName: 'Ana Lopez', clientPhone: '1234567890',
+        status: 'listo', intakeDate: '2026-04-01', deliveryDate: '2026-04-05',
+        items: [{ id: 'I2', orderId: 'ORD-002', garmentName: 'Pantalón', repairType: 'dobladillo', description: 'Dobladillo', price: 5000 }],
       }
     ],
     summary: { totalOrders: 2, totalGarments: 2, garmentsByStatus: { entregado: 1, listo: 1 } }

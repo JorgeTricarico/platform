@@ -16,13 +16,13 @@ describe('StaleGarmentsWidget', () => {
   it('renders stale garments with client name and days overdue', async () => {
     const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
     (fetchStaleGarments as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { id: '0001', clientName: 'María', clientPhone: '111', garmentName: 'Campera', repairType: 'cierre', description: '', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, price: 5000 },
+      { id: '0001', orderNumber: 1, clientName: 'María', clientPhone: '111', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, items: [{ id: 'I1', orderId: '0001', garmentName: 'Campera', repairType: 'cierre', description: '', price: 5000 }] },
     ]);
 
     render(<StaleGarmentsWidget />);
     await waitFor(() => {
       expect(screen.getByText('María')).toBeInTheDocument();
-      expect(screen.getByText(/Campera — cierre/)).toBeInTheDocument();
+      expect(screen.getByText(/Campera/)).toBeInTheDocument();
       expect(screen.getByText(/10 dias/)).toBeInTheDocument();
     });
   });
@@ -30,7 +30,7 @@ describe('StaleGarmentsWidget', () => {
   it('renders Avisar button with correct WhatsApp href', async () => {
     const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
     (fetchStaleGarments as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { id: '0002', clientName: 'Laura', clientPhone: '5491155554444', garmentName: 'Vestido', repairType: 'entalle', description: '', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, price: 3000 },
+      { id: '0002', orderNumber: 2, clientName: 'Laura', clientPhone: '5491155554444', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, items: [{ id: 'I2', orderId: '0002', garmentName: 'Vestido', repairType: 'entalle', description: '', price: 3000 }] },
     ]);
 
     render(<StaleGarmentsWidget />);

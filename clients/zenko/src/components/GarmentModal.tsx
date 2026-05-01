@@ -30,7 +30,7 @@ export const EMPTY_FORM = {
 
 export type GarmentFormState = typeof EMPTY_FORM;
 
-// Función pura: precio sugerido basado en historial
+// Función pura: precio sugerido basado en historial (busca en items de órdenes anteriores)
 export function getPriceSuggestion(
   garmentName: string,
   repairType: string,
@@ -39,14 +39,19 @@ export function getPriceSuggestion(
   if (!garmentName.trim() || !history.length) return null;
   const name = garmentName.toLowerCase();
   const repair = repairType.toLowerCase().trim();
-  const matches = history.filter(g =>
-    g.garmentName.toLowerCase().includes(name) &&
-    (!repair || g.repairType.toLowerCase().includes(repair)) &&
-    g.price > 0
-  );
-  if (matches.length < 2) return null;
-  const avg = Math.round(matches.reduce((sum, g) => sum + g.price, 0) / matches.length);
-  return { avg, count: matches.length };
+  const matchedItems: number[] = [];
+  history.forEach(g => {
+    (g.items ?? []).forEach(item => {
+      if (item.garmentName.toLowerCase().includes(name) &&
+          (!repair || item.repairType.toLowerCase().includes(repair)) &&
+          item.price > 0) {
+        matchedItems.push(item.price);
+      }
+    });
+  });
+  if (matchedItems.length < 2) return null;
+  const avg = Math.round(matchedItems.reduce((sum, p) => sum + p, 0) / matchedItems.length);
+  return { avg, count: matchedItems.length };
 }
 
 // Función pura: sugerencias de repairType basadas en historial
@@ -55,10 +60,12 @@ export function getSuggestions(garmentName: string, history: DBGarment[]): strin
   const query = garmentName.toLowerCase();
   const freq: Record<string, number> = {};
   history.forEach(g => {
-    if (g.garmentName.toLowerCase().includes(query)) {
-      const rt = g.repairType.trim();
-      if (rt) freq[rt] = (freq[rt] || 0) + 1;
-    }
+    (g.items ?? []).forEach(item => {
+      if (item.garmentName.toLowerCase().includes(query)) {
+        const rt = item.repairType.trim();
+        if (rt) freq[rt] = (freq[rt] || 0) + 1;
+      }
+    });
   });
   return Object.entries(freq)
     .sort((a, b) => b[1] - a[1])

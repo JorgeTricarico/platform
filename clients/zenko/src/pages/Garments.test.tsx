@@ -9,6 +9,7 @@ vi.mock('../services/api', () => ({
   updateGarment: vi.fn(),
   deleteGarment: vi.fn(),
   searchClients: vi.fn().mockResolvedValue([]),
+  orderTotal: (g: { items?: Array<{ price: number }> }) => (g.items ?? []).reduce((s: number, i: { price: number }) => s + i.price, 0),
 }));
 vi.mock('../services/generateTicket', () => ({
   generateTicket: vi.fn().mockResolvedValue(undefined),
@@ -20,30 +21,30 @@ vi.mock('../components/PhotoGallery', () => ({
 import { fetchGarments, createGarment as createGarmentImport, searchClients } from '../services/api';
 import { generateTicket } from '../services/generateTicket';
 
+const makeItem = (garmentName: string, repairType: string, description: string, price: number) => ({
+  id: `ITEM-${garmentName}`, orderId: 'ORD', garmentName, repairType, description, price,
+});
+
 const mockGarments = [
   {
-    id: 'ORD-001', clientName: 'María G.', clientPhone: '11-4567-8901',
-    garmentName: 'Campera de Cuero', repairType: 'cierre',
-    description: 'Cambiar cierre', status: 'en_proceso',
-    intakeDate: '2026-04-01', deliveryDate: '2026-04-05', price: 15000
+    id: 'ORD-001', orderNumber: 1, clientName: 'María G.', clientPhone: '11-4567-8901',
+    status: 'en_proceso', intakeDate: '2026-04-01', deliveryDate: '2026-04-05', deposit: 0,
+    items: [makeItem('Campera de Cuero', 'cierre', 'Cambiar cierre', 15000)],
   },
   {
-    id: 'ORD-002', clientName: 'Juan P.', clientPhone: '11-1234-5678',
-    garmentName: 'Pantalón', repairType: 'dobladillo',
-    description: 'Dobladillo', status: 'recibido',
-    intakeDate: '2026-04-02', deliveryDate: '2026-04-06', price: 5000
+    id: 'ORD-002', orderNumber: 2, clientName: 'Juan P.', clientPhone: '11-1234-5678',
+    status: 'recibido', intakeDate: '2026-04-02', deliveryDate: '2026-04-06', deposit: 0,
+    items: [makeItem('Pantalón', 'dobladillo', 'Dobladillo', 5000)],
   },
   {
-    id: 'ORD-003', clientName: 'Sofía L.', clientPhone: '11-9999-0000',
-    garmentName: 'Vestido', repairType: 'diseño',
-    description: 'Ajustar cintura', status: 'listo',
-    intakeDate: '2026-04-01', deliveryDate: '2026-04-04', price: 35000
+    id: 'ORD-003', orderNumber: 3, clientName: 'Sofía L.', clientPhone: '11-9999-0000',
+    status: 'listo', intakeDate: '2026-04-01', deliveryDate: '2026-04-04', deposit: 0,
+    items: [makeItem('Vestido', 'diseño', 'Ajustar cintura', 35000)],
   },
   {
-    id: 'ORD-004', clientName: 'Carlos M.', clientPhone: '11-5555-5555',
-    garmentName: 'Camisa', repairType: 'tela',
-    description: 'Zurcir manga', status: 'entregado',
-    intakeDate: '2026-04-01', deliveryDate: '2026-04-01', price: 4500
+    id: 'ORD-004', orderNumber: 4, clientName: 'Carlos M.', clientPhone: '11-5555-5555',
+    status: 'entregado', intakeDate: '2026-04-01', deliveryDate: '2026-04-01', deposit: 0,
+    items: [makeItem('Camisa', 'tela', 'Zurcir manga', 4500)],
   }
 ];
 
@@ -84,7 +85,7 @@ describe('Garments page', () => {
   it('opens create modal on button click', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     expect(screen.getByText('Registrar Nueva Orden')).toBeInTheDocument();
@@ -93,7 +94,7 @@ describe('Garments page', () => {
   it('modal uses responsive CSS classes', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     // Modal dialog is rendered with DialogContent
@@ -103,7 +104,7 @@ describe('Garments page', () => {
   it('form uses CSS utility classes', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     // Form contains Guardar and Cancelar buttons
@@ -114,7 +115,7 @@ describe('Garments page', () => {
   it('sorts garments by status: listo first, then en_proceso, recibido, entregado', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Vestido (diseño)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Vestido/i)[0]).toBeInTheDocument();
     });
     const rows = screen.getAllByRole('row').slice(1); // skip header
     expect(rows[0]).toHaveTextContent('Vestido'); // listo
@@ -126,7 +127,7 @@ describe('Garments page', () => {
   it('status badges render with correct text for each status', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     expect(screen.getByText('✓ Listo')).toBeInTheDocument();
     expect(screen.getByText('⚙ En Proceso')).toBeInTheDocument();
@@ -137,18 +138,18 @@ describe('Garments page', () => {
   it('search filters by repairType and description', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     const searchInput = screen.getByPlaceholderText('Buscar por cliente, prenda o nro orden...');
     fireEvent.change(searchInput, { target: { value: 'zurcir' } });
-    expect(screen.getByText('Camisa (tela)')).toBeInTheDocument();
-    expect(screen.queryByText('Campera de Cuero (cierre)')).not.toBeInTheDocument();
+    expect(screen.getAllByText(/Camisa/i)[0]).toBeInTheDocument();
+    expect(screen.queryAllByText(/Campera de Cuero/i)).toHaveLength(0);
   });
 
   it('create modal shows client mode toggle buttons', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     expect(screen.getByText('Cliente existente')).toBeInTheDocument();
@@ -158,7 +159,7 @@ describe('Garments page', () => {
   it('create modal shows search input in existing client mode', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     expect(screen.getByPlaceholderText('Buscar cliente por nombre o teléfono...')).toBeInTheDocument();
@@ -167,7 +168,7 @@ describe('Garments page', () => {
   it('create modal switches to new client mode with name/phone fields', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     fireEvent.click(screen.getByText('Nuevo cliente'));
@@ -178,7 +179,7 @@ describe('Garments page', () => {
   it('renders repair type text input', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     const input = screen.getByPlaceholderText('Arreglo (ej: Dobladillo)');
@@ -188,7 +189,7 @@ describe('Garments page', () => {
   it('renders deposit text input', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     const input = screen.getByPlaceholderText('Ej: 500');
@@ -199,7 +200,7 @@ describe('Garments page', () => {
   it('renders status filter chips', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     expect(screen.getByText(/Todos \(/)).toBeInTheDocument();
     expect(screen.getByText(/Recibido \(/)).toBeInTheDocument();
@@ -211,30 +212,30 @@ describe('Garments page', () => {
   it('filters garments by status when chip is clicked', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText(/Listo \(/));
-    expect(screen.getByText('Vestido (diseño)')).toBeInTheDocument();
-    expect(screen.queryByText('Campera de Cuero (cierre)')).not.toBeInTheDocument();
-    expect(screen.queryByText('Pantalón (dobladillo)')).not.toBeInTheDocument();
+    expect(screen.getAllByText(/Vestido/i)[0]).toBeInTheDocument();
+    expect(screen.queryAllByText(/Campera de Cuero/i)).toHaveLength(0);
+    expect(screen.queryAllByText(/Pantalón/i)).toHaveLength(0);
   });
 
   it('shows all garments when Todos chip is clicked', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText(/Listo \(/));
-    expect(screen.queryByText('Pantalón (dobladillo)')).not.toBeInTheDocument();
+    expect(screen.queryAllByText(/Pantalón/i)).toHaveLength(0);
     fireEvent.click(screen.getByText(/Todos \(/));
-    expect(screen.getByText('Pantalón (dobladillo)')).toBeInTheDocument();
-    expect(screen.getByText('Vestido (diseño)')).toBeInTheDocument();
+    expect(screen.getAllByText(/Pantalón/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/Vestido/i)[0]).toBeInTheDocument();
   });
 
   it('shows count on filter chips', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     expect(screen.getByText('Todos (4)')).toBeInTheDocument();
     expect(screen.getByText('Recibido (1)')).toBeInTheDocument();
@@ -250,17 +251,16 @@ describe('Garments page', () => {
     yesterday.setDate(yesterday.getDate() - 1);
     const overdueGarments = [
       {
-        id: 'ORD-OV1', clientName: 'Test Client', clientPhone: '1234',
-        garmentName: 'Overdue Garment', repairType: 'cierre',
-        description: 'Test', status: 'recibido',
-        intakeDate: '2026-01-01', deliveryDate: yesterday.toISOString().split('T')[0],
-        price: 1000
+        id: 'ORD-OV1', orderNumber: 99, clientName: 'Test Client', clientPhone: '1234',
+        status: 'recibido', intakeDate: '2026-01-01',
+        deliveryDate: yesterday.toISOString().split('T')[0],
+        items: [makeItem('Overdue Garment', 'cierre', 'Test', 1000)],
       },
     ];
     (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(overdueGarments);
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Overdue Garment (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Overdue Garment/i)[0]).toBeInTheDocument();
     });
     // The overdue row should have a visual indicator (text or icon)
     expect(screen.getByText(/vencid/i)).toBeInTheDocument();
@@ -269,7 +269,7 @@ describe('Garments page', () => {
   it('renders WhatsApp Avisar button only for garments with status listo', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     // Only ORD-003 (Vestido, status: 'listo') should have Avisar
     const aviseButtons = screen.getAllByText('Avisar');
@@ -284,7 +284,7 @@ describe('Garments page', () => {
     (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(nonListoGarments);
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     expect(screen.queryAllByText('Avisar')).toHaveLength(0);
   });
@@ -295,7 +295,7 @@ describe('Garments page', () => {
     ]);
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
     const searchInput = screen.getByPlaceholderText('Buscar cliente por nombre o teléfono...');
@@ -310,7 +310,7 @@ describe('Garments page', () => {
 
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
@@ -335,13 +335,13 @@ describe('Garments page', () => {
     });
   });
 
-  it('createGarment se llama una vez por cada prenda en el pedido', async () => {
+  it('createGarment se llama una sola vez con todos los items del pedido', async () => {
     const { createGarment } = await import('../services/api');
     (createGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
 
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
@@ -379,7 +379,11 @@ describe('Garments page', () => {
     fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
 
     await waitFor(() => {
-      expect(createGarment).toHaveBeenCalledTimes(2);
+      expect(createGarment).toHaveBeenCalledTimes(1);
+      const call = (createGarment as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.items).toHaveLength(2);
+      expect(call.items[0].garmentName).toBe('Pantalón');
+      expect(call.items[1].garmentName).toBe('Camisa');
     });
   });
 });
@@ -391,7 +395,7 @@ describe('BUG 4: Validación fecha de entrega en handleCreate', () => {
 
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));

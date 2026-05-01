@@ -31,6 +31,12 @@ vi.mock('../db.js', () => {
       groupBy: vi.fn().mockResolvedValue([]),
       count: vi.fn().mockResolvedValue(0),
     },
+    orderItem: {
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+      createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+    },
     garmentPhoto: {
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),

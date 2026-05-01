@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { fetchGarments, createGarment, updateGarment, deleteGarment, uploadGarmentPhoto } from '../services/api';
+import { fetchGarments, createGarment, updateGarment, deleteGarment, uploadGarmentPhoto, orderTotal } from '../services/api';
 import type { DBGarment } from '../services/api';
 import { useToast } from '../components/ToastContext';
 import { BUSINESS } from '../config';
@@ -112,14 +112,14 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
     [garments]
   );
 
-  // Tipos de arreglo derivados de los datos reales
+  // Tipos de arreglo derivados de los items reales
   const availableRepairTypes = useMemo(() => {
     const types = new Set<string>();
-    garments.forEach(g => {
-      const t = g.repairType.toLowerCase().trim();
+    garments.forEach(g => (g.items ?? []).forEach(item => {
+      const t = item.repairType.toLowerCase().trim();
       COMMON_REPAIR_TYPES.forEach(c => { if (t === c) types.add(c); });
       if (!COMMON_REPAIR_TYPES.some(c => c === t)) types.add('otro');
-    });
+    }));
     const all = new Set([...COMMON_REPAIR_TYPES]);
     types.forEach(t => all.add(t));
     return [...all];
@@ -159,9 +159,11 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
       if (statusFilter !== 'all' && g.status !== statusFilter) return false;
       if (onlyOverdue && !isOverdue(g)) return false;
       if (repairTypeFilter.length > 0) {
-        const t = g.repairType.toLowerCase().trim();
+        const itemTypes = (g.items ?? []).map(i => i.repairType.toLowerCase().trim());
         const matchesChip = repairTypeFilter.some(chip =>
-          chip === 'otro' ? !COMMON_REPAIR_TYPES.slice(0, -1).includes(t) : t === chip
+          chip === 'otro'
+            ? itemTypes.some(t => !COMMON_REPAIR_TYPES.slice(0, -1).includes(t))
+            : itemTypes.includes(chip)
         );
         if (!matchesChip) return false;
       }
@@ -169,20 +171,21 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
       if (dateTo   && g.deliveryDate > dateTo)   return false;
       const q = searchTerm.toLowerCase();
       const orderLabel = `ord-${String(g.orderNumber).padStart(6, '0')}`.toLowerCase();
-      return !q || g.clientName.toLowerCase().includes(q) ||
-        g.garmentName.toLowerCase().includes(q) ||
-        g.repairType.toLowerCase().includes(q) ||
-        g.description.toLowerCase().includes(q) ||
-        orderLabel.includes(q) ||
-        String(g.orderNumber).includes(q);
+      if (!q) return true;
+      if (g.clientName.toLowerCase().includes(q) || orderLabel.includes(q) || String(g.orderNumber).includes(q)) return true;
+      return (g.items ?? []).some(item =>
+        item.garmentName.toLowerCase().includes(q) ||
+        item.repairType.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q)
+      );
     });
 
     switch (sortBy) {
       case 'entrega_asc':  list = [...list].sort((a, b) => a.deliveryDate.localeCompare(b.deliveryDate)); break;
       case 'ingreso_desc': list = [...list].sort((a, b) => (b.intakeDate || '').localeCompare(a.intakeDate || '')); break;
       case 'cliente_az':   list = [...list].sort((a, b) => a.clientName.localeCompare(b.clientName)); break;
-      case 'precio_mayor': list = [...list].sort((a, b) => b.price - a.price); break;
-      case 'precio_menor': list = [...list].sort((a, b) => a.price - b.price); break;
+      case 'precio_mayor': list = [...list].sort((a, b) => orderTotal(b) - orderTotal(a)); break;
+      case 'precio_menor': list = [...list].sort((a, b) => orderTotal(a) - orderTotal(b)); break;
       default:             list = [...list].sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99));
     }
     return list;
@@ -194,28 +197,29 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
       toast.error('Ingresá la fecha de entrega');
       return;
     }
+    const items = (createForm.items && createForm.items.length > 0)
+      ? createForm.items
+      : [{ garmentName: createForm.garmentName, repairType: createForm.repairType, description: createForm.description, price: Number(createForm.price) }];
     try {
-      const items = createForm.items && createForm.items.length > 0 ? createForm.items : [createForm];
-      for (const item of items) {
-        const created = await createGarment({
-          clientName: createForm.clientName,
-          clientPhone: createForm.clientPhone,
-          intakeDate: createForm.intakeDate,
-          deliveryDate: createForm.deliveryDate,
-          status: createForm.status,
-          location: createForm.location,
+      const created = await createGarment({
+        clientName: createForm.clientName,
+        clientPhone: createForm.clientPhone,
+        intakeDate: createForm.intakeDate,
+        deliveryDate: createForm.deliveryDate,
+        status: createForm.status,
+        location: createForm.location,
+        deposit: Number(createForm.deposit || 0),
+        items: items.map(item => ({
           garmentName: item.garmentName,
           repairType: item.repairType,
-          description: item.description,
+          description: item.description || '',
           price: Number(item.price),
-          deposit: Number(item.deposit),
-        });
-        if (created?.id) {
-          const { generateTicket } = await import('../services/generateTicket');
-          generateTicket(created).catch(() => {}); // fire and forget, no bloquear el flujo
-        }
-        // Subir fotos capturadas a la primera prenda creada
-        if (capturedPhotos && capturedPhotos.length > 0 && created?.id) {
+        })),
+      });
+      if (created?.id) {
+        const { generateTicket } = await import('../services/generateTicket');
+        generateTicket(created).catch(() => {});
+        if (capturedPhotos && capturedPhotos.length > 0) {
           for (const photo of capturedPhotos) {
             await uploadGarmentPhoto(created.id, photo).catch(() => {});
           }
@@ -234,18 +238,41 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
     setEditTarget(g);
     setEditForm({
       clientName: g.clientName, clientPhone: g.clientPhone,
-      garmentName: g.garmentName, repairType: g.repairType,
-      description: g.description, intakeDate: g.intakeDate || '', deliveryDate: g.deliveryDate,
-      price: g.price, deposit: g.deposit || 0, status: g.status, location: g.location || '',
-      items: [],
+      garmentName: '', repairType: '', description: '',
+      intakeDate: g.intakeDate || '', deliveryDate: g.deliveryDate,
+      price: 0, deposit: g.deposit || 0, status: g.status, location: g.location || '',
+      items: (g.items ?? []).map(item => ({
+        garmentName: item.garmentName,
+        repairType: item.repairType,
+        description: item.description,
+        price: item.price,
+        deposit: 0,
+      })),
     });
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editTarget) return;
+    const items = (editForm.items && editForm.items.length > 0)
+      ? editForm.items
+      : [{ garmentName: editForm.garmentName, repairType: editForm.repairType, description: editForm.description, price: Number(editForm.price) }];
     try {
-      await updateGarment(editTarget.id, { ...editForm, price: Number(editForm.price) });
+      await updateGarment(editTarget.id, {
+        clientName: editForm.clientName,
+        clientPhone: editForm.clientPhone,
+        intakeDate: editForm.intakeDate,
+        deliveryDate: editForm.deliveryDate,
+        status: editForm.status,
+        location: editForm.location,
+        deposit: Number(editForm.deposit || 0),
+        items: items.map(item => ({
+          garmentName: item.garmentName,
+          repairType: item.repairType,
+          description: item.description || '',
+          price: Number(item.price),
+        })),
+      });
       toast.success('Orden actualizada correctamente');
       setEditTarget(null);
       load();
@@ -280,7 +307,7 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
       </Button>
       {g.status === 'listo' && (
         <a
-          href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReadyMsg(g.clientName, g.garmentName))}`}
+          href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReadyMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido'))}`}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(buttonVariants({ variant: 'success', size: 'sm' }), 'no-underline')}
@@ -560,17 +587,19 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
                     </div>
                   </div>
 
-                  {/* Prenda */}
-                  <div className="mb-2 pb-2 border-b border-border">
-                    <div className="font-semibold text-sm text-foreground">
-                      {g.garmentName}{' '}
-                      <span className="text-muted-foreground font-normal">({g.repairType})</span>
-                    </div>
-                    {g.description && (
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {g.description}
+                  {/* Prendas */}
+                  <div className="mb-2 pb-2 border-b border-border space-y-1">
+                    {(g.items ?? []).map((item, idx) => (
+                      <div key={idx}>
+                        <div className="font-semibold text-sm text-foreground">
+                          {item.garmentName}{' '}
+                          <span className="text-muted-foreground font-normal">({item.repairType})</span>
+                        </div>
+                        {item.description && (
+                          <div className="text-xs text-muted-foreground">{item.description}</div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
 
                   {/* Fechas */}
@@ -590,15 +619,17 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
                   </div>
 
                   {/* Precios */}
+                  {(() => { const total = orderTotal(g); const saldo = total - (g.deposit ?? 0); return (
                     <div className="flex gap-3 flex-wrap text-xs">
-                      <div className="font-bold">Total: ${g.price.toLocaleString()}</div>
+                      <div className="font-bold">Total: ${total.toLocaleString()}</div>
                       {g.deposit !== undefined && g.deposit > 0 && (
                         <>
                           <div className="text-status-positive font-semibold">Seña: ${g.deposit.toLocaleString()}</div>
-                          <div className="text-status-negative font-bold">Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
+                          <div className="text-status-negative font-bold">Saldo: ${saldo.toLocaleString()}</div>
                         </>
                       )}
                     </div>
+                  ); })()}
                 </div>
 
                 {/* Acciones */}
@@ -643,10 +674,12 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-semibold text-foreground">{g.garmentName} ({g.repairType})</div>
-                      <div className="text-xs text-muted-foreground">
-                        {g.description}
-                      </div>
+                      {(g.items ?? []).map((item, idx) => (
+                        <div key={idx} className={idx > 0 ? 'mt-1 pt-1 border-t border-border/50' : ''}>
+                          <div className="font-semibold text-foreground text-sm">{item.garmentName} <span className="text-muted-foreground font-normal">({item.repairType})</span></div>
+                          {item.description && <div className="text-xs text-muted-foreground">{item.description}</div>}
+                        </div>
+                      ))}
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                       {formatDate(g.intakeDate, !!g.intakeDate && g.intakeDate.length > 10)}
@@ -655,13 +688,13 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
                       {formatDate(g.deliveryDate)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="font-semibold text-foreground">Total: ${g.price.toLocaleString()}</div>
-                      {g.deposit !== undefined && g.deposit > 0 && (
-                        <div className="text-xs text-status-positive">Seña: ${g.deposit.toLocaleString()}</div>
-                      )}
-                      {g.deposit !== undefined && g.deposit > 0 && (
-                        <div className="text-xs text-status-negative font-semibold">Saldo: ${(g.price - g.deposit).toLocaleString()}</div>
-                      )}
+                      {(() => { const total = orderTotal(g); return (<>
+                        <div className="font-semibold text-foreground">Total: ${total.toLocaleString()}</div>
+                        {g.deposit !== undefined && g.deposit > 0 && (<>
+                          <div className="text-xs text-status-positive">Seña: ${g.deposit.toLocaleString()}</div>
+                          <div className="text-xs text-status-negative font-semibold">Saldo: ${(total - g.deposit).toLocaleString()}</div>
+                        </>)}
+                      </>); })()}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex flex-col gap-1 items-start">

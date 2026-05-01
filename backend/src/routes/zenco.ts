@@ -64,7 +64,8 @@ router.get('/dashboard/stale-garments', asyncHandler(async (req, res) => {
 
 router.get('/garments', asyncHandler(async (req, res) => {
   const garments = await prisma.order.findMany({
-    orderBy: { deliveryDate: 'asc' }
+    orderBy: { deliveryDate: 'asc' },
+    include: { items: true },
   });
   res.json(garments);
 }));
@@ -72,35 +73,35 @@ router.get('/garments', asyncHandler(async (req, res) => {
 router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req, res) => {
   const data = req.body;
 
-  // Ensure client is registered in the database
   await prisma.client.upsert({
     where: { phone_business: { phone: data.clientPhone, business: 'zenco' } },
-    update: { name: data.clientName }, // Update name in case it changed
-    create: {
-      name: data.clientName,
-      phone: data.clientPhone,
-      business: 'zenco'
-    }
+    update: { name: data.clientName },
+    create: { name: data.clientName, phone: data.clientPhone, business: 'zenco' }
   });
 
-  const newGarment = await prisma.order.create({
+  const newOrder = await prisma.order.create({
     data: {
       id: randomUUID(),
       clientName: data.clientName,
       clientPhone: data.clientPhone,
-      garmentName: data.garmentName,
-      repairType: data.repairType,
-      description: data.description,
       status: data.status || 'recibido',
-      intakeDate: data.intakeDate || new Date().toISOString(),
+      intakeDate: data.intakeDate || new Date().toISOString().split('T')[0],
       deliveryDate: data.deliveryDate,
-      price: Number(data.price),
       deposit: Number(data.deposit || 0),
-      location: data.location || null
-    }
+      location: data.location || null,
+      items: {
+        create: data.items.map((item: { garmentName: string; repairType: string; description: string; price: number }) => ({
+          garmentName: item.garmentName,
+          repairType: item.repairType,
+          description: item.description || '',
+          price: Number(item.price),
+        })),
+      },
+    },
+    include: { items: true },
   });
 
-  if (newGarment.deposit > 0) {
+  if (newOrder.deposit > 0) {
     try {
       await prisma.zencoFinance.create({
         data: {
@@ -108,31 +109,31 @@ router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req,
           date: new Date().toISOString().split('T')[0],
           type: 'income',
           category: 'seña_arreglo',
-          amount: newGarment.deposit,
-          description: `Seña: ${newGarment.garmentName} — ${newGarment.clientName}`,
+          amount: newOrder.deposit,
+          description: `Seña: ${newOrder.clientName}`,
         },
       });
     } catch {}
   }
 
-  res.json(newGarment);
+  res.json(newOrder);
 }));
 
 router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   const { status } = req.body;
-  const prev = await prisma.order.findUnique({ where: { id } });
+  const prev = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!prev) throw new NotFoundError('Orden no encontrada');
 
-  // When delivering, set deposit = price so the garment shows as fully paid
-  const extraData = status === 'entregado' ? { deposit: prev.price } : {};
+  const totalPrice = prev.items.reduce((sum: number, item: { price: number }) => sum + item.price, 0);
+  const extraData = status === 'entregado' ? { deposit: totalPrice } : {};
 
   const updated = await prisma.order.update({
     where: { id },
-    data: { status, statusChangedAt: new Date().toISOString(), ...extraData }
+    data: { status, statusChangedAt: new Date().toISOString(), ...extraData },
+    include: { items: true },
   });
 
-  // When a garment is marked as ready, create a client notification + send WhatsApp
   if (status === 'listo') {
     const client = await prisma.client.findFirst({
       where: { phone: updated.clientPhone, business: 'zenco' },
@@ -141,14 +142,13 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
       await prisma.notification.create({
         data: {
           clientId: client.id,
-          message: `Tu prenda "${updated.garmentName}" está lista para retirar.`,
+          message: `Tu pedido #${updated.orderNumber} está listo para retirar.`,
           type: 'prenda_lista',
           read: false,
         },
       });
     }
 
-    // Z7: WhatsApp notification — non-blocking, solo si WHATSAPP_ENABLED=true
     if (process.env.WHATSAPP_ENABLED === 'true') {
       const msg =
         `Hola 👋🏻\n` +
@@ -166,12 +166,8 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     }
   }
 
-  // Z10 & Z11: Auto-create income when garment is delivered for the remaining balance.
-  // Also handles re-scanning already-entregado garments that had no payment recorded yet.
-  // Uses a deterministic ID (ORD number) so upsert is idempotent — no duplicate records.
-  // Balance uses prev.deposit (before it was set to price) to capture the original advance.
   if (status === 'entregado') {
-    const balance = updated.price - prev.deposit;
+    const balance = totalPrice - prev.deposit;
     if (balance > 0) {
       const finId = `FIN-Z-DEL-${updated.orderNumber}`;
       try {
@@ -184,7 +180,7 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
             type: 'income',
             category: 'entrega_prenda',
             amount: balance,
-            description: `Saldo: ${updated.garmentName} — ${updated.clientName}`,
+            description: `Saldo orden #${updated.orderNumber} — ${updated.clientName}`,
           },
         });
       } catch {
@@ -199,28 +195,38 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
 router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   const data = req.body;
-  const prev = await prisma.order.findUnique({ where: { id } });
+  const prev = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!prev) throw new NotFoundError('Orden no encontrada');
+
+  // Replace items: delete all existing, create new ones
+  await prisma.orderItem.deleteMany({ where: { orderId: id } });
+  await prisma.orderItem.createMany({
+    data: data.items.map((item: { garmentName: string; repairType: string; description: string; price: number }) => ({
+      orderId: id,
+      garmentName: item.garmentName,
+      repairType: item.repairType,
+      description: item.description || '',
+      price: Number(item.price),
+    })),
+  });
 
   const updated = await prisma.order.update({
     where: { id },
     data: {
       clientName: data.clientName,
       clientPhone: data.clientPhone,
-      garmentName: data.garmentName,
-      repairType: data.repairType,
-      description: data.description,
       status: data.status,
       intakeDate: data.intakeDate,
       deliveryDate: data.deliveryDate,
-      price: Number(data.price),
       deposit: Number(data.deposit || 0),
-      location: data.location ?? undefined
-    }
+      location: data.location ?? undefined,
+    },
+    include: { items: true },
   });
 
   if (data.status === 'entregado' && prev.status !== 'entregado') {
-    const balance = updated.price - updated.deposit;
+    const totalPrice = updated.items.reduce((sum: number, item: { price: number }) => sum + item.price, 0);
+    const balance = totalPrice - updated.deposit;
     if (balance > 0) {
       const finId = `FIN-Z-DEL-${updated.orderNumber}`;
       try {
@@ -233,7 +239,7 @@ router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (r
             type: 'income',
             category: 'entrega_prenda',
             amount: balance,
-            description: `Saldo: ${updated.garmentName} — ${updated.clientName}`,
+            description: `Saldo orden #${updated.orderNumber} — ${updated.clientName}`,
           },
         });
       } catch {}
@@ -440,19 +446,22 @@ function getMonthRange(yearMonth: string): { start: string; end: string } {
   };
 }
 
-type OrderRow = { id: string; orderNumber: number; status: string; repairType: string; price: number; intakeDate: string; deliveryDate: string; createdAt: Date; [key: string]: unknown };
+type OrderItemRow = { garmentName: string; repairType: string; price: number };
+type OrderRow = { id: string; orderNumber: number; status: string; intakeDate: string; deliveryDate: string; createdAt: Date; items?: OrderItemRow[]; [key: string]: unknown };
 
 // Helper: compute stats from an array of orders + newClients count
 function computeOrderStats(orders: OrderRow[], newClients: number) {
   const totalOrders = orders.length;
-  const totalGarments = orders.length;
+  const totalGarments = orders.reduce((sum, o) => sum + (o.items?.length ?? 0), 0);
   const garmentsDone = orders.filter(o => o.status === 'entregado' || o.status === 'listo').length;
-  const revenue = orders.reduce((sum, o) => sum + (o.price || 0), 0);
+  const revenue = orders.reduce((sum, o) => sum + (o.items ?? []).reduce((s, i) => s + (i.price || 0), 0), 0);
 
   const garmentsByType: Record<string, number> = {};
   for (const o of orders) {
-    if (o.repairType) {
-      garmentsByType[o.repairType] = (garmentsByType[o.repairType] || 0) + 1;
+    for (const item of (o.items ?? [])) {
+      if (item.repairType) {
+        garmentsByType[item.repairType] = (garmentsByType[item.repairType] || 0) + 1;
+      }
     }
   }
 

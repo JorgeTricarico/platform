@@ -48,14 +48,14 @@ export default function StaleGarmentsWidget() {
               <div key={g.id} className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm">{g.clientName}</div>
-                  <div className="text-xs text-muted-foreground">{g.garmentName} — {g.repairType}</div>
+                  <div className="text-xs text-muted-foreground">{(g.items ?? []).map(i => i.garmentName).join(', ')}</div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="overdue" className="text-xs whitespace-nowrap">
                     {daysOverdue(g.deliveryDate)} dias — {formatDate(g.deliveryDate)}
                   </Badge>
                   <a
-                    href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReminderMsg(g.clientName, g.garmentName))}`}
+                    href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReminderMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido'))}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={cn(buttonVariants({ variant: 'success', size: 'sm' }))}

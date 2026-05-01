@@ -170,7 +170,7 @@ export default function QRScanner() {
       const fresh: DBGarment = {
         ...garment,
         ...updated,
-        price: Number(updated.price ?? garment.price ?? 0),
+        items: updated.items ?? garment.items ?? [],
         deposit: Number(updated.deposit ?? garment.deposit ?? 0),
         status: targetStatus,
       };
@@ -179,7 +179,8 @@ export default function QRScanner() {
         g.id === garment.id ? fresh : g
       );
 
-      const remaining = fresh.price - (fresh.deposit ?? 0);
+      const freshTotal = (fresh.items ?? []).reduce((s, i) => s + i.price, 0);
+      const remaining = freshTotal - (fresh.deposit ?? 0);
 
       beep(true);
       showAlert({
@@ -316,7 +317,7 @@ export default function QRScanner() {
                   {alert.garment.clientName}
                 </p>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  {alert.garment.garmentName} · {alert.garment.repairType}
+                  {(alert.garment.items ?? []).map(i => i.garmentName).join(', ')}
                 </p>
               </div>
 
@@ -337,7 +338,7 @@ export default function QRScanner() {
                 <div className="rounded-xl bg-muted p-3 space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total</span>
-                    <span className="font-medium">{priceFmt(alert.garment.price)}</span>
+                    <span className="font-medium">{priceFmt((alert.garment.items ?? []).reduce((s, i) => s + i.price, 0))}</span>
                   </div>
                   {(alert.garment.deposit ?? 0) > 0 && (
                     <div className="flex justify-between text-green-600 dark:text-green-400">

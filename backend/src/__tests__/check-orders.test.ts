@@ -3,16 +3,19 @@ import { checkOrders } from '../check-orders.js';
 import { prisma } from '../db.js';
 import { whatsappService } from '../services/whatsapp.js';
 
-// Mocks
 vi.mock('../services/whatsapp.js', () => ({
   whatsappService: {
     sendMessage: vi.fn(),
   },
 }));
 
-// El mock de prisma ya está configurado en setup.ts, pero necesitamos acceder a sus funciones
 const mockPrisma = prisma as any;
 const mockWhatsApp = whatsappService as any;
+
+const makeOrder = (id: string, clientPhone: string, clientName: string, garmentName: string) => ({
+  id, clientPhone, clientName, status: 'listo',
+  items: [{ id: `ITEM-${id}`, orderId: id, garmentName, repairType: 'arreglo', description: '', price: 1000 }],
+});
 
 describe('checkOrders', () => {
   beforeEach(() => {
@@ -21,8 +24,8 @@ describe('checkOrders', () => {
 
   it('debería enviar mensajes de WhatsApp para todos los pedidos con estado "listo"', async () => {
     const mockOrders = [
-      { id: '1', clientPhone: '123456', clientName: 'Juan', garmentName: 'Camisa', status: 'listo' },
-      { id: '2', clientPhone: '789012', clientName: 'Maria', garmentName: 'Pantalon', status: 'listo' },
+      makeOrder('1', '123456', 'Juan', 'Camisa'),
+      makeOrder('2', '789012', 'Maria', 'Pantalon'),
     ];
 
     mockPrisma.order.findMany.mockResolvedValue(mockOrders);
@@ -30,20 +33,12 @@ describe('checkOrders', () => {
 
     const result = await checkOrders();
 
-    expect(mockPrisma.order.findMany).toHaveBeenCalledWith({
-      where: { status: 'listo' },
-    });
+    expect(mockPrisma.order.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { status: 'listo' } })
+    );
     expect(mockWhatsApp.sendMessage).toHaveBeenCalledTimes(2);
-    expect(mockWhatsApp.sendMessage).toHaveBeenNthCalledWith(
-      1,
-      '123456',
-      'Hola Juan, tu prenda "Camisa" está lista para retirar!'
-    );
-    expect(mockWhatsApp.sendMessage).toHaveBeenNthCalledWith(
-      2,
-      '789012',
-      'Hola Maria, tu prenda "Pantalon" está lista para retirar!'
-    );
+    expect(mockWhatsApp.sendMessage).toHaveBeenNthCalledWith(1, '123456', expect.stringContaining('Camisa'));
+    expect(mockWhatsApp.sendMessage).toHaveBeenNthCalledWith(2, '789012', expect.stringContaining('Pantalon'));
     expect(result).toEqual(mockOrders);
   });
 
@@ -59,12 +54,11 @@ describe('checkOrders', () => {
 
   it('debería manejar errores individuales en el envío de WhatsApp sin detener el proceso', async () => {
     const mockOrders = [
-      { id: '1', clientPhone: '123456', clientName: 'Juan', garmentName: 'Camisa', status: 'listo' },
-      { id: '2', clientPhone: '789012', clientName: 'Maria', garmentName: 'Pantalon', status: 'listo' },
+      makeOrder('1', '123456', 'Juan', 'Camisa'),
+      makeOrder('2', '789012', 'Maria', 'Pantalon'),
     ];
 
     mockPrisma.order.findMany.mockResolvedValue(mockOrders);
-    // El primero falla, el segundo tiene éxito
     mockWhatsApp.sendMessage
       .mockRejectedValueOnce(new Error('WhatsApp connection failed'))
       .mockResolvedValueOnce({ id: 'msg-id' });

@@ -30,11 +30,15 @@ beforeEach(() => {
 describe('Location field on Order', () => {
   it('POST /garments accepts location field', async () => {
     const input = {
-      clientName: 'Ana', clientPhone: '1111', garmentName: 'Pantalón',
-      repairType: 'dobladillo', description: 'acortar 5cm',
-      deliveryDate: '2026-05-01', price: 3000, location: 'Estante 3',
+      clientName: 'Ana', clientPhone: '1111',
+      deliveryDate: '2026-05-01', location: 'Estante 3',
+      items: [{ garmentName: 'Pantalón', repairType: 'dobladillo', description: 'acortar 5cm', price: 3000 }],
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-LOC-1', orderNumber: 1, ...input, status: 'recibido', intakeDate: '2026-04-05' });
+    mockPrisma.order.create.mockResolvedValue({
+      id: 'ORD-LOC-1', orderNumber: 1, clientName: 'Ana', clientPhone: '1111',
+      status: 'recibido', intakeDate: '2026-04-05', deliveryDate: '2026-05-01', deposit: 0, location: 'Estante 3',
+      items: [{ id: 'I1', orderId: 'ORD-LOC-1', garmentName: 'Pantalón', repairType: 'dobladillo', description: 'acortar 5cm', price: 3000 }],
+    });
 
     const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
@@ -44,11 +48,15 @@ describe('Location field on Order', () => {
 
   it('POST /garments sets location to null when not provided', async () => {
     const input = {
-      clientName: 'Luis', clientPhone: '2222', garmentName: 'Campera',
-      repairType: 'cierre', description: 'cambiar cierre',
-      deliveryDate: '2026-05-05', price: 5000,
+      clientName: 'Luis', clientPhone: '2222',
+      deliveryDate: '2026-05-05',
+      items: [{ garmentName: 'Campera', repairType: 'cierre', description: 'cambiar cierre', price: 5000 }],
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-LOC-2', orderNumber: 2, ...input, status: 'recibido', intakeDate: '2026-04-05', location: null });
+    mockPrisma.order.create.mockResolvedValue({
+      id: 'ORD-LOC-2', orderNumber: 2, clientName: 'Luis', clientPhone: '2222',
+      status: 'recibido', intakeDate: '2026-04-05', deliveryDate: '2026-05-05', deposit: 0, location: null,
+      items: [{ id: 'I2', orderId: 'ORD-LOC-2', garmentName: 'Campera', repairType: 'cierre', description: 'cambiar cierre', price: 5000 }],
+    });
 
     const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
@@ -58,13 +66,19 @@ describe('Location field on Order', () => {
 
   it('PUT /garments/:id updates location field', async () => {
     const input = {
-      clientName: 'Ana', clientPhone: '1111', garmentName: 'Pantalón',
-      repairType: 'dobladillo', description: 'acortar',
-      deliveryDate: '2026-05-01', price: 3000,
-      intakeDate: '2026-04-05', status: 'en_proceso', location: 'Perchero B',
+      clientName: 'Ana', clientPhone: '1111',
+      deliveryDate: '2026-05-01', intakeDate: '2026-04-05', status: 'en_proceso', location: 'Perchero B',
+      items: [{ garmentName: 'Pantalón', repairType: 'dobladillo', description: 'acortar', price: 3000 }],
     };
-    mockPrisma.order.update.mockResolvedValue({ id: 'ORD-LOC-1', orderNumber: 3, ...input });
-    mockPrisma.order.findUnique.mockResolvedValue({ id: 'ORD-LOC-1', orderNumber: 3, status: 'recibido', deposit: 0, price: 3000 });
+    mockPrisma.order.update.mockResolvedValue({
+      id: 'ORD-LOC-1', orderNumber: 3, clientName: 'Ana', clientPhone: '1111',
+      status: 'en_proceso', intakeDate: '2026-04-05', deliveryDate: '2026-05-01', deposit: 0, location: 'Perchero B',
+      items: [{ id: 'I3', orderId: 'ORD-LOC-1', garmentName: 'Pantalón', repairType: 'dobladillo', description: 'acortar', price: 3000 }],
+    });
+    mockPrisma.order.findUnique.mockResolvedValue({
+      id: 'ORD-LOC-1', orderNumber: 3, status: 'recibido', deposit: 0,
+      items: [{ id: 'I3', orderId: 'ORD-LOC-1', garmentName: 'Pantalón', repairType: 'dobladillo', description: 'acortar', price: 3000 }],
+    });
 
     const res = await request(app).put('/api/zenco/garments/ORD-LOC-1').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
@@ -152,11 +166,15 @@ describe('Finance month filter', () => {
 describe('Location field schema validation', () => {
   it('accepts location as optional string', async () => {
     const input = {
-      clientName: 'Test', clientPhone: '9999', garmentName: 'Remera',
-      repairType: 'diseño', description: 'estampar logo',
-      deliveryDate: '2026-05-10', price: 2000, location: null,
+      clientName: 'Test', clientPhone: '9999',
+      deliveryDate: '2026-05-10', location: null,
+      items: [{ garmentName: 'Remera', repairType: 'diseño', description: 'estampar logo', price: 2000 }],
     };
-    mockPrisma.order.create.mockResolvedValue({ id: 'ORD-V-1', orderNumber: 4, ...input, status: 'recibido', intakeDate: '2026-04-05' });
+    mockPrisma.order.create.mockResolvedValue({
+      id: 'ORD-V-1', orderNumber: 4, clientName: 'Test', clientPhone: '9999',
+      status: 'recibido', intakeDate: '2026-04-05', deliveryDate: '2026-05-10', deposit: 0, location: null,
+      items: [{ id: 'I4', orderId: 'ORD-V-1', garmentName: 'Remera', repairType: 'diseño', description: 'estampar logo', price: 2000 }],
+    });
     const res = await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
   });

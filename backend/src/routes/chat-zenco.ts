@@ -30,11 +30,13 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
           where: { clientPhone: senderPhone },
           orderBy: { createdAt: 'desc' },
           take: 10,
+          include: { items: true },
         });
         if (orders.length > 0) {
           parts.push(`SUS PEDIDOS (${orders.length}):`);
           for (const o of orders) {
-            parts.push(`  - "${o.garmentName}" (${o.repairType}) → Estado: ${o.status} | Entrega: ${o.deliveryDate || 'sin fecha'} | $${o.price}`);
+            const itemsDesc = o.items.map(i => `"${i.garmentName}" (${i.repairType}) $${i.price}`).join(', ');
+            parts.push(`  - ${itemsDesc} → Estado: ${o.status} | Entrega: ${o.deliveryDate || 'sin fecha'}`);
           }
         } else {
           parts.push('Este cliente no tiene pedidos registrados.');
@@ -57,6 +59,7 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
           const allOrders = await prisma.order.findMany({
             where: { clientPhone: { in: clientPhones } },
             orderBy: { createdAt: 'desc' },
+            include: { items: true },
           });
 
           for (const client of clients) {
@@ -68,7 +71,8 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
             if (orders.length > 0) {
               parts.push(`  Pedidos:`);
               for (const o of orders) {
-                parts.push(`  - "${o.garmentName}" (${o.repairType}) → Estado: ${o.status} | Entrega: ${o.deliveryDate || 'sin fecha'} | $${o.price}`);
+                const itemsDesc = o.items.map(i => `"${i.garmentName}" (${i.repairType}) $${i.price}`).join(', ');
+                parts.push(`  - ${itemsDesc} → Estado: ${o.status} | Entrega: ${o.deliveryDate || 'sin fecha'}`);
               }
             }
           }
@@ -81,11 +85,13 @@ async function buildContext(senderPhone?: string, message?: string): Promise<str
       const recentOrders = await prisma.order.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
+        include: { items: true },
       });
       if (recentOrders.length > 0) {
         parts.push('CLIENTE NO IDENTIFICADO. Pedidos recientes del taller:');
         for (const o of recentOrders) {
-          parts.push(`  - ${o.clientName} (${o.clientPhone}): "${o.garmentName}" (${o.repairType}) → ${o.status} | $${o.price}`);
+          const itemDesc = (o.items as Array<{ garmentName: string; repairType: string; price: number }> ?? []).map(i => `"${i.garmentName}" (${i.repairType}) $${i.price}`).join(', ');
+          parts.push(`  - ${o.clientName} (${o.clientPhone}): ${itemDesc} → ${o.status}`);
         }
         parts.push('Si el cliente dice su nombre o telefono, fijate si coincide con alguno de estos.');
       } else {

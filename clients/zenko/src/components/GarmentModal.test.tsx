@@ -175,8 +175,8 @@ describe('GarmentModal', () => {
   // BUG 3: Sugerencias de repairType no aparecen en la 2da prenda
   it('[BUG3] sugerencias aparecen en la segunda prenda después de añadir prenda', () => {
     const garmentHistory: DBGarment[] = [
-      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', garmentName: 'camisa', repairType: 'cierre', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
-      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', garmentName: 'camisa azul', repairType: 'cierre', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', items: [{ id: 'I1', orderId: '1', garmentName: 'camisa', repairType: 'cierre', description: '', price: 1000 }] },
+      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', items: [{ id: 'I2', orderId: '2', garmentName: 'camisa azul', repairType: 'cierre', description: '', price: 1000 }] },
     ];
     render(<Wrapper garmentHistory={garmentHistory} />);
     // Añadir segunda prenda
@@ -229,9 +229,9 @@ describe('GarmentModal', () => {
 
   it('sugerencias aparecen al tipear garmentName con historial', () => {
     const garmentHistory: DBGarment[] = [
-      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', garmentName: 'pantalon', repairType: 'dobladillo', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
-      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', garmentName: 'Pantalon', repairType: 'dobladillo', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
-      { id: '3', orderNumber: 3, clientName: 'C', clientPhone: '3', garmentName: 'pantalon jeans', repairType: 'cierre', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', items: [{ id: 'I1', orderId: '1', garmentName: 'pantalon', repairType: 'dobladillo', description: '', price: 1000 }] },
+      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', items: [{ id: 'I2', orderId: '2', garmentName: 'Pantalon', repairType: 'dobladillo', description: '', price: 1000 }] },
+      { id: '3', orderNumber: 3, clientName: 'C', clientPhone: '3', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', items: [{ id: 'I3', orderId: '3', garmentName: 'pantalon jeans', repairType: 'cierre', description: '', price: 1000 }] },
     ];
     render(<Wrapper garmentHistory={garmentHistory} />);
     // Tipear en el primer input de garmentName del ítem
@@ -243,8 +243,8 @@ describe('GarmentModal', () => {
 
   it('click en sugerencia rellena el repairType', () => {
     const garmentHistory: DBGarment[] = [
-      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', garmentName: 'pantalon', repairType: 'dobladillo', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
-      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', garmentName: 'Pantalon', repairType: 'dobladillo', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', items: [{ id: 'I1', orderId: '1', garmentName: 'pantalon', repairType: 'dobladillo', description: '', price: 1000 }] },
+      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', items: [{ id: 'I2', orderId: '2', garmentName: 'Pantalon', repairType: 'dobladillo', description: '', price: 1000 }] },
     ];
     render(<Wrapper garmentHistory={garmentHistory} />);
     const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
@@ -261,8 +261,8 @@ describe('GarmentModal', () => {
 describe('getPriceSuggestion', () => {
   const makeGarment = (garmentName: string, repairType: string, price: number): DBGarment => ({
     id: Math.random().toString(), orderNumber: 1, clientName: 'A', clientPhone: '1',
-    garmentName, repairType, description: '', status: 'entregado',
-    intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price,
+    status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10',
+    items: [{ id: Math.random().toString(), orderId: 'x', garmentName, repairType, description: '', price }],
   });
 
   it('getPriceSuggestion retorna null con menos de 2 coincidencias', () => {

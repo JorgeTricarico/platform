@@ -290,8 +290,9 @@ export default function Clients() {
                       {clientOrders.orders.map((o: DBGarment) => (
                         <tr key={o.id} className="hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 font-medium">
-                            <span className="font-bold">{o.garmentName}</span>
-                            <span className="text-muted-foreground ml-1">({o.repairType})</span>
+                            {(o.items ?? []).map((item, idx) => (
+                              <div key={idx}><span className="font-bold">{item.garmentName}</span><span className="text-muted-foreground ml-1">({item.repairType})</span></div>
+                            ))}
                           </td>
                           <td className="px-4 py-3 text-muted-foreground whitespace-nowrap hidden sm:table-cell w-[1%]">
                             {o.intakeDate ? new Date(o.intakeDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
@@ -300,7 +301,7 @@ export default function Clients() {
                             {o.deliveryDate ? new Date(o.deliveryDate + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap w-[1%]">{o.status}</td>
-                          <td className="px-4 py-3 font-bold whitespace-nowrap w-[1%]">${o.price.toLocaleString('es-AR')}</td>
+                          <td className="px-4 py-3 font-bold whitespace-nowrap w-[1%]">${(o.items ?? []).reduce((s, i) => s + i.price, 0).toLocaleString('es-AR')}</td>
                         </tr>
                       ))}
                     </tbody>

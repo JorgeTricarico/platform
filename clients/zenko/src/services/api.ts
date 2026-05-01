@@ -42,22 +42,33 @@ async function mutationFetch(url: string, method: string, body?: unknown): Promi
   }
 }
 
+export interface OrderItem {
+  id: string;
+  orderId: string;
+  garmentName: string;
+  repairType: string;
+  description: string;
+  price: number;
+}
+
 export interface DBGarment {
   id: string;
   orderNumber: number;
   clientName: string;
   clientPhone: string;
-  garmentName: string;
-  repairType: string;
-  description: string;
   status: string;
   intakeDate: string;
   deliveryDate: string;
-  price: number;
   deposit?: number;
   location?: string;
   scanCount?: number;
   lastScannedAt?: string;
+  items: OrderItem[];
+}
+
+/** Precio total de la orden = suma de items */
+export function orderTotal(order: DBGarment): number {
+  return (order.items ?? []).reduce((sum, item) => sum + item.price, 0);
 }
 
 export interface DBFinance {
@@ -96,13 +107,24 @@ export const fetchStaleGarments = async (): Promise<StaleGarment[]> => {
   return cachedFetch<StaleGarment[]>(`${API_URL}/dashboard/stale-garments`);
 };
 
-export const createGarment = async (data: Partial<DBGarment>): Promise<DBGarment> => {
+export interface CreateOrderPayload {
+  clientName: string;
+  clientPhone: string;
+  deliveryDate: string;
+  intakeDate?: string;
+  deposit?: number;
+  location?: string;
+  status?: string;
+  items: Array<{ garmentName: string; repairType: string; description: string; price: number }>;
+}
+
+export const createGarment = async (data: CreateOrderPayload): Promise<DBGarment> => {
   const res = await mutationFetch(`${API_URL}/garments`, 'POST', data);
   if (!res.ok && res.status !== 202) throw new Error("Error al guardar la orden");
   return res.json();
 };
 
-export const updateGarment = async (id: string, data: Partial<DBGarment>): Promise<DBGarment> => {
+export const updateGarment = async (id: string, data: CreateOrderPayload): Promise<DBGarment> => {
   const res = await mutationFetch(`${API_URL}/garments/${id}`, 'PUT', data);
   if (!res.ok && res.status !== 202) throw new Error("Error al actualizar la orden");
   return res.json();
