@@ -254,17 +254,6 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Eliminar esta orden? Esta acción no se puede deshacer.')) return;
-    try {
-      await deleteGarment(id);
-      toast.success('Orden eliminada correctamente');
-      load();
-    } catch {
-      toast.error('Error al eliminar la orden');
-    }
-  };
-
   const handleCancel = async (id: string) => {
     if (!confirm('¿El cliente canceló el pedido? La orden será eliminada del sistema.')) return;
     try {
@@ -310,13 +299,10 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
         Ticket
       </Button>
       {g.status !== 'entregado' && (
-        <Button variant="outline" size="sm" className="border-amber-400 text-amber-700 hover:bg-amber-50" onClick={() => handleCancel(g.id)}>
+        <Button variant="destructive" size="sm" onClick={() => handleCancel(g.id)}>
           Cancelar pedido
         </Button>
       )}
-      <Button variant="destructive" size="sm" onClick={() => handleDelete(g.id)}>
-        Eliminar
-      </Button>
     </>
   );
 
