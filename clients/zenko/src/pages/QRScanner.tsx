@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import jsQR from 'jsqr';
-import { QrCode, Camera, CameraOff, Package, Truck, CheckCheck } from 'lucide-react';
+import { QrCode, Camera, CameraOff, Package, Truck, CheckCheck, FlipHorizontal2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { fetchGarments, updateGarmentStatus } from '../services/api';
@@ -74,6 +74,7 @@ export default function QRScanner() {
 
   const [mode, setMode] = useState<ScanMode>('listo');
   const [scanning, setScanning] = useState(false);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [scanLine, setScanLine] = useState(0);
   const [scanDir] = useState(1);
   const [lastResult, setLastResult] = useState<ScanResult | null>(null);
@@ -186,12 +187,18 @@ export default function QRScanner() {
     animRef.current = requestAnimationFrame(scan);
   }, [handleScan]);
 
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (facing: 'environment' | 'user' = 'environment') => {
     setError('');
+    // stop any existing stream first
+    if (videoRef.current?.srcObject) {
+      (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+      videoRef.current.srcObject = null;
+    }
+    cancelAnimationFrame(animRef.current);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: 'environment' },
+          facingMode: { ideal: facing },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -207,8 +214,15 @@ export default function QRScanner() {
         ? 'Permiso de cámara denegado. Habilitalo en la configuración del navegador.'
         : 'No se pudo acceder a la cámara.';
       setError(msg);
+      setScanning(false);
     }
   }, [startScanLoop]);
+
+  const flipCamera = useCallback(() => {
+    const next = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(next);
+    startCamera(next);
+  }, [facingMode, startCamera]);
 
   const stopCamera = useCallback(() => {
     if (videoRef.current?.srcObject) {
@@ -307,6 +321,17 @@ export default function QRScanner() {
             <p className="text-sm text-muted-foreground font-medium">Cámara inactiva</p>
           </div>
         )}
+
+        {/* Flip camera button — shown while scanning */}
+        {scanning && (
+          <button
+            onClick={flipCamera}
+            className="absolute bottom-3 right-3 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+            title={facingMode === 'environment' ? 'Cambiar a cámara frontal' : 'Cambiar a cámara trasera'}
+          >
+            <FlipHorizontal2 className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Hidden canvas for jsQR */}
@@ -314,7 +339,7 @@ export default function QRScanner() {
 
       {/* Camera toggle button */}
       <Button
-        onClick={scanning ? stopCamera : startCamera}
+        onClick={scanning ? stopCamera : () => startCamera(facingMode)}
         variant={scanning ? 'outline' : 'default'}
         className="w-full gap-2"
         size="lg"
