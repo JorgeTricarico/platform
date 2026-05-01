@@ -352,6 +352,44 @@ describe('Garments page', () => {
   });
 });
 
+describe('BUG 4: Validación fecha de entrega en handleCreate', () => {
+  it('[BUG4] muestra toast de error si se intenta guardar sin fecha de entrega', async () => {
+    const { createGarment } = await import('../services/api');
+    (createGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('Campera de Cuero (cierre)')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('+ Registrar Ingreso'));
+    // Cambiar a nuevo cliente para poder ingresar datos
+    fireEvent.click(screen.getByText('Nuevo cliente'));
+    fireEvent.change(screen.getByPlaceholderText('Nombre y Apellido'), { target: { value: 'Cliente Test' } });
+    fireEvent.change(screen.getByPlaceholderText('Teléfono'), { target: { value: '1234567890' } });
+
+    // Rellenar prenda pero NO la fecha de entrega (dejarla vacía)
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'Pantalón' } });
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    fireEvent.change(repairInputs[0], { target: { value: 'Dobladillo' } });
+    const descInputs = screen.getAllByPlaceholderText(/detalle exacto/i);
+    fireEvent.change(descInputs[0], { target: { value: 'Subir 5cm' } });
+
+    // Asegurarnos de que la fecha quede vacía
+    const dateInputs = document.querySelectorAll('input[name="deliveryDate"]');
+    fireEvent.change(dateInputs[0], { target: { value: '' } });
+
+    // Submit
+    fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+
+    // createGarment NO debe ser llamado
+    await waitFor(() => {
+      expect(createGarment).not.toHaveBeenCalled();
+    });
+  });
+});
+
 describe('Cancelar pedido', () => {
   it('muestra botón "Cancelar pedido" para órdenes activas (no entregado)', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);

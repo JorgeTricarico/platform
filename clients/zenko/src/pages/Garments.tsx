@@ -169,6 +169,10 @@ export default function Garments() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!createForm.deliveryDate) {
+      toast.error('Ingresá la fecha de entrega');
+      return;
+    }
     try {
       const items = createForm.items && createForm.items.length > 0 ? createForm.items : [createForm];
       for (const item of items) {

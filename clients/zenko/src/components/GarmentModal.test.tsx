@@ -130,6 +130,61 @@ describe('GarmentModal', () => {
     expect(deliveryInput.min).toBeTruthy();
   });
 
+  // BUG 1: Prendas vencidas imposibles de editar
+  it('[BUG1] en modo edición, permite guardar aunque la fecha de entrega sea pasada', () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const pastDate = '2020-01-01';
+    const form = {
+      ...EMPTY_FORM,
+      deliveryDate: pastDate,
+      clientName: 'Test',
+      clientPhone: '123',
+      garmentName: 'Pantalon',
+      repairType: 'dobladillo',
+      description: 'test',
+      price: 1000,
+    };
+    render(
+      <GarmentModal
+        title="Editar Prenda"
+        form={form}
+        setForm={vi.fn()}
+        onSubmit={onSubmit}
+        onClose={vi.fn()}
+        showStatus={true}
+        garmentId="abc-123"
+      />
+    );
+    fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+    // En modo edición, onSubmit DEBE ser llamado aunque la fecha sea pasada
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/fecha.*pasada|pasada|anterior/i)).not.toBeInTheDocument();
+  });
+
+  it('[BUG1] en modo edición, el input de fecha de entrega NO tiene atributo min', () => {
+    render(<Wrapper garmentId="abc-123" />);
+    const deliveryInput = document.querySelector('input[name="deliveryDate"]') as HTMLInputElement;
+    expect(deliveryInput).not.toBeNull();
+    expect(deliveryInput.min).toBeFalsy();
+  });
+
+  // BUG 3: Sugerencias de repairType no aparecen en la 2da prenda
+  it('[BUG3] sugerencias aparecen en la segunda prenda después de añadir prenda', () => {
+    const garmentHistory: DBGarment[] = [
+      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', garmentName: 'camisa', repairType: 'cierre', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', garmentName: 'camisa azul', repairType: 'cierre', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+    ];
+    render(<Wrapper garmentHistory={garmentHistory} />);
+    // Añadir segunda prenda
+    fireEvent.click(screen.getByRole('button', { name: /añadir prenda/i }));
+    // Tipear en el segundo input de garmentName
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    expect(garmentInputs.length).toBe(2);
+    fireEvent.change(garmentInputs[1], { target: { value: 'camisa' } });
+    // Las sugerencias deben aparecer para el segundo ítem
+    expect(screen.getByText(/cierre/i)).toBeInTheDocument();
+  });
+
   it('llama onClose al cancelar', () => {
     const onClose = vi.fn();
     render(<GarmentModal {...defaultProps} onClose={onClose} />);

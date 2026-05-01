@@ -123,6 +123,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
       ...prev,
       items: [...(prev.items || []), { ...EMPTY_ITEM }],
     }));
+    setSuggestions(prev => [...prev, []]);
   };
 
   const removeItem = (index: number) => {
@@ -155,7 +156,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    if (form.deliveryDate && form.deliveryDate < today) {
+    if (!isEditing && form.deliveryDate && form.deliveryDate < today) {
       e.preventDefault();
       setDeliveryError('La fecha de entrega no puede ser una fecha pasada');
       return;
@@ -447,7 +448,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                 <CalendarDays className="h-3.5 w-3.5" />
                 Fecha de Entrega
               </label>
-              <Input required name="deliveryDate" type="date" min={today} value={form.deliveryDate} onChange={handle} className={deliveryError ? 'border-destructive' : ''} />
+              <Input required name="deliveryDate" type="date" min={isEditing ? undefined : today} value={form.deliveryDate} onChange={handle} className={deliveryError ? 'border-destructive' : ''} />
               {deliveryError && <p className="text-xs text-destructive mt-1">{deliveryError}</p>}
             </div>
           </div>

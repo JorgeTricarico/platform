@@ -332,10 +332,17 @@ export default function QRScanner() {
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-base pt-1 border-t border-border">
-                    <span className="text-green-600 dark:text-green-400">Cobrado</span>
-                    <span className="text-green-600 dark:text-green-400">
-                      ✓ {priceFmt(alert.remaining > 0 ? alert.remaining : alert.garment.price)}
-                    </span>
+                    {alert.remaining > 0 ? (
+                      <>
+                        <span className="text-green-600 dark:text-green-400">Cobrado</span>
+                        <span className="text-green-600 dark:text-green-400">✓ {priceFmt(alert.remaining)}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-green-600 dark:text-green-400">Cobrado</span>
+                        <span className="text-green-600 dark:text-green-400">✓ Ya pagado con seña</span>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
