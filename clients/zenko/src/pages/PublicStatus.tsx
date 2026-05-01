@@ -156,60 +156,50 @@ export default function PublicStatus() {
         {/* Vertical Stepper */}
         <Card>
           <CardContent className="pt-4 pb-4">
-            <div className="space-y-0">
+            <div className="space-y-1">
               {STEPS.map((s, idx) => {
                 const isPast    = idx < currentStepIndex;
                 const isCurrent = idx === currentStepIndex;
-                const isFuture  = idx > currentStepIndex;
                 const isLast    = idx === STEPS.length - 1;
 
-                return (
-                  <div key={s.id} className="flex gap-3">
-                    {/* Track column */}
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={cn(
-                          'rounded-full flex items-center justify-center font-bold flex-shrink-0 z-10 transition-all',
-                          isCurrent
-                            ? 'w-12 h-12 text-xl bg-primary text-primary-foreground ring-4 ring-primary/25 shadow-md'
-                            : isPast
-                              ? 'w-7 h-7 text-sm bg-green-500 text-white'
-                              : 'w-7 h-7 text-xs bg-muted text-muted-foreground/50 border border-border'
-                        )}
-                      >
-                        {isCurrent ? s.icon : isPast ? '✓' : '·'}
-                      </div>
-                      {!isLast && (
-                        <div
-                          className={cn(
-                            'w-0.5 flex-1 my-1',
-                            isCurrent ? 'min-h-5 bg-border' : isPast ? 'min-h-4 bg-green-400' : 'min-h-4 bg-border/40'
-                          )}
-                        />
-                      )}
-                    </div>
-
-                    {/* Content column */}
-                    <div className={cn(
-                      'flex-1 flex items-center',
-                      isCurrent ? 'py-3' : 'py-1',
-                      isLast ? 'pb-0' : ''
-                    )}>
-                      {isCurrent ? (
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-base font-extrabold text-foreground">{s.label}</span>
-                            <Badge variant="default" className="text-[10px] px-1.5 py-0 animate-pulse">AHORA</Badge>
+                if (isCurrent) {
+                  return (
+                    <div key={s.id}>
+                      <div className={cn(
+                        'rounded-2xl border-2 px-4 py-4 flex items-center gap-4',
+                        hero.bg
+                      )}>
+                        <span className="text-4xl leading-none flex-shrink-0">{s.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={cn('text-xl font-black leading-tight', hero.text)}>{s.label}</span>
+                            <Badge variant="default" className="text-[11px] px-2 py-0.5 animate-pulse font-bold">AHORA</Badge>
                           </div>
+                          <p className={cn('text-xs mt-0.5 opacity-75', hero.text)}>{hero.sub}</p>
                         </div>
-                      ) : isPast ? (
-                        <span className="text-sm text-green-700 font-medium">
-                          {s.label} {s.icon}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/60">{s.label}</span>
-                      )}
+                      </div>
+                      {!isLast && <div className="w-0.5 h-4 bg-border/40 ml-7 my-0.5" />}
                     </div>
+                  );
+                }
+
+                return (
+                  <div key={s.id}>
+                    <div className="flex items-center gap-3 py-1">
+                      <div className={cn(
+                        'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0',
+                        isPast ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground/40 border border-border'
+                      )}>
+                        {isPast ? '✓' : '·'}
+                      </div>
+                      <span className={cn(
+                        'text-sm font-medium',
+                        isPast ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground/50'
+                      )}>
+                        {s.label}{isPast ? ` ${s.icon}` : ''}
+                      </span>
+                    </div>
+                    {!isLast && <div className="w-0.5 h-3 bg-border/30 ml-4" />}
                   </div>
                 );
               })}

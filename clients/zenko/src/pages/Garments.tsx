@@ -54,7 +54,12 @@ function getStatusBadge(status: string) {
   }
 }
 
-export default function Garments() {
+interface GarmentsProps {
+  externalSearch?: string;
+  createTrigger?: number;
+}
+
+export default function Garments({ externalSearch = '', createTrigger = 0 }: GarmentsProps) {
   const toast = useToast();
   const isMobile = useIsMobile();
 
@@ -88,6 +93,12 @@ export default function Garments() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Sync búsqueda global desde el header
+  useEffect(() => { setSearchTerm(externalSearch); }, [externalSearch]);
+
+  // FAB → abrir modal de nueva orden
+  useEffect(() => { if (createTrigger > 0) setIsCreateOpen(true); }, [createTrigger]);
+
   const STATUS_ORDER: Record<string, number> = { listo: 0, en_proceso: 1, recibido: 2, entregado: 3 };
 
   const today     = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -113,6 +124,16 @@ export default function Garments() {
     types.forEach(t => all.add(t));
     return [...all];
   }, [garments]);
+
+  // Panel "Hoy"
+  const todayPending = useMemo(
+    () => garments.filter(g => g.deliveryDate === today && g.status !== 'entregado'),
+    [garments, today]
+  );
+  const staleReady = useMemo(
+    () => garments.filter(g => g.status === 'listo' && g.deliveryDate < today),
+    [garments, today]
+  );
 
   // Conteo de filtros activos
   const activeFilterCount = useMemo(() => {
@@ -317,25 +338,62 @@ export default function Garments() {
         </Button>
       </div>
 
+      {/* ── Panel "Hoy" ───────────────────────────────────────────── */}
+      {(todayPending.length > 0 || staleReady.length > 0) && (
+        <div className="flex gap-2 mb-3 flex-wrap shrink-0">
+          {todayPending.length > 0 && (
+            <button
+              type="button"
+              onClick={() => { setDateFrom(today); setDateTo(today); setStatusFilter('all'); setOnlyOverdue(false); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-blue-300 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
+            >
+              📅 {todayPending.length} entrega{todayPending.length > 1 ? 's' : ''} hoy
+            </button>
+          )}
+          {staleReady.length > 0 && (
+            <button
+              type="button"
+              onClick={() => { setStatusFilter('listo'); setOnlyOverdue(true); setDateFrom(''); setDateTo(''); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-orange-300 bg-orange-50 dark:bg-orange-950/30 dark:border-orange-800 text-orange-700 dark:text-orange-300 text-xs font-semibold hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors"
+            >
+              ⏰ {staleReady.length} lista{staleReady.length > 1 ? 's' : ''} sin retirar
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── Filtros de estado ──────────────────────────────────────── */}
       <div className="flex gap-2 mb-4 flex-wrap shrink-0">
         {[
-          { key: 'all',        label: 'Todos',      count: garments.length },
-          { key: 'recibido',   label: 'Recibido',   count: statusCounts['recibido']   || 0 },
-          { key: 'en_proceso', label: 'En Proceso', count: statusCounts['en_proceso'] || 0 },
-          { key: 'listo',      label: 'Listo',      count: statusCounts['listo']      || 0 },
-          { key: 'entregado',  label: 'Entregado',  count: statusCounts['entregado']  || 0 },
-        ].map(({ key, label, count }) => (
-          <Button
-            key={key}
-            type="button"
-            size="sm"
-            variant={statusFilter === key ? 'default' : 'outline'}
-            onClick={() => setStatusFilter(key)}
-          >
-            {label} ({count})
-          </Button>
-        ))}
+          { key: 'all',        label: 'Todos',      count: garments.length,               color: '' },
+          { key: 'recibido',   label: 'Recibido',   count: statusCounts['recibido']   || 0, color: 'border-slate-400 data-active:bg-slate-500' },
+          { key: 'en_proceso', label: 'En Proceso', count: statusCounts['en_proceso'] || 0, color: 'border-blue-400' },
+          { key: 'listo',      label: 'Listo',      count: statusCounts['listo']      || 0, color: 'border-green-400' },
+          { key: 'entregado',  label: 'Entregado',  count: statusCounts['entregado']  || 0, color: 'border-purple-400' },
+        ].map(({ key, label, count, color }) => {
+          const isActive = statusFilter === key;
+          const colorMap: Record<string, { active: string; inactive: string }> = {
+            '':                   { active: 'bg-foreground text-background border-foreground', inactive: 'border-border text-muted-foreground hover:border-foreground hover:text-foreground' },
+            'border-slate-400 data-active:bg-slate-500': { active: 'bg-slate-500 text-white border-slate-500', inactive: 'border-slate-300 text-slate-600 dark:text-slate-400 hover:border-slate-500' },
+            'border-blue-400':    { active: 'bg-blue-500 text-white border-blue-500', inactive: 'border-blue-300 text-blue-600 dark:text-blue-400 hover:border-blue-500' },
+            'border-green-400':   { active: 'bg-green-500 text-white border-green-500', inactive: 'border-green-300 text-green-600 dark:text-green-400 hover:border-green-500' },
+            'border-purple-400':  { active: 'bg-purple-500 text-white border-purple-500', inactive: 'border-purple-300 text-purple-600 dark:text-purple-400 hover:border-purple-500' },
+          };
+          const styles = colorMap[color] ?? colorMap[''];
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setStatusFilter(key)}
+              className={cn(
+                'px-3 py-1 rounded-full border text-xs font-semibold transition-colors cursor-pointer',
+                isActive ? styles.active : styles.inactive
+              )}
+            >
+              {label} ({count})
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Card contenedor ───────────────────────────────────────── */}

@@ -12,8 +12,12 @@ import {
   Sun,
   ChevronLeft,
   ChevronRight,
+  Search,
+  Plus,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Garments = lazy(() => import('./pages/Garments'));
@@ -66,6 +70,8 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>(readTabFromHash);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [createTrigger, setCreateTrigger] = useState(0);
   const toast = useToast();
   const { user, authRequired, logout } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -112,6 +118,16 @@ function AppContent() {
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
     }
+  };
+
+  const handleGlobalSearch = (val: string) => {
+    setGlobalSearch(val);
+    if (val) navigate('garments');
+  };
+
+  const handleFABCreate = () => {
+    navigate('garments');
+    setCreateTrigger(t => t + 1);
   };
 
   const toggleSidebar = () => {
@@ -209,7 +225,25 @@ function AppContent() {
             <Menu className="w-5 h-5" />
           </Button>
 
-          <div className="flex-1" />
+          {/* Global search */}
+          <div className="flex-1 max-w-xs relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Buscar orden, cliente..."
+              value={globalSearch}
+              onChange={e => handleGlobalSearch(e.target.value)}
+              className="pl-8 h-8 text-sm"
+            />
+            {globalSearch && (
+              <button
+                onClick={() => setGlobalSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
 
           <NotificationBell clientId="all" />
 
@@ -242,7 +276,7 @@ function AppContent() {
           <ErrorBoundary>
             <Suspense fallback={<div className="flex items-center justify-center min-h-60 text-muted-foreground">Cargando...</div>}>
               {activeTab === 'dashboard' && <Dashboard />}
-              {activeTab === 'garments' && <Garments />}
+              {activeTab === 'garments' && <Garments externalSearch={globalSearch} createTrigger={createTrigger} />}
               {activeTab === 'finances' && <Finances />}
               {activeTab === 'clients' && <Clients />}
               {activeTab === 'chat' && <ChatDemo />}
@@ -251,6 +285,16 @@ function AppContent() {
           </ErrorBoundary>
         </div>
       </main>
+
+      {/* FAB — Nueva orden, visible desde cualquier tab */}
+      <button
+        onClick={handleFABCreate}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+        title="Nueva orden"
+        aria-label="Nueva orden"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
     </div>
   );
 }

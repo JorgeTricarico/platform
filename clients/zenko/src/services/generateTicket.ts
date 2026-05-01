@@ -37,26 +37,44 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   doc.setDrawColor(200);
   doc.line(ML, 36, MR, 36);
 
-  // Logo (right side, small)
+  // Logo (right side)
   doc.addImage(LOGO_BASE64, 'PNG', 36, 39, 18, 18);
 
-  // Order info
+  // Order info — left column alongside the logo (x from ML=3, max width 32mm before logo at x=36)
   const orderLabel = `ORD-${String(order.orderNumber).padStart(6, '0')}`;
+  const COL_W = 32; // max width of left column (logo starts at x=36)
+
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text(`Orden: ${orderLabel}`, ML, 41);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  doc.text(`Cliente: ${order.clientName.toUpperCase()}`, ML, 46);
-  doc.text(`Tel: ${order.clientPhone}`, ML, 51);
-  doc.text(`Prenda: ${order.garmentName}`, ML, 56);
-  doc.text(`Arreglo: ${order.repairType}`, ML, 61);
 
-  // Description — puede ser larga, truncar a 30 chars
-  const desc = order.description?.slice(0, 30) || '';
-  if (desc) doc.text(`Detalle: ${desc}`, ML, 66);
+  // splitTextToSize prevents overflow into logo area
+  const clientLines = doc.splitTextToSize(`Cliente: ${order.clientName.toUpperCase()}`, COL_W);
+  doc.text(clientLines, ML, 46);
+  const clientH = (clientLines.length - 1) * 4;
 
-  let y = desc ? 71 : 66;
+  doc.text(`Tel: ${order.clientPhone}`, ML, 51 + clientH);
+
+  const garmentLines = doc.splitTextToSize(`Prenda: ${order.garmentName}`, COL_W);
+  doc.text(garmentLines, ML, 56 + clientH);
+  const garmentH = (garmentLines.length - 1) * 4;
+
+  // After logo area (y ≥ 58), full-width content
+  let y = Math.max(58, 56 + clientH + garmentH + 4);
+
+  // Arreglo y descripción — full width below logo
+  const repairLines = doc.splitTextToSize(`Arreglo: ${order.repairType}`, MR - ML);
+  doc.text(repairLines, ML, y);
+  y += repairLines.length * 4 + 1;
+
+  const desc = order.description?.slice(0, 40) || '';
+  if (desc) {
+    const descLines = doc.splitTextToSize(`Detalle: ${desc}`, MR - ML);
+    doc.text(descLines, ML, y);
+    y += descLines.length * 4 + 1;
+  }
 
   const fmtDate = (d: string) => {
     if (!d) return '-';
