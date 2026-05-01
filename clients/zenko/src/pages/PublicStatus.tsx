@@ -155,59 +155,60 @@ export default function PublicStatus() {
 
         {/* Vertical Stepper */}
         <Card>
-          <CardContent className="pt-5 pb-5">
+          <CardContent className="pt-4 pb-4">
             <div className="space-y-0">
               {STEPS.map((s, idx) => {
-                const isCompleted = idx <= currentStepIndex;
+                const isPast    = idx < currentStepIndex;
                 const isCurrent = idx === currentStepIndex;
-                const isLast = idx === STEPS.length - 1;
+                const isFuture  = idx > currentStepIndex;
+                const isLast    = idx === STEPS.length - 1;
 
                 return (
-                  <div key={s.id} className="flex gap-4">
+                  <div key={s.id} className="flex gap-3">
                     {/* Track column */}
                     <div className="flex flex-col items-center">
                       <div
                         className={cn(
-                          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 z-10',
+                          'rounded-full flex items-center justify-center font-bold flex-shrink-0 z-10 transition-all',
                           isCurrent
-                            ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
-                            : isCompleted
-                              ? 'bg-success text-white'
-                              : 'bg-muted text-muted-foreground border border-border'
+                            ? 'w-12 h-12 text-xl bg-primary text-primary-foreground ring-4 ring-primary/25 shadow-md'
+                            : isPast
+                              ? 'w-7 h-7 text-sm bg-green-500 text-white'
+                              : 'w-7 h-7 text-xs bg-muted text-muted-foreground/50 border border-border'
                         )}
                       >
-                        {isCompleted ? '✓' : idx + 1}
+                        {isCurrent ? s.icon : isPast ? '✓' : '·'}
                       </div>
                       {!isLast && (
                         <div
                           className={cn(
-                            'w-0.5 flex-1 my-1 min-h-6',
-                            idx < currentStepIndex ? 'bg-success' : 'bg-border'
+                            'w-0.5 flex-1 my-1',
+                            isCurrent ? 'min-h-5 bg-border' : isPast ? 'min-h-4 bg-green-400' : 'min-h-4 bg-border/40'
                           )}
                         />
                       )}
                     </div>
 
                     {/* Content column */}
-                    <div className={cn('pb-5 flex-1', isLast && 'pb-0')}>
-                      <div className="flex items-center gap-2 pt-1">
-                        <span
-                          className={cn(
-                            'text-sm font-medium',
-                            isCurrent ? 'font-bold text-foreground' : isCompleted ? 'text-foreground' : 'text-muted-foreground'
-                          )}
-                        >
+                    <div className={cn(
+                      'flex-1 flex items-center',
+                      isCurrent ? 'py-3' : 'py-1',
+                      isLast ? 'pb-0' : ''
+                    )}>
+                      {isCurrent ? (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-extrabold text-foreground">{s.label}</span>
+                            <Badge variant="default" className="text-[10px] px-1.5 py-0 animate-pulse">AHORA</Badge>
+                          </div>
+                        </div>
+                      ) : isPast ? (
+                        <span className="text-sm text-green-700 font-medium">
                           {s.label} {s.icon}
                         </span>
-                        {isCurrent && (
-                          <Badge variant="default" className="text-[10px] px-1.5 py-0">
-                            ACTUAL
-                          </Badge>
-                        )}
-                        {!isCompleted && !isCurrent && (
-                          <span className="text-xs text-muted-foreground">Pendiente</span>
-                        )}
-                      </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground/60">{s.label}</span>
+                      )}
                     </div>
                   </div>
                 );

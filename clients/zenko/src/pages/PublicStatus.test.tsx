@@ -83,8 +83,8 @@ describe('PublicStatus', () => {
       expect(screen.getByText(/En Proceso/)).toBeInTheDocument();
     });
 
-    // El badge "ACTUAL" debe estar visible junto al paso en_proceso
-    expect(screen.getByText('ACTUAL')).toBeInTheDocument();
+    // El badge "AHORA" debe estar visible junto al paso en_proceso
+    expect(screen.getByText('AHORA')).toBeInTheDocument();
   });
 
   it('muestra hero banner con estado actual prominente', async () => {
