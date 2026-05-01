@@ -170,7 +170,22 @@ export default function Garments() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createGarment({ ...createForm, price: Number(createForm.price) });
+      const items = createForm.items && createForm.items.length > 0 ? createForm.items : [createForm];
+      for (const item of items) {
+        await createGarment({
+          clientName: createForm.clientName,
+          clientPhone: createForm.clientPhone,
+          intakeDate: createForm.intakeDate,
+          deliveryDate: createForm.deliveryDate,
+          status: createForm.status,
+          location: createForm.location,
+          garmentName: item.garmentName,
+          repairType: item.repairType,
+          description: item.description,
+          price: Number(item.price),
+          deposit: Number(item.deposit),
+        });
+      }
       toast.success('Orden guardada correctamente');
       setIsCreateOpen(false);
       setCreateForm({ ...EMPTY_FORM });
@@ -615,6 +630,7 @@ export default function Garments() {
           onSubmit={handleCreate}
           onClose={() => { setIsCreateOpen(false); setCreateForm({ ...EMPTY_FORM }); }}
           showStatus={false}
+          garmentHistory={garments}
         />
       )}
 

@@ -1,22 +1,52 @@
 import { useState, useEffect, useRef } from 'react';
 import { searchClients } from '../services/api';
-import type { DBClient } from '../services/api';
+import type { DBClient, DBGarment } from '../services/api';
 import PhotoGallery from './PhotoGallery';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Search, User, Phone, Shirt, Scissors, FileText, CalendarDays, DollarSign, Loader2 } from 'lucide-react';
+import { Search, User, Phone, Shirt, Scissors, FileText, CalendarDays, DollarSign, Loader2, Plus, Trash2 } from 'lucide-react';
+
+export type GarmentItem = {
+  garmentName: string;
+  repairType: string;
+  description: string;
+  price: number;
+  deposit: number;
+};
+
+export const EMPTY_ITEM: GarmentItem = {
+  garmentName: '', repairType: '', description: '', price: 0, deposit: 0,
+};
 
 export const EMPTY_FORM = {
   clientName: '', clientPhone: '', garmentName: '', repairType: '',
-  description: '', intakeDate: new Date().toISOString().split('T')[0], deliveryDate: '', price: 0, deposit: 0, status: 'recibido', location: ''
+  description: '', intakeDate: new Date().toISOString().split('T')[0], deliveryDate: '', price: 0, deposit: 0, status: 'recibido', location: '',
+  items: [{ ...EMPTY_ITEM }] as GarmentItem[],
 };
 
 export type GarmentFormState = typeof EMPTY_FORM;
 
-export default function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, garmentId }: {
+// Función pura: sugerencias de repairType basadas en historial
+export function getSuggestions(garmentName: string, history: DBGarment[]): string[] {
+  if (!garmentName.trim() || !history.length) return [];
+  const query = garmentName.toLowerCase();
+  const freq: Record<string, number> = {};
+  history.forEach(g => {
+    if (g.garmentName.toLowerCase().includes(query)) {
+      const rt = g.repairType.trim();
+      if (rt) freq[rt] = (freq[rt] || 0) + 1;
+    }
+  });
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([type]) => type);
+}
+
+export default function GarmentModal({ title, form, setForm, onSubmit, onClose, showStatus, garmentId, garmentHistory }: {
   title: string;
   form: GarmentFormState;
   setForm: React.Dispatch<React.SetStateAction<GarmentFormState>>;
@@ -24,6 +54,7 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   onClose: () => void;
   showStatus: boolean;
   garmentId?: string;
+  garmentHistory?: DBGarment[];
 }) {
   const today = new Date().toISOString().split('T')[0];
   const [submitting, setSubmitting] = useState(false);
@@ -75,6 +106,53 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   };
 
   const [clientError, setClientError] = useState('');
+
+  // Items state para modo creación
+  const items: GarmentItem[] = form.items && form.items.length > 0 ? form.items : [{ ...EMPTY_ITEM }];
+
+  const updateItem = (index: number, field: keyof GarmentItem, value: string | number) => {
+    setForm(prev => {
+      const newItems = [...(prev.items || [{ ...EMPTY_ITEM }])];
+      newItems[index] = { ...newItems[index], [field]: value };
+      return { ...prev, items: newItems };
+    });
+  };
+
+  const addItem = () => {
+    setForm(prev => ({
+      ...prev,
+      items: [...(prev.items || []), { ...EMPTY_ITEM }],
+    }));
+  };
+
+  const removeItem = (index: number) => {
+    setForm(prev => {
+      const newItems = (prev.items || []).filter((_, i) => i !== index);
+      return { ...prev, items: newItems.length > 0 ? newItems : [{ ...EMPTY_ITEM }] };
+    });
+  };
+
+  // Sugerencias por ítem
+  const [suggestions, setSuggestions] = useState<string[][]>(items.map(() => []));
+
+  const handleItemGarmentName = (index: number, value: string) => {
+    updateItem(index, 'garmentName', value);
+    const sugs = garmentHistory ? getSuggestions(value, garmentHistory) : [];
+    setSuggestions(prev => {
+      const next = [...prev];
+      next[index] = sugs;
+      return next;
+    });
+  };
+
+  const applySuggestion = (index: number, repairType: string) => {
+    updateItem(index, 'repairType', repairType);
+    setSuggestions(prev => {
+      const next = [...prev];
+      next[index] = [];
+      return next;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     if (form.deliveryDate && form.deliveryDate < today) {
@@ -196,30 +274,166 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Shirt className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="pl-9" />
-            </div>
-            <div className="relative flex-1">
-              <Scissors className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input required name="repairType" placeholder="Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="pl-9" />
-            </div>
-          </div>
+          {/* Modo edición: campos planos (sin cambios) */}
+          {isEditing ? (
+            <>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Shirt className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="pl-9" />
+                </div>
+                <div className="relative flex-1">
+                  <Scissors className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input required name="repairType" placeholder="Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="pl-9" />
+                </div>
+              </div>
 
-          <div className="relative">
-            <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Textarea
-              required
-              name="description"
-              placeholder="Detalle exacto del trabajo a realizar..."
-              value={form.description}
-              onChange={handle}
-              rows={3}
-              className="pl-9 resize-none"
-            />
-          </div>
+              <div className="relative">
+                <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Textarea
+                  required
+                  name="description"
+                  placeholder="Detalle exacto del trabajo a realizar..."
+                  value={form.description}
+                  onChange={handle}
+                  rows={3}
+                  className="pl-9 resize-none"
+                />
+              </div>
 
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    Precio ($)
+                  </label>
+                  <Input required name="price" type="number" placeholder="Ej: 1500" value={form.price || ''} onChange={handle} />
+                </div>
+                <div className="flex-1">
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    Seña ($)
+                  </label>
+                  <Input name="deposit" type="number" placeholder="Ej: 500" value={form.deposit || ''} onChange={handle} />
+                </div>
+              </div>
+            </>
+          ) : (
+            /* Modo creación: lista de ítems */
+            <>
+              {items.map((item, index) => (
+                <div key={index} className="border border-border rounded-lg p-3 flex flex-col gap-3 relative">
+                  {items.length > 1 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground">Prenda {index + 1}</span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeItem(index)}
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        aria-label="Eliminar prenda"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Shirt className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        required
+                        placeholder="Prenda (ej: Pantalón)"
+                        value={item.garmentName}
+                        onChange={(e) => handleItemGarmentName(index, e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                    <div className="relative flex-1">
+                      <Scissors className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        required
+                        placeholder="Arreglo (ej: Dobladillo)"
+                        value={item.repairType}
+                        onChange={(e) => updateItem(index, 'repairType', e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Chips de sugerencias */}
+                  {suggestions[index] && suggestions[index].length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {suggestions[index].map(sug => (
+                        <button
+                          key={sug}
+                          type="button"
+                          onClick={() => applySuggestion(index, sug)}
+                          className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                        >
+                          {sug}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Textarea
+                      required
+                      placeholder="Detalle exacto del trabajo a realizar..."
+                      value={item.description}
+                      onChange={(e) => updateItem(index, 'description', e.target.value)}
+                      rows={2}
+                      className="pl-9 resize-none"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        Precio ($)
+                      </label>
+                      <Input
+                        required
+                        type="number"
+                        placeholder="Ej: 1500"
+                        value={item.price || ''}
+                        onChange={(e) => updateItem(index, 'price', Number(e.target.value))}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        Seña ($)
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="Ej: 500"
+                        value={item.deposit || ''}
+                        onChange={(e) => updateItem(index, 'deposit', Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addItem}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4" />
+                Añadir prenda
+              </Button>
+            </>
+          )}
+
+          {/* Fechas: compartidas entre todos los ítems en creación, normales en edición */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
@@ -235,23 +449,6 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
               </label>
               <Input required name="deliveryDate" type="date" min={today} value={form.deliveryDate} onChange={handle} className={deliveryError ? 'border-destructive' : ''} />
               {deliveryError && <p className="text-xs text-destructive mt-1">{deliveryError}</p>}
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
-                <DollarSign className="h-3.5 w-3.5" />
-                Precio ($)
-              </label>
-              <Input required name="price" type="number" placeholder="Ej: 1500" value={form.price || ''} onChange={handle} />
-            </div>
-            <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
-                <DollarSign className="h-3.5 w-3.5" />
-                Seña ($)
-              </label>
-              <Input name="deposit" type="number" placeholder="Ej: 500" value={form.deposit || ''} onChange={handle} />
             </div>
           </div>
 

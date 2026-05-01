@@ -1,8 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useState } from 'react';
-import GarmentModal, { EMPTY_FORM } from './GarmentModal';
+import GarmentModal, { EMPTY_FORM, EMPTY_ITEM } from './GarmentModal';
 import type { GarmentFormState } from './GarmentModal';
+import type { DBGarment } from '../services/api';
 
 vi.mock('../services/api', () => ({
   searchClients: vi.fn().mockResolvedValue([]),
@@ -27,7 +28,7 @@ const defaultProps = {
   showStatus: false,
 };
 
-function Wrapper(props: Partial<typeof defaultProps> & { garmentId?: string }) {
+function Wrapper(props: Partial<typeof defaultProps> & { garmentId?: string; garmentHistory?: DBGarment[] }) {
   const [form, setForm] = useState<GarmentFormState>({
     ...EMPTY_FORM,
     clientName: 'Test',
@@ -37,6 +38,7 @@ function Wrapper(props: Partial<typeof defaultProps> & { garmentId?: string }) {
     description: 'test',
     deliveryDate: '2026-05-01',
     price: 1000,
+    items: [{ ...EMPTY_ITEM }],
   });
   return (
     <GarmentModal
@@ -47,6 +49,7 @@ function Wrapper(props: Partial<typeof defaultProps> & { garmentId?: string }) {
       onClose={props.onClose ?? vi.fn()}
       showStatus={props.showStatus ?? false}
       garmentId={props.garmentId}
+      garmentHistory={props.garmentHistory}
     />
   );
 }
@@ -132,5 +135,56 @@ describe('GarmentModal', () => {
     render(<GarmentModal {...defaultProps} onClose={onClose} />);
     fireEvent.click(screen.getByRole('button', { name: /cancelar/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  // Tests de múltiples prendas por pedido
+  it('muestra "Añadir prenda" en modo creación', () => {
+    render(<Wrapper />);
+    expect(screen.getByRole('button', { name: /añadir prenda/i })).toBeInTheDocument();
+  });
+
+  it('no muestra "Añadir prenda" en modo edición', () => {
+    render(<Wrapper garmentId="abc-123" />);
+    expect(screen.queryByRole('button', { name: /añadir prenda/i })).not.toBeInTheDocument();
+  });
+
+  it('añadir prenda agrega un ítem nuevo a la lista', () => {
+    render(<Wrapper />);
+    // Inicialmente hay 1 input de garmentName en los items
+    const initialInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    const initialCount = initialInputs.length;
+    fireEvent.click(screen.getByRole('button', { name: /añadir prenda/i }));
+    const updatedInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    expect(updatedInputs.length).toBe(initialCount + 1);
+  });
+
+  it('sugerencias aparecen al tipear garmentName con historial', () => {
+    const garmentHistory: DBGarment[] = [
+      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', garmentName: 'pantalon', repairType: 'dobladillo', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', garmentName: 'Pantalon', repairType: 'dobladillo', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+      { id: '3', orderNumber: 3, clientName: 'C', clientPhone: '3', garmentName: 'pantalon jeans', repairType: 'cierre', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+    ];
+    render(<Wrapper garmentHistory={garmentHistory} />);
+    // Tipear en el primer input de garmentName del ítem
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'pantalon' } });
+    // Debe aparecer al menos una sugerencia de repairType
+    expect(screen.getByText(/dobladillo/i)).toBeInTheDocument();
+  });
+
+  it('click en sugerencia rellena el repairType', () => {
+    const garmentHistory: DBGarment[] = [
+      { id: '1', orderNumber: 1, clientName: 'A', clientPhone: '1', garmentName: 'pantalon', repairType: 'dobladillo', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+      { id: '2', orderNumber: 2, clientName: 'B', clientPhone: '2', garmentName: 'Pantalon', repairType: 'dobladillo', description: '', status: 'entregado', intakeDate: '2026-01-01', deliveryDate: '2026-01-10', price: 1000 },
+    ];
+    render(<Wrapper garmentHistory={garmentHistory} />);
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'pantalon' } });
+    // Click en el chip de sugerencia
+    const chip = screen.getByText(/dobladillo/i);
+    fireEvent.click(chip);
+    // El repairType del ítem debe haberse llenado
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    expect((repairInputs[0] as HTMLInputElement).value).toBe('dobladillo');
   });
 });
