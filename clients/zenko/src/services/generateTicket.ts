@@ -67,7 +67,10 @@ export async function generateTicket(order: DBGarment): Promise<void> {
   // QR Code
   // Future URL: https://zenko.ar/orden/[shortId]
   const qrY = y + 5;
-  const trackingUrl = `${window.location.origin}/?view=status&order=${order.orderNumber}`;
+  const appOrigin = window.location.hostname === 'localhost' || window.location.hostname.match(/^\d+\.\d+\.\d+\.\d+$/)
+    ? 'https://zenko-app.onrender.com'
+    : window.location.origin;
+  const trackingUrl = `${appOrigin}/?view=status&order=${order.orderNumber}`;
   const qrDataUrl = await QRCode.toDataURL(trackingUrl, { width: 200, margin: 1 });
   doc.addImage(qrDataUrl, 'PNG', 20, qrY, 40, 40);
 
