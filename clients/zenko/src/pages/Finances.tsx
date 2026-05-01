@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { fetchFinances, createFinance, updateFinance, deleteFinance } from '../services/api';
-import type { DBFinance } from '../services/api';
+import { fetchFinances, fetchGarments, createFinance, updateFinance, deleteFinance } from '../services/api';
+import type { DBFinance, DBGarment } from '../services/api';
 import { useToast } from '../components/ToastContext';
 import { SkeletonLoader } from '../components/SkeletonLoader';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { TrendingUp, TrendingDown, DollarSign, Edit2, Trash2, Plus } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Edit2, Trash2, Plus, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const EMPTY_FORM = {
@@ -33,6 +33,9 @@ export default function Finances() {
   const [editTarget, setEditTarget] = useState<DBFinance | null>(null);
   const [editForm, setEditForm] = useState({ ...EMPTY_FORM });
 
+  const [garments, setGarments] = useState<DBGarment[]>([]);
+  const [showPending, setShowPending] = useState(false);
+
   const load = (month?: string) => {
     setLoading(true);
     fetchFinances(month || undefined)
@@ -45,11 +48,21 @@ export default function Finances() {
 
   useEffect(() => { load(filterMonth); }, [filterMonth]);
 
+  useEffect(() => {
+    fetchGarments().then(setGarments).catch(() => {});
+  }, []);
+
   const { totalIncome, totalExpenses, netIncome } = useMemo(() => {
     const income = finances.filter(f => f.type === 'income').reduce((acc, f) => acc + f.amount, 0);
     const expenses = finances.filter(f => f.type === 'expense').reduce((acc, f) => acc + f.amount, 0);
     return { totalIncome: income, totalExpenses: expenses, netIncome: income - expenses };
   }, [finances]);
+
+  const { pendingGarments, pendingTotal } = useMemo(() => {
+    const pending = garments.filter(g => g.status !== 'entregado');
+    const total = pending.reduce((acc, g) => acc + (g.price - (g.deposit ?? 0)), 0);
+    return { pendingGarments: pending, pendingTotal: total };
+  }, [garments]);
 
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -171,6 +184,55 @@ export default function Finances() {
             ${netIncome.toLocaleString()}
           </div>
         </div>
+      </div>
+
+      {/* Cuentas a cobrar — prendas no entregadas */}
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        <button
+          onClick={() => setShowPending(p => !p)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-orange-500" />
+            <span className="font-semibold text-foreground text-sm">Cuentas a Cobrar</span>
+            <Badge variant="secondary" className="text-xs">{pendingGarments.length} prendas</Badge>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-bold text-orange-500">${pendingTotal.toLocaleString('es-AR')}</span>
+            {showPending ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+          </div>
+        </button>
+
+        {showPending && (
+          <div className="border-t border-border">
+            {pendingGarments.length === 0 ? (
+              <p className="px-4 py-3 text-sm text-muted-foreground">Sin prendas pendientes.</p>
+            ) : (
+              <div className="divide-y divide-border">
+                {pendingGarments.map(g => {
+                  const saldo = g.price - (g.deposit ?? 0);
+                  const STATUS_LABEL: Record<string, string> = { recibido: 'Recibido', en_proceso: 'En Proceso', listo: 'Listo' };
+                  return (
+                    <div key={g.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground truncate">
+                          ORD-{String(g.orderNumber).padStart(6, '0')} · {g.clientName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">{g.garmentName} · {g.repairType}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                        <Badge variant={g.status === 'listo' ? 'listo' : g.status === 'en_proceso' ? 'en_proceso' : 'recibido'} className="text-xs">
+                          {STATUS_LABEL[g.status] ?? g.status}
+                        </Badge>
+                        <span className="font-bold text-orange-500 whitespace-nowrap">${saldo.toLocaleString('es-AR')}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Movements */}

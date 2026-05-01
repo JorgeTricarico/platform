@@ -5,6 +5,7 @@ import { ToastProvider } from '../components/ToastContext';
 
 vi.mock('../services/api', () => ({
   fetchFinances: vi.fn(),
+  fetchGarments: vi.fn().mockResolvedValue([]),
   createFinance: vi.fn(),
   updateFinance: vi.fn(),
   deleteFinance: vi.fn(),
