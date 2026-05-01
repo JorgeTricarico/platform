@@ -6,6 +6,7 @@ import {
   DollarSign,
   Users,
   MessageSquare,
+  QrCode,
   Menu,
   Moon,
   Sun,
@@ -19,6 +20,7 @@ const Garments = lazy(() => import('./pages/Garments'));
 const Finances = lazy(() => import('./pages/Finances'));
 const Clients = lazy(() => import('./pages/Clients'));
 const ChatDemo = lazy(() => import('./pages/ChatDemo'));
+const QRScanner = lazy(() => import('./pages/QRScanner'));
 const Login = lazy(() => import('./pages/Login'));
 const PublicStatus = lazy(() => import('./pages/PublicStatus'));
 import NotificationBell from './components/NotificationBell';
@@ -43,8 +45,8 @@ function AuthGate() {
   return <AppContent />;
 }
 
-type Tab = 'dashboard' | 'garments' | 'finances' | 'clients' | 'chat';
-const VALID_TABS: Tab[] = ['dashboard', 'garments', 'finances', 'clients', 'chat'];
+type Tab = 'dashboard' | 'garments' | 'finances' | 'clients' | 'chat' | 'qr';
+const VALID_TABS: Tab[] = ['dashboard', 'garments', 'finances', 'clients', 'chat', 'qr'];
 
 function readTabFromHash(): Tab {
   const hash = window.location.hash.replace('#', '');
@@ -57,6 +59,7 @@ const NAV_ITEMS: { id: Tab; label: string; Icon: React.ComponentType<{ className
   { id: 'finances', label: 'Finanzas', Icon: DollarSign },
   { id: 'clients', label: 'Clientes', Icon: Users },
   { id: 'chat', label: 'AI Bot', Icon: MessageSquare },
+  { id: 'qr', label: 'Escáner QR', Icon: QrCode },
 ];
 
 function AppContent() {
@@ -243,6 +246,7 @@ function AppContent() {
               {activeTab === 'finances' && <Finances />}
               {activeTab === 'clients' && <Clients />}
               {activeTab === 'chat' && <ChatDemo />}
+              {activeTab === 'qr' && <QRScanner />}
             </Suspense>
           </ErrorBoundary>
         </div>
