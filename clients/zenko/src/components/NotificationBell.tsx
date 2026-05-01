@@ -102,7 +102,8 @@ export default function NotificationBell({ clientId, pollInterval = 30000 }: Not
       {open && (
         <div
           data-testid="notification-dropdown"
-          className="absolute right-0 top-full mt-2 w-72 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden"
+          className="absolute right-0 top-full mt-2 w-[min(18rem,90vw)] bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden"
+          style={{ maxWidth: 'calc(100vw - 1rem)' }}
         >
           <div className="px-4 py-3 border-b border-border">
             <span className="text-sm font-semibold text-foreground">Notificaciones</span>
