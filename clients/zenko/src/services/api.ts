@@ -247,6 +247,13 @@ export interface PublicStatusResponse {
   deliveryDate: string;
   price: number;
   deposit: number;
+  otherActiveOrders?: Array<{
+    orderNumber: number;
+    garmentName: string;
+    repairType: string;
+    status: string;
+    deliveryDate: string;
+  }>;
 }
 
 export const fetchPublicStatus = async (id: string): Promise<PublicStatusResponse> => {

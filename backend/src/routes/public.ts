@@ -38,6 +38,24 @@ router.get('/zenco/order/:id', asyncHandler(async (req, res) => {
     data: { scanCount: { increment: 1 }, lastScannedAt: new Date().toISOString() },
   }).catch(() => {});
 
+  // Buscar otras ordenes activas del mismo cliente (no entregadas, no la actual)
+  const otherOrders = await prisma.order.findMany({
+    where: {
+      clientPhone: order.clientPhone,
+      id: { not: order.id },
+      status: { not: 'entregado' },
+    },
+    select: {
+      orderNumber: true,
+      garmentName: true,
+      repairType: true,
+      status: true,
+      deliveryDate: true,
+    },
+    orderBy: { deliveryDate: 'asc' },
+    take: 5,
+  });
+
   // Devolvemos solo informacion no sensible para el cliente
   res.json({
     id: order.id,
@@ -49,6 +67,7 @@ router.get('/zenco/order/:id', asyncHandler(async (req, res) => {
     deliveryDate: order.deliveryDate,
     price: order.price,
     deposit: order.deposit,
+    otherActiveOrders: otherOrders,
   });
 }));
 

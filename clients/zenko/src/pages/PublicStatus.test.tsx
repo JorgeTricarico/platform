@@ -118,4 +118,40 @@ describe('PublicStatus', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('muestra otras prendas activas del cliente', async () => {
+    (fetchPublicStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ...mockOrder,
+      otherActiveOrders: [
+        {
+          orderNumber: 2,
+          garmentName: 'Camisa',
+          repairType: 'cierre',
+          status: 'en_proceso',
+          deliveryDate: '2026-05-15',
+        },
+      ],
+    });
+    render(<PublicStatus />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Tus otras prendas en el taller')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Camisa')).toBeInTheDocument();
+  });
+
+  it('no muestra la sección si no hay otras prendas', async () => {
+    (fetchPublicStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ...mockOrder,
+      // sin otherActiveOrders
+    });
+    render(<PublicStatus />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Pantalón')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('Tus otras prendas en el taller')).not.toBeInTheDocument();
+  });
 });

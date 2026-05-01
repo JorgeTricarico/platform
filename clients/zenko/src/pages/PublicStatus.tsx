@@ -217,6 +217,38 @@ export default function PublicStatus() {
           </CardContent>
         </Card>
 
+        {/* Otras prendas activas del cliente */}
+        {order.otherActiveOrders && order.otherActiveOrders.length > 0 && (
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
+                Tus otras prendas en el taller
+              </h3>
+              <div className="space-y-2">
+                {order.otherActiveOrders.map((o) => (
+                  <div key={o.orderNumber} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
+                    <div>
+                      <span className="text-sm font-medium text-foreground">{o.garmentName}</span>
+                      <span className="text-xs text-muted-foreground ml-1">({o.repairType})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        'text-xs px-2 py-0.5 rounded-full font-medium',
+                        o.status === 'listo' ? 'bg-green-100 text-green-700' :
+                        o.status === 'en_proceso' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-600'
+                      )}>
+                        {o.status === 'listo' ? '✅ Lista' :
+                         o.status === 'en_proceso' ? '🧵 En proceso' : '📥 Recibida'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Footer */}
         <div className="text-center pt-2 pb-4">
           <p className="text-sm text-muted-foreground">¿Tenes alguna duda? Comunícate con nosotros.</p>

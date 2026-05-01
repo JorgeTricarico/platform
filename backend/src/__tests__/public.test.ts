@@ -10,6 +10,7 @@ const mockPrisma = prisma as unknown as {
   order: {
     findUnique: ReturnType<typeof vi.fn>;
     findFirst: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
   };
 };
@@ -90,9 +91,42 @@ describe('GET /api/public/zenco/order/:id', () => {
   it('does not expose scanCount to public clients', async () => {
     mockPrisma.order.findUnique.mockResolvedValue(baseOrder);
     mockPrisma.order.update.mockResolvedValue({ ...baseOrder, scanCount: 6 });
+    mockPrisma.order.findMany.mockResolvedValue([]);
 
     const res = await request(app).get('/api/public/zenco/order/42');
     expect(res.body.scanCount).toBeUndefined();
     expect(res.body.lastScannedAt).toBeUndefined();
+  });
+
+  it('incluye otherActiveOrders en la respuesta', async () => {
+    mockPrisma.order.findUnique.mockResolvedValue(baseOrder);
+    mockPrisma.order.update.mockResolvedValue({ ...baseOrder, scanCount: 6 });
+    mockPrisma.order.findMany.mockResolvedValue([
+      {
+        orderNumber: 99,
+        garmentName: 'Camisa',
+        repairType: 'cierre',
+        status: 'en_proceso',
+        deliveryDate: '2026-05-20',
+      },
+    ]);
+
+    const res = await request(app).get('/api/public/zenco/order/42');
+    expect(res.status).toBe(200);
+    expect(res.body.otherActiveOrders).toBeDefined();
+    expect(res.body.otherActiveOrders).toHaveLength(1);
+    expect(res.body.otherActiveOrders[0].garmentName).toBe('Camisa');
+    expect(res.body.otherActiveOrders[0].orderNumber).toBe(99);
+  });
+
+  it('otherActiveOrders está vacío cuando no hay otras órdenes', async () => {
+    mockPrisma.order.findUnique.mockResolvedValue(baseOrder);
+    mockPrisma.order.update.mockResolvedValue({ ...baseOrder, scanCount: 6 });
+    mockPrisma.order.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/api/public/zenco/order/42');
+    expect(res.status).toBe(200);
+    expect(res.body.otherActiveOrders).toBeDefined();
+    expect(res.body.otherActiveOrders).toHaveLength(0);
   });
 });
