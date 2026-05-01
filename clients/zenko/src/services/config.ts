@@ -10,11 +10,13 @@ function detectBackend(): string {
     const base = envUrl.replace(/\/$/, '');
     return base.includes('/api/') ? base.replace(/\/api\/.*$/, '') : base;
   }
-  // 2. Auto-detect: if running on Render → production backend
-  if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
-    return PROD_BACKEND;
-  }
-  return LOCAL_BACKEND;
+  if (typeof window === 'undefined') return LOCAL_BACKEND;
+  const host = window.location.hostname;
+  // 2. Render production
+  if (host.includes('onrender.com')) return PROD_BACKEND;
+  // 3. Local dev (localhost or phone via IP) → use relative URLs so
+  //    Vite's dev proxy handles forwarding to localhost:3000 over HTTPS
+  return '';
 }
 
 const BACKEND_URL = detectBackend();

@@ -1,4 +1,4 @@
-import { API_URL } from './config';
+import { API_URL, API_BASE } from './config';
 export { API_URL };
 import { BUSINESS } from '../config/business';
 
@@ -242,7 +242,7 @@ export interface PublicStatusResponse {
 }
 
 export const fetchPublicStatus = async (id: string): Promise<PublicStatusResponse> => {
-  const res = await fetch(`${API_URL}/public/${BUSINESS.slug}/order/${id}`);
+  const res = await fetch(`${API_BASE}/api/public/${BUSINESS.slug}/order/${id}`);
   if (!res.ok) throw new Error("No pudimos encontrar el estado de tu pedido.");
   return res.json();
 };
