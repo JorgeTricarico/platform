@@ -58,7 +58,9 @@ model Order {
   price        Float
   deposit      Float    @default(0)
   location     String?
-  createdAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+  scanCount     Int      @default(0)
+  lastScannedAt String?
 
   @@index([status])
   @@index([deliveryDate])

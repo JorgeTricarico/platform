@@ -56,6 +56,8 @@ export interface DBGarment {
   price: number;
   deposit?: number;
   location?: string;
+  scanCount?: number;
+  lastScannedAt?: string;
 }
 
 export interface DBFinance {

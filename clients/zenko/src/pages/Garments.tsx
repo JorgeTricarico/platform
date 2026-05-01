@@ -449,6 +449,11 @@ export default function Garments() {
                     {isOverdue(g) && (
                       <Badge variant="overdue">Vencido</Badge>
                     )}
+                    {!!g.scanCount && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5" title={`Consultado ${g.scanCount} ${g.scanCount === 1 ? 'vez' : 'veces'} por el cliente`}>
+                        👁 {g.scanCount}
+                      </span>
+                    )}
                   </span>
                 </div>
 
@@ -573,6 +578,11 @@ export default function Garments() {
                         {getStatusBadge(g.status)}
                         {isOverdue(g) && (
                           <Badge variant="overdue">Vencido</Badge>
+                        )}
+                        {!!g.scanCount && (
+                          <span className="text-[10px] text-muted-foreground" title={`Consultado ${g.scanCount} veces`}>
+                            👁 {g.scanCount} consultas
+                          </span>
                         )}
                       </div>
                     </td>

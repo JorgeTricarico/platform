@@ -32,6 +32,12 @@ router.get('/zenco/order/:id', asyncHandler(async (req, res) => {
     throw new NotFoundError('No encontramos ningun pedido con ese codigo.');
   }
 
+  // Registrar el scan (fire-and-forget, no bloquea la respuesta)
+  prisma.order.update({
+    where: { id: order.id },
+    data: { scanCount: { increment: 1 }, lastScannedAt: new Date().toISOString() },
+  }).catch(() => {});
+
   // Devolvemos solo informacion no sensible para el cliente
   res.json({
     id: order.id,

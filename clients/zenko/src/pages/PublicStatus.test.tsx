@@ -70,9 +70,9 @@ describe('PublicStatus', () => {
     render(<PublicStatus />);
 
     await waitFor(() => {
-      // El saludo usa solo el primer nombre
-      expect(screen.getByText(/Hola Juan/)).toBeInTheDocument();
-      expect(screen.getByText('Pantalón')).toBeInTheDocument();
+      const hero = screen.getByTestId('status-hero');
+      expect(hero.textContent).toMatch(/Juan/);
+      expect(hero.textContent).toMatch(/Pantalón/);
     });
   });
 
@@ -85,6 +85,23 @@ describe('PublicStatus', () => {
 
     // El badge "ACTUAL" debe estar visible junto al paso en_proceso
     expect(screen.getByText('ACTUAL')).toBeInTheDocument();
+  });
+
+  it('muestra hero banner con estado actual prominente', async () => {
+    render(<PublicStatus />);
+    await waitFor(() => {
+      expect(screen.getByTestId('status-hero')).toBeInTheDocument();
+    });
+  });
+
+  it('muestra mensaje especial cuando la prenda está lista', async () => {
+    (fetchPublicStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ...mockOrder, status: 'listo',
+    });
+    render(<PublicStatus />);
+    await waitFor(() => {
+      expect(screen.getByText(/lista para retirar/i)).toBeInTheDocument();
+    });
   });
 
   it('muestra error si fetchPublicStatus falla', async () => {
