@@ -474,14 +474,14 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                 </div>
               ))}
 
-              {/* Añadir prenda — botón prominente tipo "+" al costado */}
+              {/* Añadir prenda — botón prominente naranja */}
               <button
                 type="button"
                 onClick={addItem}
-                className="flex items-center gap-3 w-full rounded-xl border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 px-4 py-2.5 transition-colors group"
+                className="flex items-center gap-3 w-full rounded-xl border-2 border-dashed border-[#A34E17]/40 hover:border-[#A34E17] hover:bg-[#A34E17]/5 px-4 py-2.5 transition-colors group"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold flex-shrink-0 group-hover:scale-110 transition-transform">+</span>
-                <span className="text-sm font-semibold text-primary">Añadir otra prenda al pedido</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#A34E17] text-white text-xl font-bold flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">+</span>
+                <span className="text-sm font-bold text-[#A34E17]">Añadir otra prenda al pedido</span>
               </button>
 
               {/* Sección de fotos — solo en creación */}
