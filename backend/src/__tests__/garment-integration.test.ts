@@ -6,6 +6,7 @@ import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
   order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
+  garmentPhoto: { deleteMany: ReturnType<typeof vi.fn> };
 };
 
 beforeEach(() => {
@@ -104,6 +105,7 @@ describe('Garment registration end-to-end (bug regression)', () => {
     expect(r3.body.price).toBe(3500);
 
     // Delete
+    mockPrisma.garmentPhoto.deleteMany.mockResolvedValue({ count: 0 });
     mockPrisma.order.delete.mockResolvedValue({});
     const r4 = await request(app).delete('/api/zenco/garments/0003').set('Authorization', authHeader('zenco'));
     expect(r4.status).toBe(200);

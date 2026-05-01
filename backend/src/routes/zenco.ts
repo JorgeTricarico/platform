@@ -215,10 +215,13 @@ router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (r
   if (data.status === 'entregado' && prev.status !== 'entregado') {
     const balance = updated.price - updated.deposit;
     if (balance > 0) {
+      const finId = `FIN-Z-DEL-${updated.orderNumber}`;
       try {
-        await prisma.zencoFinance.create({
-          data: {
-            id: `FIN-Z-${Date.now()}`,
+        await prisma.zencoFinance.upsert({
+          where: { id: finId },
+          update: { amount: balance, date: new Date().toISOString().split('T')[0] },
+          create: {
+            id: finId,
             date: new Date().toISOString().split('T')[0],
             type: 'income',
             category: 'entrega_prenda',
@@ -235,6 +238,7 @@ router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (r
 
 router.delete('/garments/:id', asyncHandler(async (req, res) => {
   const id = req.params.id as string;
+  await prisma.garmentPhoto.deleteMany({ where: { garmentId: id } });
   await prisma.order.delete({ where: { id } });
   res.json({ success: true });
 }));

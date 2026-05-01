@@ -22,8 +22,9 @@ const mockWA = whatsappService as unknown as {
 
 const mockPrisma = prisma as unknown as {
   order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
-  zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
-  client: { findMany: ReturnType<typeof vi.fn>; findFirst: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn> };
+  zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
+  client: { findMany: ReturnType<typeof vi.fn>; findFirst: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
+  garmentPhoto: { deleteMany: ReturnType<typeof vi.fn> };
   notification: { create: ReturnType<typeof vi.fn> };
 };
 
@@ -249,9 +250,42 @@ describe('PUT /api/zenco/garments/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.clientName).toBe('Ana Updated');
   });
+
+  // BUG 1: debe usar upsert con id determinístico FIN-Z-DEL-{orderNumber} al marcar entregado
+  it('uses upsert with deterministic id FIN-Z-DEL-{orderNumber} when status changes to entregado', async () => {
+    const update = {
+      clientName: 'Ana', clientPhone: '1234', garmentName: 'Pantalon',
+      repairType: 'dobladillo', description: 'acortar', status: 'entregado',
+      intakeDate: '2026-04-01', deliveryDate: '2026-04-08', price: 3500, deposit: 500,
+    };
+    const updatedOrder = { id: 'ORD-1', orderNumber: 42, ...update };
+    mockPrisma.order.update.mockResolvedValue(updatedOrder);
+    mockPrisma.zencoFinance.upsert.mockResolvedValue({});
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1').set('Authorization', authHeader('zenco')).send(update);
+    expect(res.status).toBe(200);
+    // Debe usar upsert (no create) con id determinístico
+    expect(mockPrisma.zencoFinance.upsert).toHaveBeenCalledOnce();
+    expect(mockPrisma.zencoFinance.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'FIN-Z-DEL-42' },
+        create: expect.objectContaining({
+          id: 'FIN-Z-DEL-42',
+          type: 'income',
+          category: 'entrega_prenda',
+        }),
+      })
+    );
+    // No debe llamar create (que usa id dinámico Date.now())
+    expect(mockPrisma.zencoFinance.create).not.toHaveBeenCalled();
+  });
 });
 
 describe('DELETE /api/zenco/garments/:id', () => {
+  beforeEach(() => {
+    mockPrisma.garmentPhoto.deleteMany.mockResolvedValue({ count: 0 });
+  });
+
   it('deletes a garment', async () => {
     mockPrisma.order.delete.mockResolvedValue({});
     const res = await request(app).delete('/api/zenco/garments/ORD-1').set('Authorization', authHeader('zenco'));
@@ -263,6 +297,19 @@ describe('DELETE /api/zenco/garments/:id', () => {
     mockPrisma.order.delete.mockRejectedValue(new Error('Not found'));
     const res = await request(app).delete('/api/zenco/garments/FAKE').set('Authorization', authHeader('zenco'));
     expect(res.status).toBe(500);
+  });
+
+  // BUG 2: debe eliminar fotos huérfanas antes de eliminar la orden
+  it('deletes orphan garment photos before deleting the order', async () => {
+    mockPrisma.garmentPhoto.deleteMany.mockResolvedValue({ count: 2 });
+    mockPrisma.order.delete.mockResolvedValue({});
+
+    const res = await request(app).delete('/api/zenco/garments/ORD-1').set('Authorization', authHeader('zenco'));
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    // Debe llamar deleteMany de fotos ANTES de delete de la orden
+    expect(mockPrisma.garmentPhoto.deleteMany).toHaveBeenCalledWith({ where: { garmentId: 'ORD-1' } });
+    expect(mockPrisma.order.delete).toHaveBeenCalledWith({ where: { id: 'ORD-1' } });
   });
 });
 
