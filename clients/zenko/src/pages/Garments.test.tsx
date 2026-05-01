@@ -361,7 +361,7 @@ describe('Garments page', () => {
     fireEvent.change(descInputs[0], { target: { value: 'Subir 5cm' } });
 
     // Añadir segunda prenda
-    fireEvent.click(screen.getByRole('button', { name: /añadir prenda/i }));
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
 
     // Rellenar la segunda prenda
     const garmentInputs2 = screen.getAllByPlaceholderText(/prenda \(ej:/i);

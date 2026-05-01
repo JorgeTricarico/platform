@@ -366,22 +366,6 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
           ) : (
             /* Modo creación: lista de ítems */
             <>
-              {/* Header de sección + botón "Añadir prenda" siempre visible arriba */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-                  Prendas ({items.length})
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addItem}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Añadir prenda
-                </Button>
-              </div>
-
               {items.map((item, index) => (
                 <div key={index} className="border border-border rounded-lg p-3 flex flex-col gap-3 relative">
                   <div className="flex items-center justify-between">
@@ -489,6 +473,16 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                   </div>
                 </div>
               ))}
+
+              {/* Añadir prenda — botón prominente tipo "+" al costado */}
+              <button
+                type="button"
+                onClick={addItem}
+                className="flex items-center gap-3 w-full rounded-xl border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 px-4 py-2.5 transition-colors group"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold flex-shrink-0 group-hover:scale-110 transition-transform">+</span>
+                <span className="text-sm font-semibold text-primary">Añadir otra prenda al pedido</span>
+              </button>
 
               {/* Sección de fotos — solo en creación */}
               <div className="flex flex-col gap-2">

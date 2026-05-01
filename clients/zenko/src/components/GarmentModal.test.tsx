@@ -180,7 +180,7 @@ describe('GarmentModal', () => {
     ];
     render(<Wrapper garmentHistory={garmentHistory} />);
     // Añadir segunda prenda
-    fireEvent.click(screen.getByRole('button', { name: /añadir prenda/i }));
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
     // Tipear en el segundo input de garmentName
     const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
     expect(garmentInputs.length).toBe(2);
@@ -209,12 +209,12 @@ describe('GarmentModal', () => {
   // Tests de múltiples prendas por pedido
   it('muestra "Añadir prenda" en modo creación', () => {
     render(<Wrapper />);
-    expect(screen.getByRole('button', { name: /añadir prenda/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /añadir.*prenda/i })).toBeInTheDocument();
   });
 
   it('no muestra "Añadir prenda" en modo edición', () => {
     render(<Wrapper garmentId="abc-123" />);
-    expect(screen.queryByRole('button', { name: /añadir prenda/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /añadir.*prenda/i })).not.toBeInTheDocument();
   });
 
   it('añadir prenda agrega un ítem nuevo a la lista', () => {
@@ -222,7 +222,7 @@ describe('GarmentModal', () => {
     // Inicialmente hay 1 input de garmentName en los items
     const initialInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
     const initialCount = initialInputs.length;
-    fireEvent.click(screen.getByRole('button', { name: /añadir prenda/i }));
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
     const updatedInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
     expect(updatedInputs.length).toBe(initialCount + 1);
   });
