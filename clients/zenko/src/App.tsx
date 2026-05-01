@@ -247,14 +247,28 @@ function AppContent() {
 
           <NotificationBell clientId="all" />
 
-          <Button
-            variant="ghost"
-            size="icon"
+          {/* Theme switch */}
+          <button
             onClick={toggleTheme}
             title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
+            aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
+            className={cn(
+              'relative flex h-6 w-11 items-center rounded-full border-2 transition-colors duration-200 flex-shrink-0',
+              theme === 'dark'
+                ? 'bg-primary border-primary'
+                : 'bg-muted border-border'
+            )}
           >
-            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-          </Button>
+            <span className={cn(
+              'absolute flex h-4 w-4 items-center justify-center rounded-full bg-white shadow transition-transform duration-200',
+              theme === 'dark' ? 'translate-x-5' : 'translate-x-0.5'
+            )}>
+              {theme === 'dark'
+                ? <Moon className="w-2.5 h-2.5 text-primary" />
+                : <Sun className="w-2.5 h-2.5 text-amber-500" />
+              }
+            </span>
+          </button>
 
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground hidden sm:block">
