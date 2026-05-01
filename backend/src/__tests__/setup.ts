@@ -40,6 +40,7 @@ vi.mock('../db.js', () => {
     zencoFinance: {
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),
+      upsert: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
     },

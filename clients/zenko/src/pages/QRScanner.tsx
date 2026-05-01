@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import jsQR from 'jsqr';
-import { QrCode, Camera, CameraOff, Package, Truck, CheckCheck, FlipHorizontal2 } from 'lucide-react';
+import { QrCode, Camera, CameraOff, Package, Truck, CheckCheck, FlipHorizontal2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { fetchGarments, updateGarmentStatus } from '../services/api';
@@ -13,55 +13,74 @@ interface ScanResult {
   garment: DBGarment;
   appliedStatus: ScanMode;
   remaining: number;
+  alreadyEntregado: boolean;
 }
 
-const MODE_CONFIG: Record<ScanMode, { label: string; color: string; active: string; icon: typeof Package }> = {
+const MODE_CONFIG: Record<ScanMode, { label: string; color: string; active: string; bg: string; icon: typeof Package }> = {
   en_proceso: {
     label: 'En Proceso',
     color: 'border-blue-500 text-blue-600 dark:text-blue-400',
     active: 'bg-blue-500 text-white border-blue-500',
+    bg: 'bg-blue-500',
     icon: Package,
   },
   listo: {
     label: 'Listo para Entregar',
     color: 'border-yellow-500 text-yellow-600 dark:text-yellow-400',
     active: 'bg-yellow-500 text-white border-yellow-500',
+    bg: 'bg-yellow-500',
     icon: Truck,
   },
   entregado: {
     label: 'Entregado',
     color: 'border-green-500 text-green-600 dark:text-green-400',
     active: 'bg-green-500 text-white border-green-500',
+    bg: 'bg-green-500',
     icon: CheckCheck,
   },
 };
 
-function beep() {
+function beep(success = true) {
   try {
     const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.frequency.value = 1900;
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.12);
+
+    if (success) {
+      // Double beep — like a real barcode gun confirming a scan
+      [0, 0.18].forEach((offset) => {
+        const osc = ctx.createOscillator();
+        osc.connect(gain);
+        osc.frequency.value = 1900;
+        gain.gain.setValueAtTime(0.5, ctx.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.14);
+        osc.start(ctx.currentTime + offset);
+        osc.stop(ctx.currentTime + offset + 0.14);
+      });
+    } else {
+      // Low error tone
+      const osc = ctx.createOscillator();
+      osc.connect(gain);
+      osc.frequency.value = 400;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    }
   } catch {
     // silently fail if AudioContext unavailable
   }
 }
 
 function parseOrderNumber(qrData: string): number | null {
-  // Format from generateTicket.ts: /?view=status&order=123
   const urlMatch = qrData.match(/[?&]order=(\d+)/);
   if (urlMatch) return parseInt(urlMatch[1], 10);
-  // Also accept plain number
   const num = parseInt(qrData, 10);
   if (!isNaN(num) && num > 0) return num;
   return null;
 }
+
+const ALERT_DURATION = 4000; // ms before auto-dismiss
 
 export default function QRScanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -71,20 +90,19 @@ export default function QRScanner() {
   const modeRef = useRef<ScanMode>('listo');
   const garmentsRef = useRef<DBGarment[]>([]);
   const processingRef = useRef(false);
+  const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [mode, setMode] = useState<ScanMode>('listo');
   const [scanning, setScanning] = useState(false);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [scanLine, setScanLine] = useState(0);
   const [scanDir] = useState(1);
-  const [lastResult, setLastResult] = useState<ScanResult | null>(null);
+  const [alert, setAlert] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string>('');
   const toast = useToast();
 
-  // keep refs in sync
   useEffect(() => { modeRef.current = mode; }, [mode]);
 
-  // load garments once
   useEffect(() => {
     fetchGarments()
       .then(g => { garmentsRef.current = g; })
@@ -107,7 +125,19 @@ export default function QRScanner() {
     frameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frameId);
   }, [scanning]);
-  void scanDir; // suppress unused warning
+  void scanDir;
+
+  const dismissAlert = useCallback(() => {
+    if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
+    setAlert(null);
+    cooldownRef.current = false;
+  }, []);
+
+  const showAlert = useCallback((result: ScanResult) => {
+    setAlert(result);
+    if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
+    alertTimerRef.current = setTimeout(dismissAlert, ALERT_DURATION);
+  }, [dismissAlert]);
 
   const handleScan = useCallback(async (qrData: string) => {
     if (cooldownRef.current || processingRef.current) return;
@@ -116,20 +146,21 @@ export default function QRScanner() {
 
     const garment = garmentsRef.current.find(g => g.orderNumber === orderNumber);
     if (!garment) {
+      beep(false);
       toast.error(`Orden #${orderNumber} no encontrada`);
       cooldownRef.current = true;
-      setTimeout(() => { cooldownRef.current = false; }, 2000);
+      setTimeout(() => { cooldownRef.current = false; }, 2500);
       return;
     }
 
     processingRef.current = true;
+    cooldownRef.current = true;
     const targetStatus = modeRef.current;
+    const alreadyEntregado = garment.status === 'entregado' && targetStatus === 'entregado';
 
     try {
-      beep();
       const updated = await updateGarmentStatus(garment.id, targetStatus);
 
-      // use fresh data from backend; fallback to local if response incomplete
       const fresh: DBGarment = {
         ...garment,
         ...updated,
@@ -138,29 +169,27 @@ export default function QRScanner() {
         status: targetStatus,
       };
 
-      // refresh local cache
       garmentsRef.current = garmentsRef.current.map(g =>
         g.id === garment.id ? fresh : g
       );
 
       const remaining = fresh.price - (fresh.deposit ?? 0);
 
-      setLastResult({
+      beep(true);
+      showAlert({
         garment: fresh,
         appliedStatus: targetStatus,
         remaining: targetStatus === 'entregado' ? Math.max(0, remaining) : 0,
+        alreadyEntregado,
       });
-
-      const label = MODE_CONFIG[targetStatus].label;
-      toast.success(`ORD-${String(garment.orderNumber).padStart(6, '0')} → ${label}`);
     } catch {
+      beep(false);
       toast.error('Error al actualizar el estado');
+      cooldownRef.current = false;
     } finally {
       processingRef.current = false;
-      cooldownRef.current = true;
-      setTimeout(() => { cooldownRef.current = false; }, 1800);
     }
-  }, [toast]);
+  }, [toast, showAlert]);
 
   const startScanLoop = useCallback(() => {
     const scan = () => {
@@ -179,9 +208,7 @@ export default function QRScanner() {
       const code = jsQR(imageData.data, imageData.width, imageData.height, {
         inversionAttempts: 'dontInvert',
       });
-      if (code?.data) {
-        handleScan(code.data);
-      }
+      if (code?.data) handleScan(code.data);
       animRef.current = requestAnimationFrame(scan);
     };
     animRef.current = requestAnimationFrame(scan);
@@ -189,7 +216,6 @@ export default function QRScanner() {
 
   const startCamera = useCallback(async (facing: 'environment' | 'user' = 'environment') => {
     setError('');
-    // stop any existing stream first
     if (videoRef.current?.srcObject) {
       (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
       videoRef.current.srcObject = null;
@@ -197,11 +223,7 @@ export default function QRScanner() {
     cancelAnimationFrame(animRef.current);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: facing },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+        video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -233,16 +255,101 @@ export default function QRScanner() {
     setScanning(false);
   }, []);
 
-  // cleanup on unmount
-  useEffect(() => () => {
-    stopCamera();
-  }, [stopCamera]);
+  useEffect(() => () => { stopCamera(); }, [stopCamera]);
 
   const ordFmt = (n: number) => `ORD-${String(n).padStart(6, '0')}`;
   const priceFmt = (n: number) => `$${n.toLocaleString('es-AR')}`;
 
   return (
     <div className="max-w-lg mx-auto space-y-5">
+
+      {/* Blocking scan alert overlay */}
+      {alert && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={dismissAlert}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-card shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Colored header band */}
+            <div className={cn(
+              'px-5 py-4 flex items-center justify-between',
+              alert.appliedStatus === 'entregado' ? 'bg-green-500' :
+              alert.appliedStatus === 'listo' ? 'bg-yellow-500' : 'bg-blue-500'
+            )}>
+              <div className="flex items-center gap-3">
+                {alert.appliedStatus === 'entregado'
+                  ? <CheckCheck className="w-7 h-7 text-white" />
+                  : alert.appliedStatus === 'listo'
+                  ? <Truck className="w-7 h-7 text-white" />
+                  : <Package className="w-7 h-7 text-white" />
+                }
+                <div>
+                  <p className="text-white font-bold text-lg leading-tight">
+                    {MODE_CONFIG[alert.appliedStatus].label}
+                  </p>
+                  {alert.alreadyEntregado && (
+                    <p className="text-white/80 text-xs">Pago registrado</p>
+                  )}
+                </div>
+              </div>
+              <button onClick={dismissAlert} className="text-white/80 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-4 space-y-3">
+              <div>
+                <p className="text-2xl font-extrabold text-foreground tracking-tight">
+                  {ordFmt(alert.garment.orderNumber)}
+                </p>
+                <p className="text-lg font-semibold text-foreground">
+                  {alert.garment.clientName}
+                </p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {alert.garment.garmentName} · {alert.garment.repairType}
+                </p>
+              </div>
+
+              {alert.appliedStatus === 'entregado' && (
+                <div className="rounded-xl bg-muted p-3 space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total</span>
+                    <span className="font-medium">{priceFmt(alert.garment.price)}</span>
+                  </div>
+                  {(alert.garment.deposit ?? 0) > 0 && (
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                      <span>Seña abonada</span>
+                      <span>− {priceFmt(alert.garment.deposit ?? 0)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-foreground text-base pt-1 border-t border-border">
+                    <span>{alert.remaining === 0 ? 'Saldo' : 'A cobrar'}</span>
+                    <span className={alert.remaining === 0 ? 'text-green-500' : ''}>
+                      {alert.remaining === 0 ? '✓ Pagado' : priceFmt(alert.remaining)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Auto-dismiss bar */}
+            <div className="h-1 bg-muted overflow-hidden">
+              <div
+                className={cn(
+                  'h-full animate-[shrink_4s_linear_forwards]',
+                  alert.appliedStatus === 'entregado' ? 'bg-green-500' :
+                  alert.appliedStatus === 'listo' ? 'bg-yellow-500' : 'bg-blue-500'
+                )}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="p-2 rounded-xl bg-primary/10">
@@ -277,28 +384,15 @@ export default function QRScanner() {
 
       {/* Camera viewport */}
       <div className="relative rounded-2xl overflow-hidden bg-black aspect-[4/3] border border-border shadow-lg">
-        <video
-          ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover"
-          playsInline
-          muted
-        />
+        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted />
 
-        {/* Scanning overlay */}
         {scanning && (
           <div className="absolute inset-0 pointer-events-none">
-            {/* Corner brackets */}
             <div className="absolute inset-[15%]">
-              {/* TL */}
               <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-sm" />
-              {/* TR */}
               <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-sm" />
-              {/* BL */}
               <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-sm" />
-              {/* BR */}
               <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-sm" />
-
-              {/* Scan line */}
               <div
                 className="absolute left-0 right-0 h-0.5 transition-none"
                 style={{
@@ -308,13 +402,10 @@ export default function QRScanner() {
                 }}
               />
             </div>
-
-            {/* Darkened outer area */}
-            <div className="absolute inset-0 bg-black/30" style={{ WebkitMaskImage: 'none' }} />
+            <div className="absolute inset-0 bg-black/30" />
           </div>
         )}
 
-        {/* Placeholder when not scanning */}
         {!scanning && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted/80">
             <Camera className="w-12 h-12 text-muted-foreground" />
@@ -322,91 +413,34 @@ export default function QRScanner() {
           </div>
         )}
 
-        {/* Flip camera button — shown while scanning */}
         {scanning && (
           <button
             onClick={flipCamera}
             className="absolute bottom-3 right-3 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-            title={facingMode === 'environment' ? 'Cambiar a cámara frontal' : 'Cambiar a cámara trasera'}
+            title={facingMode === 'environment' ? 'Cámara frontal' : 'Cámara trasera'}
           >
             <FlipHorizontal2 className="w-5 h-5" />
           </button>
         )}
       </div>
 
-      {/* Hidden canvas for jsQR */}
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Camera toggle button */}
       <Button
         onClick={scanning ? stopCamera : () => startCamera(facingMode)}
         variant={scanning ? 'outline' : 'default'}
         className="w-full gap-2"
         size="lg"
       >
-        {scanning ? (
-          <><CameraOff className="w-5 h-5" /> Detener cámara</>
-        ) : (
-          <><Camera className="w-5 h-5" /> Activar cámara</>
-        )}
+        {scanning
+          ? <><CameraOff className="w-5 h-5" /> Detener cámara</>
+          : <><Camera className="w-5 h-5" /> Activar cámara</>
+        }
       </Button>
 
-      {/* Error */}
       {error && (
         <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
           {error}
-        </div>
-      )}
-
-      {/* Scan result card */}
-      {lastResult && (
-        <div className={cn(
-          'rounded-xl border-2 p-4 space-y-2 transition-all',
-          lastResult.appliedStatus === 'entregado' ? 'border-green-500/40 bg-green-500/5' :
-          lastResult.appliedStatus === 'listo' ? 'border-yellow-500/40 bg-yellow-500/5' :
-          'border-blue-500/40 bg-blue-500/5'
-        )}>
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Último escaneado
-            </span>
-            <span className={cn(
-              'text-xs font-bold px-2 py-0.5 rounded-full',
-              lastResult.appliedStatus === 'entregado' ? 'bg-green-500 text-white' :
-              lastResult.appliedStatus === 'listo' ? 'bg-yellow-500 text-white' :
-              'bg-blue-500 text-white'
-            )}>
-              {MODE_CONFIG[lastResult.appliedStatus].label}
-            </span>
-          </div>
-
-          <div>
-            <p className="font-bold text-foreground">
-              {ordFmt(lastResult.garment.orderNumber)} — {lastResult.garment.clientName}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {lastResult.garment.garmentName} · {lastResult.garment.repairType}
-            </p>
-          </div>
-
-          {lastResult.appliedStatus === 'entregado' && (
-            <div className="pt-1 border-t border-border space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-medium">{priceFmt(lastResult.garment.price)}</span>
-              </div>
-              {(lastResult.garment.deposit ?? 0) > 0 && (
-                <div className="flex justify-between text-green-600 dark:text-green-400">
-                  <span>Seña abonada</span>
-                  <span>− {priceFmt(lastResult.garment.deposit ?? 0)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-foreground text-base pt-1 border-t border-border">
-                <span>A cobrar</span>
-                <span>{priceFmt(lastResult.remaining)}</span>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

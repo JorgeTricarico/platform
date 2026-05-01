@@ -156,14 +156,19 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     }
   }
 
-  // Z10 & Z11: Auto-create income when garment is delivered for the remaining balance
-  if (status === 'entregado' && prev.status !== 'entregado') {
+  // Z10 & Z11: Auto-create income when garment is delivered for the remaining balance.
+  // Also handles re-scanning already-entregado garments that had no payment recorded yet.
+  // Uses a deterministic ID (ORD number) so upsert is idempotent — no duplicate records.
+  if (status === 'entregado') {
     const balance = updated.price - updated.deposit;
     if (balance > 0) {
+      const finId = `FIN-Z-DEL-${updated.orderNumber}`;
       try {
-        await prisma.zencoFinance.create({
-          data: {
-            id: `FIN-Z-${Date.now()}`,
+        await prisma.zencoFinance.upsert({
+          where: { id: finId },
+          update: { amount: balance, date: new Date().toISOString().split('T')[0] },
+          create: {
+            id: finId,
             date: new Date().toISOString().split('T')[0],
             type: 'income',
             category: 'entrega_prenda',

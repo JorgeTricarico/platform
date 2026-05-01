@@ -195,19 +195,21 @@ describe('PUT /api/zenco/garments/:id/status', () => {
   it('creates ZencoFinance income when status changes to entregado', async () => {
     const entregado = { ...fullOrder, status: 'entregado' };
     mockPrisma.order.update.mockResolvedValue(entregado);
-    mockPrisma.zencoFinance.create.mockResolvedValue({});
+    mockPrisma.zencoFinance.upsert.mockResolvedValue({});
 
     const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'entregado' });
     expect(res.status).toBe(200);
-    expect(mockPrisma.zencoFinance.create).toHaveBeenCalledOnce();
-    expect(mockPrisma.zencoFinance.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        type: 'income',
-        category: 'entrega_prenda',
-        amount: 3000,
-        description: expect.stringContaining('Pantalon'),
-      }),
-    });
+    expect(mockPrisma.zencoFinance.upsert).toHaveBeenCalledOnce();
+    expect(mockPrisma.zencoFinance.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          type: 'income',
+          category: 'entrega_prenda',
+          amount: 3000,
+          description: expect.stringContaining('Pantalon'),
+        }),
+      })
+    );
   });
 
   it('does NOT create ZencoFinance income for non-entregado status', async () => {
