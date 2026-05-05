@@ -235,12 +235,15 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
   };
 
   const openEdit = (g: DBGarment) => {
+    const firstItem = (g.items ?? [])[0] ?? { garmentName: '', repairType: '', description: '', price: 0 };
     setEditTarget(g);
     setEditForm({
       clientName: g.clientName, clientPhone: g.clientPhone,
-      garmentName: '', repairType: '', description: '',
+      garmentName: firstItem.garmentName,
+      repairType: firstItem.repairType,
+      description: firstItem.description,
       intakeDate: g.intakeDate || '', deliveryDate: g.deliveryDate,
-      price: 0, deposit: g.deposit || 0, status: g.status, location: g.location || '',
+      price: firstItem.price, deposit: g.deposit || 0, status: g.status, location: g.location || '',
       items: (g.items ?? []).map(item => ({
         garmentName: item.garmentName,
         repairType: item.repairType,
@@ -254,9 +257,19 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editTarget) return;
-    const items = (editForm.items && editForm.items.length > 0)
-      ? editForm.items
-      : [{ garmentName: editForm.garmentName, repairType: editForm.repairType, description: editForm.description, price: Number(editForm.price) }];
+    // Build items: flat fields update item[0] (what user edited), preserve remaining items
+    const remaining = (editForm.items && editForm.items.length > 1)
+      ? editForm.items.slice(1).map(item => ({
+          garmentName: item.garmentName,
+          repairType: item.repairType,
+          description: item.description || '',
+          price: Number(item.price),
+        }))
+      : [];
+    const items = [
+      { garmentName: editForm.garmentName, repairType: editForm.repairType, description: editForm.description || '', price: Number(editForm.price) },
+      ...remaining,
+    ];
     try {
       await updateGarment(editTarget.id, {
         clientName: editForm.clientName,
@@ -266,12 +279,7 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
         status: editForm.status,
         location: editForm.location,
         deposit: Number(editForm.deposit || 0),
-        items: items.map(item => ({
-          garmentName: item.garmentName,
-          repairType: item.repairType,
-          description: item.description || '',
-          price: Number(item.price),
-        })),
+        items,
       });
       toast.success('Orden actualizada correctamente');
       setEditTarget(null);

@@ -465,21 +465,18 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                         ) : null;
                       })()}
                     </div>
-                    <div className="flex-1">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
-                        <DollarSign className="h-3.5 w-3.5" />
-                        Seña ($)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Ej: 500"
-                        value={item.deposit || ''}
-                        onChange={(e) => updateItem(index, 'deposit', Number(e.target.value))}
-                      />
                     </div>
-                  </div>
                 </div>
               ))}
+
+              {/* Seña — campo único a nivel de orden */}
+              <div className="flex-1 max-w-xs">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+                  <DollarSign className="h-3.5 w-3.5" />
+                  Seña ($)
+                </label>
+                <Input name="deposit" type="number" placeholder="Ej: 500" value={form.deposit || ''} onChange={handle} />
+              </div>
 
               {/* Añadir prenda — botón prominente naranja */}
               <button

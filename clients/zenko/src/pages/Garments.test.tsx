@@ -461,3 +461,195 @@ describe('Cancelar pedido', () => {
     });
   });
 });
+
+describe('BUG: Formulario edición vacío + cambios no guardados (Bug 1)', () => {
+  it('el modal de edición pre-carga garmentName del primer item', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
+    });
+    // Click Editar en la primera orden
+    const editButtons = screen.getAllByText('Editar');
+    fireEvent.click(editButtons[0]);
+    // El campo garmentName debe tener el valor del primer item (no vacío)
+    const garmentInput = document.querySelector('input[name="garmentName"]') as HTMLInputElement;
+    expect(garmentInput).not.toBeNull();
+    expect(garmentInput.value).not.toBe('');
+  });
+
+  it('el modal de edición pre-carga repairType del primer item', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
+    });
+    const editButtons = screen.getAllByText('Editar');
+    fireEvent.click(editButtons[0]);
+    const repairInput = document.querySelector('input[name="repairType"]') as HTMLInputElement;
+    expect(repairInput).not.toBeNull();
+    expect(repairInput.value).not.toBe('');
+  });
+
+  it('el modal de edición pre-carga price del primer item', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
+    });
+    const editButtons = screen.getAllByText('Editar');
+    fireEvent.click(editButtons[0]);
+    const priceInput = document.querySelector('input[name="price"]') as HTMLInputElement;
+    expect(priceInput).not.toBeNull();
+    expect(priceInput.value).not.toBe('');
+    expect(priceInput.value).not.toBe('0');
+  });
+
+  it('handleEdit llama updateGarment con los datos editados por el usuario (no los originales)', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarments[0], items: [] });
+
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+
+    // Cambiar garmentName
+    const garmentInput = document.querySelector('input[name="garmentName"]') as HTMLInputElement;
+    fireEvent.change(garmentInput, { target: { value: 'Chaqueta de Cuero' } });
+
+    // Cambiar price
+    const priceInput = document.querySelector('input[name="price"]') as HTMLInputElement;
+    fireEvent.change(priceInput, { target: { value: '20000' } });
+
+    fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+
+    await waitFor(() => {
+      expect(updateGarment).toHaveBeenCalledTimes(1);
+      const call = (updateGarment as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      expect(call.items[0].garmentName).toBe('Chaqueta de Cuero');
+      expect(call.items[0].price).toBe(20000);
+    });
+  });
+});
+
+describe('BUG: Cruce y pérdida de seña/monto al crear (Bug 2 & 3)', () => {
+  it('seña ingresada en create mode se envía correctamente a createGarment', async () => {
+    const { createGarment } = await import('../services/api');
+    (createGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('+ Registrar Ingreso'));
+    fireEvent.click(screen.getByText('Nuevo cliente'));
+    fireEvent.change(screen.getByPlaceholderText('Nombre y Apellido'), { target: { value: 'Test' } });
+    fireEvent.change(screen.getByPlaceholderText('Teléfono'), { target: { value: '123' } });
+
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'Pantalón' } });
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    fireEvent.change(repairInputs[0], { target: { value: 'Dobladillo' } });
+
+    // Ingresar precio en el item
+    const priceInput = screen.getByPlaceholderText('Ej: 1500');
+    fireEvent.change(priceInput, { target: { value: '31000' } });
+
+    // Ingresar seña (campo de orden, no per-item)
+    const depositInput = screen.getByPlaceholderText('Ej: 500');
+    fireEvent.change(depositInput, { target: { value: '15000' } });
+
+    const dateInputs = document.querySelectorAll('input[name="deliveryDate"]');
+    fireEvent.change(dateInputs[0], { target: { value: '2026-12-01' } });
+
+    fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+
+    await waitFor(() => {
+      expect(createGarment).toHaveBeenCalledTimes(1);
+      const call = (createGarment as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      // Seña debe ser 15000, NO 0
+      expect(call.deposit).toBe(15000);
+      // Precio del item debe ser 31000, NO sobreescrito por la seña
+      expect(call.items[0].price).toBe(31000);
+    });
+  });
+
+  it('monto 0 y seña 0 no genera saldo negativo (Bug 3: inversión de variables)', async () => {
+    const { createGarment } = await import('../services/api');
+    (createGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('+ Registrar Ingreso'));
+    fireEvent.click(screen.getByText('Nuevo cliente'));
+    fireEvent.change(screen.getByPlaceholderText('Nombre y Apellido'), { target: { value: 'Test' } });
+    fireEvent.change(screen.getByPlaceholderText('Teléfono'), { target: { value: '123' } });
+
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'Camisa' } });
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    fireEvent.change(repairInputs[0], { target: { value: 'Cierre' } });
+
+    // Precio sin seña
+    const priceInput = screen.getByPlaceholderText('Ej: 1500');
+    fireEvent.change(priceInput, { target: { value: '5000' } });
+    // Seña vacía (0)
+
+    const dateInputs = document.querySelectorAll('input[name="deliveryDate"]');
+    fireEvent.change(dateInputs[0], { target: { value: '2026-12-01' } });
+
+    fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+
+    await waitFor(() => {
+      expect(createGarment).toHaveBeenCalledTimes(1);
+      const call = (createGarment as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      // El precio del item debe ser 5000 (no 0 por inversión)
+      expect(call.items[0].price).toBe(5000);
+      // La seña debe ser 0 (no el precio del arreglo)
+      expect(call.deposit).toBe(0);
+    });
+  });
+
+  it('monto igual a seña guarda ambos valores correctamente', async () => {
+    const { createGarment } = await import('../services/api');
+    (createGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('+ Registrar Ingreso'));
+    fireEvent.click(screen.getByText('Nuevo cliente'));
+    fireEvent.change(screen.getByPlaceholderText('Nombre y Apellido'), { target: { value: 'Test' } });
+    fireEvent.change(screen.getByPlaceholderText('Teléfono'), { target: { value: '123' } });
+
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'Bolso' } });
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    fireEvent.change(repairInputs[0], { target: { value: 'Cierre' } });
+
+    const priceInput = screen.getByPlaceholderText('Ej: 1500');
+    fireEvent.change(priceInput, { target: { value: '3000' } });
+
+    const depositInput = screen.getByPlaceholderText('Ej: 500');
+    fireEvent.change(depositInput, { target: { value: '3000' } });
+
+    const dateInputs = document.querySelectorAll('input[name="deliveryDate"]');
+    fireEvent.change(dateInputs[0], { target: { value: '2026-12-01' } });
+
+    fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+
+    await waitFor(() => {
+      expect(createGarment).toHaveBeenCalledTimes(1);
+      const call = (createGarment as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      // Ambos deben ser 3000 (no uno vacío)
+      expect(call.items[0].price).toBe(3000);
+      expect(call.deposit).toBe(3000);
+    });
+  });
+});
