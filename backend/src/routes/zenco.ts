@@ -126,11 +126,10 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
   if (!prev) throw new NotFoundError('Orden no encontrada');
 
   const totalPrice = prev.items.reduce((sum: number, item: { price: number }) => sum + item.price, 0);
-  const extraData = status === 'entregado' ? { deposit: totalPrice } : {};
 
   const updated = await prisma.order.update({
     where: { id },
-    data: { status, statusChangedAt: new Date().toISOString(), ...extraData },
+    data: { status, statusChangedAt: new Date().toISOString() },
     include: { items: true },
   });
 
@@ -198,16 +197,18 @@ router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (r
   const prev = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!prev) throw new NotFoundError('Orden no encontrada');
 
-  // Replace items: delete all existing, create new ones
-  await prisma.orderItem.deleteMany({ where: { orderId: id } });
-  await prisma.orderItem.createMany({
-    data: data.items.map((item: { garmentName: string; repairType: string; description: string; price: number }) => ({
-      orderId: id,
-      garmentName: item.garmentName,
-      repairType: item.repairType,
-      description: item.description || '',
-      price: Number(item.price),
-    })),
+  // Replace items atomically: delete all existing, create new ones in a single transaction
+  await prisma.$transaction(async (tx) => {
+    await tx.orderItem.deleteMany({ where: { orderId: id } });
+    await tx.orderItem.createMany({
+      data: data.items.map((item: { garmentName: string; repairType: string; description: string; price: number }) => ({
+        orderId: id,
+        garmentName: item.garmentName,
+        repairType: item.repairType,
+        description: item.description || '',
+        price: Number(item.price),
+      })),
+    });
   });
 
   const updated = await prisma.order.update({
@@ -310,6 +311,27 @@ router.get('/clients', asyncHandler(async (req, res) => {
   res.json(clients);
 }));
 
+// IMPORTANTE: /clients/search debe estar ANTES de cualquier ruta con :id
+// para evitar que Express capture "search" como un parámetro :id
+router.get('/clients/search', asyncHandler(async (req, res) => {
+  const q = (req.query.q as string || '').trim();
+  if (!q) {
+    res.json([]);
+    return;
+  }
+  const clients = await prisma.client.findMany({
+    where: {
+      business: 'zenco',
+      OR: [
+        { name: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q } },
+        { altPhone: { contains: q } },
+      ]
+    }
+  });
+  res.json(clients);
+}));
+
 router.post('/clients', validate(createClientSchema), asyncHandler(async (req, res) => {
   const data = req.body;
   // Upsert: si ya existe por telefono, actualizar
@@ -348,25 +370,6 @@ router.delete('/clients/:id', asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   await prisma.client.delete({ where: { id } });
   res.json({ success: true });
-}));
-
-router.get('/clients/search', asyncHandler(async (req, res) => {
-  const q = (req.query.q as string || '').trim();
-  if (!q) {
-    res.json([]);
-    return;
-  }
-  const clients = await prisma.client.findMany({
-    where: {
-      business: 'zenco',
-      OR: [
-        { name: { contains: q, mode: 'insensitive' } },
-        { phone: { contains: q } },
-        { altPhone: { contains: q } },
-      ]
-    }
-  });
-  res.json(clients);
 }));
 
 // --- HISTORIAL DE ORDENES POR CLIENTE ---
