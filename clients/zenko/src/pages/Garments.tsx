@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { fetchGarments, createGarment, updateGarment, deleteGarment, uploadGarmentPhoto, orderTotal } from '../services/api';
 import type { DBGarment } from '../services/api';
 import { useToast } from '../components/ToastContext';
@@ -62,6 +62,13 @@ interface GarmentsProps {
 export default function Garments({ externalSearch = '', createTrigger = 0 }: GarmentsProps) {
   const toast = useToast();
   const isMobile = useIsMobile();
+
+  // Fix A4: ref para evitar actualizaciones de estado en componente desmontado
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   const [searchTerm, setSearchTerm]       = useState('');
   const [statusFilter, setStatusFilter]   = useState<string>('all');
@@ -234,6 +241,8 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
           }
         }
       }
+      // Fix A4: no actualizar estado si el componente fue desmontado (ej: modal cerrado durante upload)
+      if (!isMountedRef.current) return;
       toast.success('Orden guardada correctamente');
       setIsCreateOpen(false);
       setCreateForm({ ...EMPTY_FORM });
@@ -266,19 +275,22 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editTarget) return;
-    // Build items: flat fields update item[0] (what user edited), preserve remaining items
-    const remaining = (editForm.items && editForm.items.length > 1)
-      ? editForm.items.slice(1).map(item => ({
-          garmentName: item.garmentName,
-          repairType: item.repairType,
-          description: item.description || '',
-          price: Number(item.price),
-        }))
-      : [];
-    const items = [
-      { garmentName: editForm.garmentName, repairType: editForm.repairType, description: editForm.description || '', price: Number(editForm.price) },
-      ...remaining,
-    ];
+    // Fix M4: validar clientName y clientPhone explícitamente
+    if (!editForm.clientName.trim() || !editForm.clientPhone.trim()) {
+      toast.error('El nombre y teléfono del cliente son obligatorios');
+      return;
+    }
+    // Fix A1: usar directamente editForm.items (todos los items, no solo el primero)
+    const items = (editForm.items && editForm.items.length > 0 ? editForm.items : []).map(item => ({
+      garmentName: item.garmentName,
+      repairType: item.repairType,
+      description: item.description || '',
+      price: Number(item.price),
+    }));
+    // Fix A5: advertir si la fecha de entrega es pasada (sin bloquear el save)
+    if (editForm.deliveryDate && editForm.deliveryDate < today) {
+      toast.error('Atención: la fecha de entrega es en el pasado');
+    }
     try {
       await updateGarment(editTarget.id, {
         clientName: editForm.clientName,
@@ -290,6 +302,8 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
         deposit: Number(editForm.deposit || 0),
         items,
       });
+      // Fix A4: no actualizar estado si el componente fue desmontado
+      if (!isMountedRef.current) return;
       toast.success('Orden actualizada correctamente');
       setEditTarget(null);
       load();

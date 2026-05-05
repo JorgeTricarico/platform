@@ -333,62 +333,9 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
             </div>
           )}
 
-          {/* Modo edición: campos planos (sin cambios) */}
-          {isEditing ? (
-            <>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Shirt className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <Input required name="garmentName" placeholder="Prenda (ej: Pantalón)" value={form.garmentName} onChange={handle} className="pl-9" />
-                </div>
-                <div className="relative flex-1">
-                  <Scissors className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <Input required name="repairType" placeholder="Arreglo (ej: Dobladillo)" value={form.repairType} onChange={handle} className="pl-9" />
-                </div>
-              </div>
-
-              <div className="relative">
-                <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Textarea
-                  required
-                  name="description"
-                  placeholder="Detalle exacto del trabajo a realizar..."
-                  value={form.description}
-                  onChange={handle}
-                  rows={3}
-                  className="pl-9 resize-none"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
-                    <DollarSign className="h-3.5 w-3.5" />
-                    Precio ($)
-                  </label>
-                  <Input required name="price" type="number" placeholder="Ej: 1500" value={form.price || ''} onChange={handle} />
-                  {(() => {
-                    const sug = garmentHistory ? getPriceSuggestion(form.garmentName, form.repairType, garmentHistory) : null;
-                    return sug ? (
-                      <p className="text-xs text-muted-foreground mt-0.5 cursor-pointer hover:text-primary"
-                         onClick={() => setForm(prev => ({ ...prev, price: sug.avg }))}
-                      >
-                        Sugerido: ${sug.avg.toLocaleString()} <span className="opacity-60">(basado en {sug.count} pedidos)</span>
-                      </p>
-                    ) : null;
-                  })()}
-                </div>
-                <div className="flex-1">
-                  <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
-                    <DollarSign className="h-3.5 w-3.5" />
-                    Seña ($)
-                  </label>
-                  <Input name="deposit" type="number" placeholder="Ej: 500" value={form.deposit || ''} onChange={handle} />
-                </div>
-              </div>
-            </>
-          ) : (
-            /* Modo creación: lista de ítems */
+          {/* Items array: siempre visible (tanto en creación como en edición) */}
+          <>
+            {/* Lista de ítems — igual en creación y edición */}
             <>
               {items.map((item, index) => (
                 <div key={index} className="border border-border rounded-lg p-3 flex flex-col gap-3 relative">
@@ -512,50 +459,52 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
               </button>
 
               {/* Sección de fotos — solo en creación */}
-              <div className="flex flex-col gap-2">
-                <p className="text-xs font-semibold text-muted-foreground">Fotos (opcional)</p>
-                {!showCamera && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCamera(true)}
-                    aria-label="Agregar foto"
-                  >
-                    <Camera className="h-4 w-4" />
-                    Agregar foto
-                  </Button>
-                )}
-                {showCamera && (
-                  <CameraCapture
-                    onCapture={handleCapture}
-                    onClose={() => setShowCamera(false)}
-                  />
-                )}
-                {capturedPhotos.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {capturedPhotos.map((_, i) => (
-                      <div key={i} className="relative">
-                        <img
-                          src={photoUrls[i]}
-                          alt={`foto-${i + 1}`}
-                          className="h-16 w-16 rounded-md object-cover border border-border"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removePhoto(i)}
-                          aria-label={`Eliminar foto ${i + 1}`}
-                          className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-white text-[10px]"
-                        >
-                          <XIcon className="h-2.5 w-2.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {!isEditing && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-semibold text-muted-foreground">Fotos (opcional)</p>
+                  {!showCamera && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCamera(true)}
+                      aria-label="Agregar foto"
+                    >
+                      <Camera className="h-4 w-4" />
+                      Agregar foto
+                    </Button>
+                  )}
+                  {showCamera && (
+                    <CameraCapture
+                      onCapture={handleCapture}
+                      onClose={() => setShowCamera(false)}
+                    />
+                  )}
+                  {capturedPhotos.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {capturedPhotos.map((_, i) => (
+                        <div key={i} className="relative">
+                          <img
+                            src={photoUrls[i]}
+                            alt={`foto-${i + 1}`}
+                            className="h-16 w-16 rounded-md object-cover border border-border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(i)}
+                            aria-label={`Eliminar foto ${i + 1}`}
+                            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-white text-[10px]"
+                          >
+                            <XIcon className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
-          )}
+          </>
 
           {/* Fechas: compartidas entre todos los ítems en creación, normales en edición */}
           <div className="flex flex-col sm:flex-row gap-3">

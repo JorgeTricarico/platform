@@ -480,10 +480,10 @@ describe('BUG: Formulario edición vacío + cambios no guardados (Bug 1)', () =>
     // Click Editar en la primera orden
     const editButtons = screen.getAllByText('Editar');
     fireEvent.click(editButtons[0]);
-    // El campo garmentName debe tener el valor del primer item (no vacío)
-    const garmentInput = document.querySelector('input[name="garmentName"]') as HTMLInputElement;
-    expect(garmentInput).not.toBeNull();
-    expect(garmentInput.value).not.toBe('');
+    // Fix A1: el modal usa array de items — buscar por placeholder, no por name
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    expect(garmentInputs.length).toBeGreaterThan(0);
+    expect((garmentInputs[0] as HTMLInputElement).value).not.toBe('');
   });
 
   it('el modal de edición pre-carga repairType del primer item', async () => {
@@ -493,9 +493,10 @@ describe('BUG: Formulario edición vacío + cambios no guardados (Bug 1)', () =>
     });
     const editButtons = screen.getAllByText('Editar');
     fireEvent.click(editButtons[0]);
-    const repairInput = document.querySelector('input[name="repairType"]') as HTMLInputElement;
-    expect(repairInput).not.toBeNull();
-    expect(repairInput.value).not.toBe('');
+    // Fix A1: el modal usa array de items — buscar por placeholder
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    expect(repairInputs.length).toBeGreaterThan(0);
+    expect((repairInputs[0] as HTMLInputElement).value).not.toBe('');
   });
 
   it('el modal de edición pre-carga price del primer item', async () => {
@@ -505,10 +506,11 @@ describe('BUG: Formulario edición vacío + cambios no guardados (Bug 1)', () =>
     });
     const editButtons = screen.getAllByText('Editar');
     fireEvent.click(editButtons[0]);
-    const priceInput = document.querySelector('input[name="price"]') as HTMLInputElement;
-    expect(priceInput).not.toBeNull();
-    expect(priceInput.value).not.toBe('');
-    expect(priceInput.value).not.toBe('0');
+    // Fix A1: el modal usa array de items — buscar por placeholder
+    const priceInputs = screen.getAllByPlaceholderText('Ej: 1500');
+    expect(priceInputs.length).toBeGreaterThan(0);
+    expect((priceInputs[0] as HTMLInputElement).value).not.toBe('');
+    expect((priceInputs[0] as HTMLInputElement).value).not.toBe('0');
   });
 
   it('handleEdit llama updateGarment con los datos editados por el usuario (no los originales)', async () => {
@@ -522,13 +524,12 @@ describe('BUG: Formulario edición vacío + cambios no guardados (Bug 1)', () =>
 
     fireEvent.click(screen.getAllByText('Editar')[0]);
 
-    // Cambiar garmentName
-    const garmentInput = document.querySelector('input[name="garmentName"]') as HTMLInputElement;
-    fireEvent.change(garmentInput, { target: { value: 'Chaqueta de Cuero' } });
+    // Fix A1: inputs del array no tienen name= — usar placeholder
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'Chaqueta de Cuero' } });
 
-    // Cambiar price
-    const priceInput = document.querySelector('input[name="price"]') as HTMLInputElement;
-    fireEvent.change(priceInput, { target: { value: '20000' } });
+    const priceInputs = screen.getAllByPlaceholderText('Ej: 1500');
+    fireEvent.change(priceInputs[0], { target: { value: '20000' } });
 
     fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
 
@@ -1409,6 +1410,213 @@ describe('Editar orden — guardar cambios', () => {
     submitForm();
     await waitFor(() => {
       expect(screen.getByText(/error al actualizar la orden/i)).toBeInTheDocument();
+    });
+  });
+});
+
+// ─── BUG A1: Modal edición muestra solo el primer item ───────────────────────
+const mockGarmentMultiItem = {
+  id: 'ORD-MULTI', orderNumber: 10, clientName: 'Ana Test', clientPhone: '11-0000-0000',
+  status: 'en_proceso', intakeDate: '2026-04-01', deliveryDate: '2026-12-01', deposit: 0,
+  items: [
+    makeItem('Campera', 'cierre', 'Cambiar cierre', 10000),
+    makeItem('Pantalón', 'dobladillo', 'Subir 3cm', 5000),
+  ],
+};
+
+describe('BUG A1 — Modal edición muestra todos los items (no solo el primero)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue([mockGarmentMultiItem]);
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('[A1] al abrir edición de una orden con 2 items, muestra AMBAS prendas', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Editar'));
+    // Deben haber 2 inputs de prenda visibles
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    expect(garmentInputs.length).toBe(2);
+    expect((garmentInputs[0] as HTMLInputElement).value).toBe('Campera');
+    expect((garmentInputs[1] as HTMLInputElement).value).toBe('Pantalón');
+  });
+
+  it('[A1] editar el segundo item y guardar → updateGarment recibe el segundo item actualizado', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarmentMultiItem });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Editar'));
+
+    // Modificar el segundo item
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[1], { target: { value: 'Pantalón de Vestir' } });
+
+    submitForm();
+    await waitFor(() => {
+      expect(updateGarment).toHaveBeenCalledTimes(1);
+      const call = (updateGarment as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      expect(call.items.length).toBeGreaterThanOrEqual(2);
+      const secondItem = call.items[1];
+      expect(secondItem.garmentName).toBe('Pantalón de Vestir');
+    });
+  });
+
+  it('[A1] añadir un item en modo edición y guardar → updateGarment recibe N+1 items', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarmentMultiItem });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Editar'));
+
+    // Añadir un tercer item
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    expect(garmentInputs.length).toBe(3);
+    fireEvent.change(garmentInputs[2], { target: { value: 'Vestido' } });
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    fireEvent.change(repairInputs[2], { target: { value: 'Entalle' } });
+    const priceInputs = screen.getAllByPlaceholderText('Ej: 1500');
+    fireEvent.change(priceInputs[2], { target: { value: '8000' } });
+
+    submitForm();
+    await waitFor(() => {
+      expect(updateGarment).toHaveBeenCalledTimes(1);
+      const call = (updateGarment as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      expect(call.items).toHaveLength(3);
+      expect(call.items[2].garmentName).toBe('Vestido');
+    });
+  });
+
+  it('[A1] quitar un item en modo edición y guardar → updateGarment recibe N-1 items', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarmentMultiItem });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Editar'));
+
+    // Verificar que hay 2 items y botón eliminar
+    const deleteButtons = screen.getAllByLabelText(/eliminar prenda/i);
+    expect(deleteButtons.length).toBe(2);
+    fireEvent.click(deleteButtons[1]); // eliminar el segundo item
+
+    submitForm();
+    await waitFor(() => {
+      expect(updateGarment).toHaveBeenCalledTimes(1);
+      const call = (updateGarment as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      expect(call.items).toHaveLength(1);
+      expect(call.items[0].garmentName).toBe('Campera');
+    });
+  });
+});
+
+// ─── BUG A4: Race condition al cerrar modal durante upload ───────────────────
+describe('BUG A4 — Race condition: cerrar modal antes de que resuelva createGarment', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('[A4] smoke: el flujo de creación normal sigue funcionando (fetchGarments se llama 2 veces)', async () => {
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      expect(fetchGarments).toHaveBeenCalledTimes(2);
+    });
+  });
+});
+
+// ─── BUG A5: Fecha de entrega pasada en edición sin warning ──────────────────
+describe('BUG A5 — Fecha pasada en edición muestra advertencia pero no bloquea', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('[A5] editar con fecha pasada → updateGarment ES llamado (no bloquea) Y muestra advertencia', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarments[0], items: [] });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+
+    // Poner fecha pasada
+    const dateInput = document.querySelector('input[name="deliveryDate"]') as HTMLInputElement;
+    fireEvent.change(dateInput, { target: { value: '2020-01-01' } });
+
+    submitForm();
+    await waitFor(() => {
+      // updateGarment DEBE ser llamado (no bloqueado)
+      expect(updateGarment).toHaveBeenCalledTimes(1);
+      // Y debe aparecer un mensaje de advertencia
+      expect(screen.getByText(/atención.*fecha.*pasado|fecha.*pasad|entrega.*pasad/i)).toBeInTheDocument();
+    });
+  });
+
+  it('[A5] editar con fecha futura → NO aparece advertencia de fecha pasada', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarments[0], items: [] });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+
+    const dateInput = document.querySelector('input[name="deliveryDate"]') as HTMLInputElement;
+    fireEvent.change(dateInput, { target: { value: '2026-12-01' } });
+
+    submitForm();
+    await waitFor(() => {
+      expect(updateGarment).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByText(/atención.*fecha.*pasado|fecha.*pasad|entrega.*pasad/i)).not.toBeInTheDocument();
+  });
+});
+
+// ─── BUG M4: Bloqueo silencioso si clientName/Phone vacíos en edición ────────
+describe('BUG M4 — Validación explícita de clientName/Phone en edición', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('[M4] borrar clientName e intentar guardar → toast de error, updateGarment NO se llama', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarments[0], items: [] });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+
+    const clientNameInput = document.querySelector('input[name="clientName"]') as HTMLInputElement;
+    fireEvent.change(clientNameInput, { target: { value: '' } });
+
+    submitForm();
+    await waitFor(() => {
+      expect(screen.getByText(/nombre.*teléfono.*obligatorio|nombre y teléfono/i)).toBeInTheDocument();
+      expect(updateGarment).not.toHaveBeenCalled();
+    });
+  });
+
+  it('[M4] borrar clientPhone e intentar guardar → toast de error, updateGarment NO se llama', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarments[0], items: [] });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+
+    const clientPhoneInput = document.querySelector('input[name="clientPhone"]') as HTMLInputElement;
+    fireEvent.change(clientPhoneInput, { target: { value: '' } });
+
+    submitForm();
+    await waitFor(() => {
+      expect(screen.getByText(/nombre.*teléfono.*obligatorio|nombre y teléfono/i)).toBeInTheDocument();
+      expect(updateGarment).not.toHaveBeenCalled();
     });
   });
 });

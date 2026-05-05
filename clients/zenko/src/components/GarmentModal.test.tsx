@@ -212,9 +212,10 @@ describe('GarmentModal', () => {
     expect(screen.getByRole('button', { name: /añadir.*prenda/i })).toBeInTheDocument();
   });
 
-  it('no muestra "Añadir prenda" en modo edición', () => {
+  it('muestra "Añadir prenda" también en modo edición (fix A1)', () => {
     render(<Wrapper garmentId="abc-123" />);
-    expect(screen.queryByRole('button', { name: /añadir.*prenda/i })).not.toBeInTheDocument();
+    // El botón debe estar visible también en edición para poder agregar/editar todos los items
+    expect(screen.getByRole('button', { name: /añadir.*prenda/i })).toBeInTheDocument();
   });
 
   it('añadir prenda agrega un ítem nuevo a la lista', () => {
