@@ -653,3 +653,633 @@ describe('BUG: Cruce y pérdida de seña/monto al crear (Bug 2 & 3)', () => {
     });
   });
 });
+
+// ─── helpers ─────────────────────────────────────────────────────────────────
+async function openCreateModal() {
+  render(<ToastProvider><Garments /></ToastProvider>);
+  await waitFor(() => {
+    expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
+  });
+  fireEvent.click(screen.getByText('+ Registrar Ingreso'));
+}
+
+async function openCreateModalNuevoCliente() {
+  await openCreateModal();
+  fireEvent.click(screen.getByText('Nuevo cliente'));
+}
+
+function fillNuevoCliente(name = 'Test User', phone = '1199887766') {
+  fireEvent.change(screen.getByPlaceholderText('Nombre y Apellido'), { target: { value: name } });
+  fireEvent.change(screen.getByPlaceholderText('Teléfono'), { target: { value: phone } });
+}
+
+function fillItem(index: number, garmentName: string, repairType: string, price: string, description = '') {
+  const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+  fireEvent.change(garmentInputs[index], { target: { value: garmentName } });
+  const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+  fireEvent.change(repairInputs[index], { target: { value: repairType } });
+  if (description) {
+    const descInputs = screen.getAllByPlaceholderText(/detalle/i);
+    fireEvent.change(descInputs[index], { target: { value: description } });
+  }
+  const priceInput = screen.getAllByPlaceholderText('Ej: 1500')[index];
+  fireEvent.change(priceInput, { target: { value: price } });
+}
+
+function setDeliveryDate(value: string) {
+  const dateInputs = document.querySelectorAll('input[name="deliveryDate"]');
+  fireEvent.change(dateInputs[0], { target: { value } });
+}
+
+function submitForm() {
+  fireEvent.submit(screen.getByRole('button', { name: /guardar/i }).closest('form')!);
+}
+
+// ─── Validación: cliente no seleccionado (modo existente) ─────────────────────
+describe('Crear orden — validación cliente existente no seleccionado', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('muestra error si se hace submit sin seleccionar cliente en modo existente', async () => {
+    await openCreateModal();
+    // Permanece en modo "existente" (default), sin seleccionar ningún cliente
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    expect(screen.getByText(/seleccioná un cliente de la lista/i)).toBeInTheDocument();
+    expect(createGarmentImport).not.toHaveBeenCalled();
+  });
+
+  it('no muestra error de cliente al cambiar a modo "nuevo cliente"', async () => {
+    await openCreateModal();
+    // Intentar submit en modo existente primero para disparar el error
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    expect(screen.getByText(/seleccioná un cliente de la lista/i)).toBeInTheDocument();
+    // Cambiar a nuevo cliente → el error desaparece
+    fireEvent.click(screen.getByText('Nuevo cliente'));
+    expect(screen.queryByText(/seleccioná un cliente de la lista/i)).not.toBeInTheDocument();
+  });
+
+  it('permite submit después de seleccionar cliente existente del dropdown', async () => {
+    (searchClients as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: '1', name: 'Ana García', phone: '11-1111-1111', business: 'zenco', createdAt: '2026-01-01' },
+    ]);
+    await openCreateModal();
+    const searchInput = screen.getByPlaceholderText('Buscar cliente por nombre o teléfono...');
+    fireEvent.change(searchInput, { target: { value: 'Ana' } });
+    await waitFor(() => expect(screen.getByText('Ana García')).toBeInTheDocument(), { timeout: 500 });
+    fireEvent.click(screen.getByText('Ana García'));
+    // El cliente fue seleccionado
+    expect(screen.getByText(/seleccionado:/i)).toBeInTheDocument();
+    fillItem(0, 'Camisa', 'Cierre', '3000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => expect(createGarmentImport).toHaveBeenCalledTimes(1));
+    const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(call.clientName).toBe('Ana García');
+    expect(call.clientPhone).toBe('11-1111-1111');
+  });
+});
+
+// ─── Búsqueda de cliente existente ───────────────────────────────────────────
+describe('Crear orden — búsqueda de cliente existente', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    (searchClients as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+  });
+
+  it('NO llama searchClients con menos de 2 caracteres', async () => {
+    await openCreateModal();
+    const searchInput = screen.getByPlaceholderText('Buscar cliente por nombre o teléfono...');
+    fireEvent.change(searchInput, { target: { value: 'A' } });
+    await waitFor(() => {}, { timeout: 400 });
+    expect(searchClients).not.toHaveBeenCalled();
+  });
+
+  it('llama searchClients con 2+ caracteres (con debounce)', async () => {
+    await openCreateModal();
+    const searchInput = screen.getByPlaceholderText('Buscar cliente por nombre o teléfono...');
+    fireEvent.change(searchInput, { target: { value: 'Ma' } });
+    await waitFor(() => expect(searchClients).toHaveBeenCalledWith('Ma'), { timeout: 500 });
+  });
+
+  it('muestra dropdown con resultados de búsqueda', async () => {
+    (searchClients as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: '1', name: 'María López', phone: '11-9999-8888', business: 'zenco', createdAt: '2026-01-01' },
+      { id: '2', name: 'Marcos Díaz', phone: '11-7777-6666', business: 'zenco', createdAt: '2026-01-01' },
+    ]);
+    await openCreateModal();
+    const searchInput = screen.getByPlaceholderText('Buscar cliente por nombre o teléfono...');
+    fireEvent.change(searchInput, { target: { value: 'Ma' } });
+    await waitFor(() => {
+      expect(screen.getByText('María López')).toBeInTheDocument();
+      expect(screen.getByText('Marcos Díaz')).toBeInTheDocument();
+    }, { timeout: 500 });
+  });
+
+  it('muestra "No se encontraron clientes" si búsqueda vacía', async () => {
+    (searchClients as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    await openCreateModal();
+    const searchInput = screen.getByPlaceholderText('Buscar cliente por nombre o teléfono...');
+    fireEvent.change(searchInput, { target: { value: 'ZZZ' } });
+    await waitFor(() => {
+      expect(screen.getByText(/no se encontraron clientes/i)).toBeInTheDocument();
+    }, { timeout: 500 });
+  });
+
+  it('seleccionar cliente llena su nombre y teléfono', async () => {
+    (searchClients as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: '5', name: 'Laura Pérez', phone: '11-5555-4444', business: 'zenco', createdAt: '2026-01-01' },
+    ]);
+    await openCreateModal();
+    fireEvent.change(screen.getByPlaceholderText('Buscar cliente por nombre o teléfono...'), { target: { value: 'Laura' } });
+    await waitFor(() => expect(screen.getByText('Laura Pérez')).toBeInTheDocument(), { timeout: 500 });
+    fireEvent.click(screen.getByText('Laura Pérez'));
+    // Debe mostrar el nombre seleccionado y teléfono
+    expect(screen.getByText(/Laura Pérez/)).toBeInTheDocument();
+    expect(screen.getByText('11-5555-4444')).toBeInTheDocument();
+  });
+});
+
+// ─── Multi-item: agregar y quitar prendas ─────────────────────────────────────
+describe('Crear orden — gestión de múltiples prendas', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('botón eliminar no aparece cuando hay solo 1 prenda', async () => {
+    await openCreateModalNuevoCliente();
+    expect(screen.queryByLabelText(/eliminar prenda/i)).not.toBeInTheDocument();
+  });
+
+  it('botón eliminar aparece al agregar una segunda prenda', async () => {
+    await openCreateModalNuevoCliente();
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
+    const deleteButtons = screen.getAllByLabelText(/eliminar prenda/i);
+    expect(deleteButtons).toHaveLength(2);
+  });
+
+  it('quitar una prenda reduce la lista a 1 item', async () => {
+    await openCreateModalNuevoCliente();
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
+    expect(screen.getAllByPlaceholderText(/prenda \(ej:/i)).toHaveLength(2);
+    const deleteButtons = screen.getAllByLabelText(/eliminar prenda/i);
+    fireEvent.click(deleteButtons[0]);
+    expect(screen.getAllByPlaceholderText(/prenda \(ej:/i)).toHaveLength(1);
+    // Con 1 item, botón eliminar desaparece
+    expect(screen.queryByLabelText(/eliminar prenda/i)).not.toBeInTheDocument();
+  });
+
+  it('quitar la segunda prenda mantiene la primera intacta', async () => {
+    await openCreateModalNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
+    fillItem(1, 'Camisa', 'Cierre', '3000');
+    // Quitar la segunda prenda
+    const deleteButtons = screen.getAllByLabelText(/eliminar prenda/i);
+    fireEvent.click(deleteButtons[1]);
+    // La primera prenda sigue intacta
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    expect((garmentInputs[0] as HTMLInputElement).value).toBe('Pantalón');
+  });
+
+  it('3 prendas → createGarment recibe 3 items con sus precios correctos', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
+    fillItem(1, 'Camisa', 'Cierre', '3000');
+    fireEvent.click(screen.getByRole('button', { name: /añadir.*prenda/i }));
+    fillItem(2, 'Vestido', 'Entalle', '12000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      expect(createGarmentImport).toHaveBeenCalledTimes(1);
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.items).toHaveLength(3);
+      expect(call.items[0].price).toBe(5000);
+      expect(call.items[1].price).toBe(3000);
+      expect(call.items[2].price).toBe(12000);
+    });
+  });
+
+  it('items con description vacía se envían con description=""', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000'); // sin description
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.items[0].description).toBe('');
+    });
+  });
+
+  it('items con description llena la envía correctamente', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000', 'Subir 4cm del borde');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.items[0].description).toBe('Subir 4cm del borde');
+    });
+  });
+});
+
+// ─── Campos enviados al API ───────────────────────────────────────────────────
+describe('Crear orden — payload completo enviado al API', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('envía intakeDate con la fecha de hoy por defecto', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.intakeDate).toBe(today);
+    });
+  });
+
+  it('envía status="recibido" por defecto', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.status).toBe('recibido');
+    });
+  });
+
+  it('envía deposit=0 cuando no se ingresa seña', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    // No se llena el campo de seña
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.deposit).toBe(0);
+    });
+  });
+
+  it('envía deliveryDate correctamente', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-11-15');
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.deliveryDate).toBe('2026-11-15');
+    });
+  });
+
+  it('envía clientName y clientPhone del nuevo cliente', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente('Claudia Ramos', '1155443322');
+    fillItem(0, 'Chaqueta', 'Cremallera', '8000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.clientName).toBe('Claudia Ramos');
+      expect(call.clientPhone).toBe('1155443322');
+    });
+  });
+
+  it('envía garmentName y repairType del item correctamente', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Vestido de Novia', 'Ajuste de talle', '25000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.items[0].garmentName).toBe('Vestido de Novia');
+      expect(call.items[0].repairType).toBe('Ajuste de talle');
+    });
+  });
+
+  it('price=0 en un item se envía como 0 (no undefined)', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    // No rellenar el price → queda en 0
+    const garmentInputs = screen.getAllByPlaceholderText(/prenda \(ej:/i);
+    fireEvent.change(garmentInputs[0], { target: { value: 'Chaleco' } });
+    const repairInputs = screen.getAllByPlaceholderText(/arreglo \(ej:/i);
+    fireEvent.change(repairInputs[0], { target: { value: 'Botones' } });
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      const call = (createGarmentImport as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.items[0].price).toBe(0);
+    });
+  });
+});
+
+// ─── Validación de fecha de entrega ──────────────────────────────────────────
+describe('Crear orden — validación fecha de entrega', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('muestra error inline si deliveryDate es una fecha pasada', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2020-01-01');
+    submitForm();
+    expect(screen.getByText(/fecha de entrega no puede ser una fecha pasada/i)).toBeInTheDocument();
+    expect(createGarmentImport).not.toHaveBeenCalled();
+  });
+
+  it('el error de fecha desaparece al cambiar a una fecha futura válida', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2020-01-01');
+    submitForm();
+    expect(screen.getByText(/fecha de entrega no puede ser una fecha pasada/i)).toBeInTheDocument();
+    // Corregir la fecha
+    setDeliveryDate('2026-12-01');
+    expect(screen.queryByText(/fecha de entrega no puede ser una fecha pasada/i)).not.toBeInTheDocument();
+  });
+
+  it('bloquea submit si deliveryDate está vacía (toast de error)', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    // deliveryDate queda vacía
+    submitForm();
+    await waitFor(() => expect(createGarmentImport).not.toHaveBeenCalled());
+  });
+
+  it('no bloquea submit si deliveryDate es hoy', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate(today);
+    submitForm();
+    await waitFor(() => expect(createGarmentImport).toHaveBeenCalledTimes(1));
+  });
+
+  it('el input deliveryDate tiene atributo min = hoy', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    await openCreateModalNuevoCliente();
+    const dateInput = document.querySelector('input[name="deliveryDate"]') as HTMLInputElement;
+    expect(dateInput.min).toBe(today);
+  });
+});
+
+// ─── Flujo de éxito ───────────────────────────────────────────────────────────
+describe('Crear orden — flujo de éxito completo', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('el modal se cierra después de crear correctamente', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      expect(screen.queryByText('Registrar Nueva Orden')).not.toBeInTheDocument();
+    });
+  });
+
+  it('fetchGarments se llama de nuevo para recargar la lista', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      // fetchGarments inicial + recarga post-create = 2 llamadas
+      expect(fetchGarments).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('el form se resetea después de crear (modal reabierto muestra campos vacíos)', async () => {
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente('María Test', '1111111111');
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => expect(screen.queryByText('Registrar Nueva Orden')).not.toBeInTheDocument());
+    // Reabrir modal — campos deben estar vacíos (no datos del submit anterior)
+    fireEvent.click(screen.getByText('+ Registrar Ingreso'));
+    fireEvent.click(screen.getByText('Nuevo cliente'));
+    const nameInput = screen.getByPlaceholderText('Nombre y Apellido') as HTMLInputElement;
+    expect(nameInput.value).toBe('');
+  });
+});
+
+// ─── Manejo de errores ────────────────────────────────────────────────────────
+describe('Crear orden — manejo de errores de API', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('muestra toast de error cuando createGarment falla', async () => {
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      expect(screen.getByText(/error al guardar la orden/i)).toBeInTheDocument();
+    });
+  });
+
+  it('el modal permanece abierto cuando createGarment falla', async () => {
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      // El modal sigue abierto
+      expect(screen.getByText('Registrar Nueva Orden')).toBeInTheDocument();
+    });
+  });
+
+  it('botón Guardar vuelve a estar habilitado después del error', async () => {
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      const saveBtn = screen.getByRole('button', { name: /guardar/i });
+      expect(saveBtn).not.toBeDisabled();
+    });
+  });
+
+  it('generateTicket que falla no impide que el modal se cierre', async () => {
+    (createGarmentImport as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'new-1', orderNumber: 100 });
+    (generateTicket as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Ticket error'));
+    await openCreateModalNuevoCliente();
+    fillNuevoCliente();
+    fillItem(0, 'Pantalón', 'Dobladillo', '5000');
+    setDeliveryDate('2026-12-01');
+    submitForm();
+    await waitFor(() => {
+      expect(screen.queryByText('Registrar Nueva Orden')).not.toBeInTheDocument();
+    });
+  });
+});
+
+// ─── Editar orden — pre-carga y guardado ─────────────────────────────────────
+describe('Editar orden — pre-carga del formulario', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('pre-carga clientName y clientPhone del pedido', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    // Sort order: listo(Sofía, idx 2) → en_proceso(María, idx 0) → recibido(Juan, idx 1) → entregado
+    const firstSorted = mockGarments[2]; // Sofía L. — listo, aparece primero
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+    const clientNameInput = document.querySelector('input[name="clientName"]') as HTMLInputElement;
+    expect(clientNameInput.value).toBe(firstSorted.clientName);
+    const clientPhoneInput = document.querySelector('input[name="clientPhone"]') as HTMLInputElement;
+    expect(clientPhoneInput.value).toBe(firstSorted.clientPhone);
+  });
+
+  it('pre-carga deliveryDate del pedido', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    const firstSorted = mockGarments[2]; // Sofía L. — listo, aparece primero
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+    const dateInput = document.querySelector('input[name="deliveryDate"]') as HTMLInputElement;
+    expect(dateInput.value).toBe(firstSorted.deliveryDate);
+  });
+
+  it('pre-carga deposit del pedido', async () => {
+    const garmentWithDeposit = [{ ...mockGarments[0], deposit: 7500 }];
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(garmentWithDeposit);
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+    const depositInput = document.querySelector('input[name="deposit"]') as HTMLInputElement;
+    expect(depositInput.value).toBe('7500');
+  });
+
+  it('pre-carga status del pedido en el selector', async () => {
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    const firstSorted = mockGarments[2]; // Sofía L. — listo, aparece primero
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+    const statusSelect = document.querySelector('select[name="status"]') as HTMLSelectElement;
+    expect(statusSelect.value).toBe(firstSorted.status); // 'listo'
+  });
+});
+
+describe('Editar orden — guardar cambios', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (fetchGarments as ReturnType<typeof vi.fn>).mockResolvedValue(mockGarments);
+    (generateTicket as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+  });
+
+  it('cambiar deposit y guardar llama updateGarment con deposit actualizado', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarments[0], items: [] });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+    const depositInput = document.querySelector('input[name="deposit"]') as HTMLInputElement;
+    fireEvent.change(depositInput, { target: { value: '5000' } });
+    submitForm();
+    await waitFor(() => {
+      expect(updateGarment).toHaveBeenCalledTimes(1);
+      const call = (updateGarment as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      expect(call.deposit).toBe(5000);
+    });
+  });
+
+  it('cambiar status a "listo" y guardar llama updateGarment con status actualizado', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarments[0], items: [] });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+    const statusSelect = document.querySelector('select[name="status"]') as HTMLSelectElement;
+    fireEvent.change(statusSelect, { target: { value: 'listo' } });
+    submitForm();
+    await waitFor(() => {
+      expect(updateGarment).toHaveBeenCalledTimes(1);
+      const call = (updateGarment as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      expect(call.status).toBe('listo');
+    });
+  });
+
+  it('el modal de edición se cierra después de guardar exitosamente', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockGarments[2], items: [] });
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    // Primer Editar = Sofía L. (listo, orderNumber 3)
+    const firstSorted = mockGarments[2];
+    const orderLabel = `Editar Orden ORD-${String(firstSorted.orderNumber).padStart(6, '0')}`;
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+    expect(screen.getByText(orderLabel)).toBeInTheDocument();
+    submitForm();
+    await waitFor(() => {
+      expect(screen.queryByText(orderLabel)).not.toBeInTheDocument();
+    });
+  });
+
+  it('muestra error toast cuando updateGarment falla', async () => {
+    const { updateGarment } = await import('../services/api');
+    (updateGarment as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Server error'));
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument());
+    fireEvent.click(screen.getAllByText('Editar')[0]);
+    submitForm();
+    await waitFor(() => {
+      expect(screen.getByText(/error al actualizar la orden/i)).toBeInTheDocument();
+    });
+  });
+});
