@@ -101,7 +101,11 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
 
   const STATUS_ORDER: Record<string, number> = { listo: 0, en_proceso: 1, recibido: 2, entregado: 3 };
 
-  const today     = useMemo(() => new Date().toISOString().split('T')[0], []);
+  // Bug M1: usar fecha local en lugar de UTC para evitar falsos "Vencido" a las 21hs AR
+  const today = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
   const isOverdue = (g: DBGarment) => g.deliveryDate < today && g.status !== 'entregado';
 
   const statusCounts = useMemo(
@@ -200,6 +204,11 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
     const items = (createForm.items && createForm.items.length > 0)
       ? createForm.items
       : [{ garmentName: createForm.garmentName, repairType: createForm.repairType, description: createForm.description, price: Number(createForm.price) }];
+    // Bug A2: Validar que todos los items tengan precio > 0
+    if (items.some(item => !item.price || Number(item.price) <= 0)) {
+      toast.error('Ingresá el precio de cada prenda');
+      return;
+    }
     try {
       const created = await createGarment({
         clientName: createForm.clientName,

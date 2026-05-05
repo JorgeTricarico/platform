@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { searchClients } from '../services/api';
 import type { DBClient, DBGarment } from '../services/api';
 import PhotoGallery from './PhotoGallery';
@@ -83,7 +83,9 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
   garmentId?: string;
   garmentHistory?: DBGarment[];
 }) {
-  const today = new Date().toISOString().split('T')[0];
+  // Bug M1: usar fecha local en lugar de UTC para evitar falsos errores a las 21hs AR
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const [submitting, setSubmitting] = useState(false);
   const [deliveryError, setDeliveryError] = useState('');
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -102,6 +104,16 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
     setCapturedPhotos(prev => [...prev, file]);
     setShowCamera(false);
   };
+
+  // Bug B2: crear Object URLs una sola vez con useMemo y revocarlas en cleanup
+  const photoUrls = useMemo(
+    () => capturedPhotos.map(file => URL.createObjectURL(file)),
+    [capturedPhotos]
+  );
+
+  useEffect(() => {
+    return () => { photoUrls.forEach(url => URL.revokeObjectURL(url)); };
+  }, [photoUrls]);
 
   const removePhoto = (index: number) => {
     setCapturedPhotos(prev => prev.filter((_, i) => i !== index));
@@ -171,6 +183,11 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
     setForm(prev => {
       const newItems = (prev.items || []).filter((_, i) => i !== index);
       return { ...prev, items: newItems.length > 0 ? newItems : [{ ...EMPTY_ITEM }] };
+    });
+    // Bug A3: sincronizar suggestions array con el mismo índice eliminado
+    setSuggestions(prev => {
+      const filtered = prev.filter((_, i) => i !== index);
+      return filtered.length > 0 ? filtered : [[]];
     });
   };
 
@@ -517,10 +534,10 @@ export default function GarmentModal({ title, form, setForm, onSubmit, onClose, 
                 )}
                 {capturedPhotos.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {capturedPhotos.map((file, i) => (
+                    {capturedPhotos.map((_, i) => (
                       <div key={i} className="relative">
                         <img
-                          src={URL.createObjectURL(file)}
+                          src={photoUrls[i]}
                           alt={`foto-${i + 1}`}
                           className="h-16 w-16 rounded-md object-cover border border-border"
                         />
