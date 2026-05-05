@@ -280,6 +280,116 @@ describe('C2 — PUT /api/zenco/garments/:id/status NO sobreescribe deposit al e
 });
 
 // ============================================================
+// BUG M3 — Doble registro de finanzas en re-entrega via /status
+// ============================================================
+
+describe('M3 — PUT /api/zenco/garments/:id/status usa upsert con ID determinista FIN-Z-STATUS-*', () => {
+  const orderEntregado = (overrides = {}) =>
+    makeOrder({
+      id: 'ORD-M3-1',
+      orderNumber: 200,
+      deposit: 500,
+      status: 'listo',
+      items: [
+        {
+          id: 'ITEM-M3-1',
+          orderId: 'ORD-M3-1',
+          garmentName: 'Campera',
+          repairType: 'cierre',
+          description: '',
+          price: 2000,
+        },
+      ],
+      ...overrides,
+    });
+
+  it('M3a — llamar PUT /status con entregado dos veces: upsert se llama con el mismo ID determinista ambas veces', async () => {
+    const order = orderEntregado();
+    mockPrisma.order.findUnique.mockResolvedValue(order);
+    mockPrisma.order.update.mockResolvedValue({ ...order, status: 'entregado' });
+    mockPrisma.zencoFinance.upsert.mockResolvedValue({});
+
+    // Primera llamada
+    await request(app)
+      .put('/api/zenco/garments/ORD-M3-1/status')
+      .set('Authorization', authHeader('zenco'))
+      .send({ status: 'entregado' });
+
+    // Segunda llamada (re-entrega)
+    await request(app)
+      .put('/api/zenco/garments/ORD-M3-1/status')
+      .set('Authorization', authHeader('zenco'))
+      .send({ status: 'entregado' });
+
+    expect(mockPrisma.zencoFinance.upsert).toHaveBeenCalledTimes(2);
+
+    // Ambas llamadas deben usar el MISMO id determinista
+    const firstCallId = mockPrisma.zencoFinance.upsert.mock.calls[0][0].where.id;
+    const secondCallId = mockPrisma.zencoFinance.upsert.mock.calls[1][0].where.id;
+    expect(firstCallId).toBe(secondCallId);
+  });
+
+  it('M3b — ciclo listo→entregado→listo→entregado: finance se registra/actualiza idempotentemente via upsert', async () => {
+    const baseOrder = orderEntregado({ status: 'listo' });
+    mockPrisma.order.findUnique.mockResolvedValue(baseOrder);
+    mockPrisma.order.update
+      .mockResolvedValueOnce({ ...baseOrder, status: 'entregado' })
+      .mockResolvedValueOnce({ ...baseOrder, status: 'listo' })
+      .mockResolvedValueOnce({ ...baseOrder, status: 'entregado' });
+    mockPrisma.zencoFinance.upsert.mockResolvedValue({});
+    mockPrisma.client.findFirst.mockResolvedValue(null);
+    mockPrisma.notification.create.mockResolvedValue({});
+
+    // listo → entregado (finance registrada)
+    await request(app)
+      .put('/api/zenco/garments/ORD-M3-1/status')
+      .set('Authorization', authHeader('zenco'))
+      .send({ status: 'entregado' });
+
+    // entregado → listo (sin finance)
+    await request(app)
+      .put('/api/zenco/garments/ORD-M3-1/status')
+      .set('Authorization', authHeader('zenco'))
+      .send({ status: 'listo' });
+
+    // listo → entregado de nuevo (finance actualizada via upsert)
+    await request(app)
+      .put('/api/zenco/garments/ORD-M3-1/status')
+      .set('Authorization', authHeader('zenco'))
+      .send({ status: 'entregado' });
+
+    // upsert llamado exactamente 2 veces (solo en los dos "entregado")
+    expect(mockPrisma.zencoFinance.upsert).toHaveBeenCalledTimes(2);
+
+    // Ambas veces con el mismo ID
+    const firstCallId = mockPrisma.zencoFinance.upsert.mock.calls[0][0].where.id;
+    const secondCallId = mockPrisma.zencoFinance.upsert.mock.calls[1][0].where.id;
+    expect(firstCallId).toBe(secondCallId);
+  });
+
+  it('M3c — el ID del registro de finance usa el prefijo FIN-Z-STATUS-{orderNumber}', async () => {
+    const order = orderEntregado({ orderNumber: 200 });
+    mockPrisma.order.findUnique.mockResolvedValue(order);
+    mockPrisma.order.update.mockResolvedValue({ ...order, status: 'entregado' });
+    mockPrisma.zencoFinance.upsert.mockResolvedValue({});
+
+    await request(app)
+      .put('/api/zenco/garments/ORD-M3-1/status')
+      .set('Authorization', authHeader('zenco'))
+      .send({ status: 'entregado' });
+
+    expect(mockPrisma.zencoFinance.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'FIN-Z-STATUS-200' },
+        create: expect.objectContaining({
+          id: 'FIN-Z-STATUS-200',
+        }),
+      })
+    );
+  });
+});
+
+// ============================================================
 // BUG B3 — Orden de rutas Express /clients/search vs /clients/:id
 // ============================================================
 

@@ -168,7 +168,7 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
   if (status === 'entregado') {
     const balance = totalPrice - prev.deposit;
     if (balance > 0) {
-      const finId = `FIN-Z-DEL-${updated.orderNumber}`;
+      const finId = `FIN-Z-STATUS-${updated.orderNumber}`;
       try {
         await prisma.zencoFinance.upsert({
           where: { id: finId },
