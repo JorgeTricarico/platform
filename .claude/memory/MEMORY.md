@@ -1,5 +1,5 @@
 - [Platform Status](project_zenko_status.md) — Estado completo del proyecto Zenko + Damian, bugs resueltos, pendientes
-- [Git Workflow](feedback_git_workflow.md) — Pushear directo a main, sin ramas ni PRs
+- [Git Workflow](feedback_git_workflow.md) — develop (QA) → main (prod), sin PRs, merge ff-only para promover
 - [TDD Obligatorio](feedback_tdd_obligatorio.md) — Tests antes de implementacion, todo CRUD con unit + integration tests
 - [Reflexion sesion 2026-04-05](project_session_reflection_20260405.md) — Problemas detectados, roadmap plataforma y mejoras del agente
 - [MCP Connectors](reference_mcp_connectors.md) — PostHog/Slack cloud MCPs causan prompt overflow, como desactivar/reactivar
