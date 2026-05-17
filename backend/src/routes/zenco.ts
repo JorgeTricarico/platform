@@ -153,12 +153,12 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
 
     if (process.env.WHATSAPP_ENABLED === 'true') {
       const msg =
-        `Hola 👋🏻\n` +
-        `Te escribimos desde Zenko – Taller de arreglos de ropa 🦊 para avisarte que tus arreglos ya se encuentran finalizados y disponibles para retirar ✨\n\n` +
-        `Horario de atención:\n` +
-        `🕘 Lunes a viernes: 9:30 a 12:30 / 15:00 a 18:30\n` +
-        `🕘 Sábados: 9:30 a 15:00\n\n` +
-        `¡Muchas gracias!`;
+        `Hola!\n` +
+        `Te escribimos desde Zenko - Taller de arreglos de ropa para avisarte que tus arreglos ya se encuentran finalizados y disponibles para retirar.\n\n` +
+        `Horario de atencion:\n` +
+        `- Lunes a viernes: 9:30 a 12:30 / 15:00 a 18:30\n` +
+        `- Sabados: 9:30 a 15:00\n\n` +
+        `Muchas gracias!`;
       try {
         await whatsappService.sendMessage(updated.clientPhone, msg);
         console.log(`[WhatsApp] Notificación enviada a ${updated.clientPhone} — orden ${updated.orderNumber}`);
