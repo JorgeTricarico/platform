@@ -33,3 +33,4 @@
 - [Session 27 Reflection](project_session27_reflection.md) — platform-v2 scaffold: Turborepo, multi-tenant, Docker/Coolify, 124 archivos, 13K líneas
 - [Session 28 Reflection](project_session28_reflection.md) — Refactor Order→Order+OrderItem (1:N), fix 567 tests, RTL getNodeText limitation, build TypeScript limpio
 - [Notif audience bug](project_notifications_audience_bug.md) — Campana de Ana muestra notif que eran para clientes; plan: campo `audience`, pantalla nueva para historial. Diferido a sesion futura
+- [Drift Incident 2026-05-17](project_drift_incident_20260517.md) — Migrations Prisma desincronizadas con DB prod; fix con migrate resolve x2 + deploy; backend errorLog hook activo; bloquea M36 QA

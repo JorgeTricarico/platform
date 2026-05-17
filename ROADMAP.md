@@ -84,7 +84,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M41 | Paginación server-side — cursor-based pagination en endpoints + componente Pagination | — | pendiente | media |
 | M42 | Onboarding automatizado — script create-tenant + deploy via Coolify API | — | pendiente | alta |
 | M43 | Alertas internas staff — generadores reales para `audience='staff'` (orden vencida, cliente respondio WhatsApp) | [M43](docs/roadmap/M43-alertas-staff.md) | pendiente | alta |
-| M44 | Prisma migrate formal para `Notification.audience` — hoy aplicado via `db push`, falta archivo de migration versionado | [M44](docs/roadmap/M44-prisma-migrate-formal.md) | pendiente | baja |
+| M44 | Prisma migrate formal para `Notification.audience` — hoy aplicado via `db push`, falta archivo de migration versionado | [M44](docs/roadmap/M44-prisma-migrate-formal.md) | **completado** (sesion 2026-05-17: migration `20260517_add_notification_audience` + 2 resolves para sincronizar `_prisma_migrations` con DB) | baja |
 
 ---
 
