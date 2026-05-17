@@ -116,9 +116,9 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z23 | QR Ticket — direccionar a fecha de entrega | — | **completado** (QR contiene ID y Fecha de Entrega) | media |
 | Z24 | WhatsApp Template — mensaje formal multiline con horarios | — | **completado** (Avisar usa nuevo template) | alta |
 | Z25 | Quitar "Ubicación" de Gestión de Prendas | — | **completado** (Ubicación removida de tabla y modal) | baja |
-| Z28 | QR Scanner — layout full viewport sin scroll (camara dominante + paneles laterales en desktop) | [Z28](docs/roadmap/Z28-qr-layout-sin-scroll.md) | pendiente | alta |
+| Z28 | QR Scanner — layout full viewport sin scroll (camara dominante + paneles laterales en desktop) | [Z28](docs/roadmap/Z28-qr-layout-sin-scroll.md) | **completado** (split desktop + flex mobile, App.tsx padding condicional) | alta |
 | Z29 | QR Scanner — Modo Mostrador con auto-start camara + auto-accion configurable (WhatsApp / print) | [Z29](docs/roadmap/Z29-qr-modo-mostrador.md) | pendiente | media |
-| Z30 | QR Scanner — Historial de escaneos en sesion + deshacer ultimo cambio de status | [Z30](docs/roadmap/Z30-qr-historial-undo.md) | pendiente | media |
+| Z30 | QR Scanner — Historial de escaneos en sesion + deshacer ultimo cambio de status | [Z30](docs/roadmap/Z30-qr-historial-undo.md) | **completado** (historial max 10, undo dentro de 60s, contador visual) | media |
 | Z31 | QR Scanner — Modo bulk (toast + beep sin modal), cobro al entregar con metodo de pago, atajos teclado 1/2/3 | [Z31](docs/roadmap/Z31-qr-bulk-cobro-atajos.md) | pendiente | media |
 
 ---
