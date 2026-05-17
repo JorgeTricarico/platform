@@ -208,17 +208,24 @@ export const fetchClientOrders = async (clientId: string): Promise<ClientOrdersR
 
 // --- NOTIFICACIONES ---
 
+export type NotificationAudience = 'staff' | 'client';
+
 export interface DBNotification {
   id: string;
   clientId: string;
   message: string;
   type: string;
   read: boolean;
+  audience?: NotificationAudience;
   createdAt: string;
 }
 
-export const fetchNotifications = async (clientId: string): Promise<DBNotification[]> => {
-  return cachedFetch<DBNotification[]>(`${API_URL}/notifications/${encodeURIComponent(clientId)}`);
+export const fetchNotifications = async (
+  clientId: string,
+  audience?: NotificationAudience,
+): Promise<DBNotification[]> => {
+  const qs = audience ? `?audience=${audience}` : '';
+  return cachedFetch<DBNotification[]>(`${API_URL}/notifications/${encodeURIComponent(clientId)}${qs}`);
 };
 
 export const markNotificationRead = async (id: string): Promise<DBNotification> => {

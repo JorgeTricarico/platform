@@ -64,6 +64,8 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
     expect(notifData.type).toBe('prenda_lista');
     expect(notifData.message).toMatch(/pedido|prenda|listo/i);
     expect(notifData.read).toBe(false);
+    // El aviso es para el cliente final, no para Ana
+    expect(notifData.audience).toBe('client');
   });
 
   it('does NOT create a notification when status is not listo', async () => {
@@ -153,6 +155,74 @@ describe('GET /api/zenco/notifications/:clientId', () => {
 
     expect(res.status).toBe(500);
     expect(res.body.error).toContain('Error');
+  });
+
+  // ─── Audience filter ────────────────────────────────────────────────
+  // Bug: la campana de Ana mostraba avisos destinados a clientes. Fix:
+  // audience='staff' = alertas internas para Ana (la campana)
+  // audience='client' = avisos enviados a clientes (historial)
+  it('filters by audience=staff when query param is passed', async () => {
+    mockPrisma.notification.findMany.mockResolvedValue([]);
+
+    await request(app)
+      .get('/api/zenco/notifications/all?audience=staff')
+      .set('Authorization', authHeader('zenco'));
+
+    expect(mockPrisma.notification.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { audience: 'staff' },
+        orderBy: { createdAt: 'desc' },
+      })
+    );
+  });
+
+  it('filters by audience=client when query param is passed', async () => {
+    mockPrisma.notification.findMany.mockResolvedValue([]);
+
+    await request(app)
+      .get('/api/zenco/notifications/all?audience=client')
+      .set('Authorization', authHeader('zenco'));
+
+    expect(mockPrisma.notification.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { audience: 'client' },
+        orderBy: { createdAt: 'desc' },
+      })
+    );
+  });
+
+  it('combines clientId and audience filters', async () => {
+    mockPrisma.notification.findMany.mockResolvedValue([]);
+
+    await request(app)
+      .get('/api/zenco/notifications/cli-1?audience=client')
+      .set('Authorization', authHeader('zenco'));
+
+    expect(mockPrisma.notification.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: 'cli-1', audience: 'client' },
+      })
+    );
+  });
+
+  it('ignores audience filter when query param is absent (backwards compat)', async () => {
+    mockPrisma.notification.findMany.mockResolvedValue([]);
+
+    await request(app)
+      .get('/api/zenco/notifications/all')
+      .set('Authorization', authHeader('zenco'));
+
+    const callArg = mockPrisma.notification.findMany.mock.calls[0][0];
+    expect(callArg.where).not.toHaveProperty('audience');
+  });
+
+  it('rejects invalid audience values (400)', async () => {
+    const res = await request(app)
+      .get('/api/zenco/notifications/all?audience=alien')
+      .set('Authorization', authHeader('zenco'));
+
+    expect(res.status).toBe(400);
+    expect(mockPrisma.notification.findMany).not.toHaveBeenCalled();
   });
 });
 

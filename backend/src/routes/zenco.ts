@@ -147,6 +147,7 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
           message: `Tu pedido #${updated.orderNumber} está listo para retirar.`,
           type: 'prenda_lista',
           read: false,
+          audience: 'client', // aviso dirigido al cliente, NO a Ana
         },
       });
     }

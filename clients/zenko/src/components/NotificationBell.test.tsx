@@ -63,7 +63,7 @@ describe('NotificationBell', () => {
     });
 
     fireEvent.click(screen.getByLabelText('Notificaciones'));
-    expect(screen.getByText('Sin notificaciones')).toBeInTheDocument();
+    expect(screen.getByText(/Sin alertas|Sin notificaciones/)).toBeInTheDocument();
   });
 
   it('marks notification as read on click', async () => {
@@ -80,10 +80,12 @@ describe('NotificationBell', () => {
     });
   });
 
-  it('calls fetchNotifications with the provided clientId', async () => {
+  it('calls fetchNotifications with audience=staff (alertas internas)', async () => {
+    // Bug fix: la campana de Ana solo debe mostrar alertas dirigidas a staff,
+    // no las notificaciones que el sistema genera para los clientes.
     render(<NotificationBell clientId="all" />);
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('all');
+      expect(mockFetch).toHaveBeenCalledWith('all', 'staff');
     });
   });
 

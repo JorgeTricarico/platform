@@ -21,7 +21,10 @@ export default function NotificationBell({ clientId, pollInterval = 30000 }: Not
     if (!clientId) return;
 
     const load = () => {
-      fetchNotifications(clientId)
+      // La campana solo trae alertas internas para Ana (audience=staff).
+      // Los avisos enviados a clientes (audience=client) viven en la pagina
+      // "Historial de avisos a clientes", no en la campana.
+      fetchNotifications(clientId, 'staff')
         .then(setNotifications)
         .catch(() => {});
     };
@@ -106,12 +109,12 @@ export default function NotificationBell({ clientId, pollInterval = 30000 }: Not
           style={{ maxWidth: 'calc(100vw - 1rem)' }}
         >
           <div className="px-4 py-3 border-b border-border">
-            <span className="text-sm font-semibold text-foreground">Notificaciones</span>
+            <span className="text-sm font-semibold text-foreground">Alertas</span>
           </div>
 
           {notifications.length === 0 ? (
             <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-              Sin notificaciones
+              Sin alertas
             </div>
           ) : (
             <div className="max-h-72 overflow-y-auto divide-y divide-border">

@@ -15,6 +15,7 @@ import {
   Search,
   Plus,
   X,
+  BellRing,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ const ChatDemo = lazy(() => import('./pages/ChatDemo'));
 const QRScanner = lazy(() => import('./pages/QRScanner'));
 const Login = lazy(() => import('./pages/Login'));
 const PublicStatus = lazy(() => import('./pages/PublicStatus'));
+const ClientNotifications = lazy(() => import('./pages/ClientNotifications'));
 import NotificationBell from './components/NotificationBell';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -49,8 +51,8 @@ function AuthGate() {
   return <AppContent />;
 }
 
-type Tab = 'dashboard' | 'garments' | 'finances' | 'clients' | 'chat' | 'qr';
-const VALID_TABS: Tab[] = ['dashboard', 'garments', 'finances', 'clients', 'chat', 'qr'];
+type Tab = 'dashboard' | 'garments' | 'finances' | 'clients' | 'chat' | 'qr' | 'notifications';
+const VALID_TABS: Tab[] = ['dashboard', 'garments', 'finances', 'clients', 'chat', 'qr', 'notifications'];
 
 function readTabFromHash(): Tab {
   const hash = window.location.hash.replace('#', '');
@@ -58,12 +60,13 @@ function readTabFromHash(): Tab {
 }
 
 const NAV_ITEMS: { id: Tab; label: string; Icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
-  { id: 'garments', label: 'Ordenes', Icon: Shirt },
-  { id: 'finances', label: 'Finanzas', Icon: DollarSign },
-  { id: 'clients', label: 'Clientes', Icon: Users },
-  { id: 'chat', label: 'AI Bot', Icon: MessageSquare },
-  { id: 'qr', label: 'Escáner QR', Icon: QrCode },
+  { id: 'dashboard',     label: 'Dashboard',         Icon: LayoutDashboard },
+  { id: 'garments',      label: 'Ordenes',           Icon: Shirt },
+  { id: 'finances',      label: 'Finanzas',          Icon: DollarSign },
+  { id: 'clients',       label: 'Clientes',          Icon: Users },
+  { id: 'notifications', label: 'Avisos a Clientes', Icon: BellRing },
+  { id: 'chat',          label: 'AI Bot',            Icon: MessageSquare },
+  { id: 'qr',            label: 'Escáner QR',        Icon: QrCode },
 ];
 
 function AppContent() {
@@ -293,6 +296,7 @@ function AppContent() {
               {activeTab === 'garments' && <Garments externalSearch={globalSearch} createTrigger={createTrigger} />}
               {activeTab === 'finances' && <Finances />}
               {activeTab === 'clients' && <Clients />}
+              {activeTab === 'notifications' && <ClientNotifications />}
               {activeTab === 'chat' && <ChatDemo />}
               {activeTab === 'qr' && <QRScanner />}
             </Suspense>
