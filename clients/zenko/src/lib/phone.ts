@@ -127,11 +127,17 @@ export function whatsappLinkProps(rawPhone: string, message?: string) {
   return {
     href: desktopUrl,
     onClick: () => {
+      // Detectamos via visibilitychange (no blur). visibilitychange dispara
+      // solo cuando el tab se vuelve invisible (la app externa tomo focus).
+      // blur tambien disparaba con el dialog modal del browser ("¿permitir
+      // abrir whatsapp://?") dando falsos positivos.
       let opened = false;
-      const onBlur = () => { opened = true; };
-      window.addEventListener('blur', onBlur, { once: true });
+      const onVisibility = () => {
+        if (document.hidden) opened = true;
+      };
+      document.addEventListener('visibilitychange', onVisibility);
       window.setTimeout(() => {
-        window.removeEventListener('blur', onBlur);
+        document.removeEventListener('visibilitychange', onVisibility);
         if (!opened) {
           window.open(webUrl, '_blank', 'noopener,noreferrer');
         }

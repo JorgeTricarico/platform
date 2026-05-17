@@ -117,15 +117,34 @@ describe('whatsappLinkProps', () => {
     vi.useRealTimers();
   });
 
-  it('NO dispara fallback si la ventana pierde focus (app desktop abrio)', () => {
+  it('NO dispara fallback si el tab se vuelve invisible (app desktop abrio)', () => {
     vi.useFakeTimers();
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     const props = whatsappLinkProps('11-5057-9769', 'Hola');
     props.onClick?.();
-    // Simular que la app abrio (la ventana del browser pierde focus)
-    window.dispatchEvent(new Event('blur'));
+    // Simular que la app abrio: document.hidden=true + visibilitychange event
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+    document.dispatchEvent(new Event('visibilitychange'));
     vi.advanceTimersByTime(1500);
     expect(openSpy).not.toHaveBeenCalled();
+    // Restaurar
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
+    openSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('SI dispara fallback si el dialog del browser causa blur pero tab sigue visible', () => {
+    // Regresion: antes usabamos `blur` para detectar app abierta, pero el
+    // dialog modal del browser ("permitir abrir whatsapp://") tambien dispara
+    // blur sin que el tab se oculte. visibilitychange evita ese falso positivo.
+    vi.useFakeTimers();
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    const props = whatsappLinkProps('11-5057-9769', 'Hola');
+    props.onClick?.();
+    // El browser dispara blur sin ocultar el tab (dialog modal aparecio)
+    window.dispatchEvent(new Event('blur'));
+    vi.advanceTimersByTime(1500);
+    expect(openSpy).toHaveBeenCalled();
     openSpy.mockRestore();
     vi.useRealTimers();
   });
