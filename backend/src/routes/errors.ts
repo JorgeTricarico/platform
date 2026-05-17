@@ -69,6 +69,17 @@ function getClientIp(req: Request): string {
   return req.ip ?? req.socket.remoteAddress ?? 'unknown';
 }
 
+// Acepta JWT O X-Inspector-Token (para cron de auditoría sin login)
+function inspectorOrJwt(req: Request, res: Response, next: NextFunction): void {
+  const headerToken = req.headers['x-inspector-token'];
+  const envToken = process.env.INSPECTOR_TOKEN;
+  if (typeof headerToken === 'string' && envToken && headerToken.length > 0 && headerToken === envToken) {
+    next();
+    return;
+  }
+  authenticate(req, res, next);
+}
+
 const router = Router();
 
 // ============================================================
@@ -131,7 +142,7 @@ router.post('/', asyncHandler(async (req: Request, res: Response) => {
 // GET /api/errors  — Auditoria (con auth JWT)
 // ============================================================
 
-router.get('/', authenticate, asyncHandler(async (req: Request, res: Response) => {
+router.get('/', inspectorOrJwt, asyncHandler(async (req: Request, res: Response) => {
   const limitRaw = parseInt((req.query.limit as string) ?? '50', 10);
   const offsetRaw = parseInt((req.query.offset as string) ?? '0', 10);
   const limit = Math.min(Math.max(isNaN(limitRaw) ? 50 : limitRaw, 1), 200);

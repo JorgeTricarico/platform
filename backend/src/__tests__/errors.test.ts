@@ -287,6 +287,52 @@ describe('GET /api/errors', () => {
     const call = mockPrisma.errorLog.findMany.mock.calls[0][0];
     expect(call.take).toBe(50);
   });
+
+  describe('X-Inspector-Token (auth alternativa para cron)', () => {
+    const originalEnv = process.env.INSPECTOR_TOKEN;
+
+    afterAll(() => {
+      if (originalEnv === undefined) delete process.env.INSPECTOR_TOKEN;
+      else process.env.INSPECTOR_TOKEN = originalEnv;
+    });
+
+    it('200 con X-Inspector-Token válido (sin JWT)', async () => {
+      process.env.INSPECTOR_TOKEN = 'secret-cron-token';
+      mockPrisma.errorLog.findMany.mockResolvedValue([]);
+
+      const res = await request(app).get('/api/errors').set('X-Inspector-Token', 'secret-cron-token');
+
+      expect(res.status).toBe(200);
+    });
+
+    it('401 con X-Inspector-Token inválido (cae a auth normal)', async () => {
+      process.env.INSPECTOR_TOKEN = 'secret-cron-token';
+
+      const res = await request(app).get('/api/errors').set('X-Inspector-Token', 'wrong-token');
+
+      expect(res.status).toBe(401);
+    });
+
+    it('401 si INSPECTOR_TOKEN no está seteado (no bypass posible)', async () => {
+      delete process.env.INSPECTOR_TOKEN;
+
+      const res = await request(app).get('/api/errors').set('X-Inspector-Token', 'cualquier-cosa');
+
+      expect(res.status).toBe(401);
+    });
+
+    it('200 con JWT funciona aunque también haya X-Inspector-Token incorrecto', async () => {
+      process.env.INSPECTOR_TOKEN = 'secret-cron-token';
+      mockPrisma.errorLog.findMany.mockResolvedValue([]);
+
+      const res = await request(app)
+        .get('/api/errors')
+        .set('Authorization', authHeader('zenco'))
+        .set('X-Inspector-Token', 'wrong');
+
+      expect(res.status).toBe(200);
+    });
+  });
 });
 
 // ============================================================
