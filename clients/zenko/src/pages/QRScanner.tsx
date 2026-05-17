@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import jsQR from 'jsqr';
-import { QrCode, Camera, Package, Truck, CheckCheck, FlipHorizontal2, X } from 'lucide-react';
+import { QrCode, Camera, Package, Truck, CheckCheck, FlipHorizontal2, X, Undo2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { whatsappLinkProps } from '../lib/phone';
 import { fetchGarments, updateGarmentStatus } from '../services/api';
@@ -16,6 +16,22 @@ interface ScanResult {
   remaining: number;
   alreadyEntregado: boolean;
 }
+
+// Entrada del historial de escaneos de la sesion. Guarda previousStatus
+// para poder revertir via undo dentro de los 60s siguientes al scan.
+interface HistoryEntry {
+  id: string;
+  orderNumber: number;
+  clientName: string;
+  itemSummary: string;
+  garmentId: string;
+  appliedStatus: ScanMode;
+  previousStatus: string;
+  timestamp: number;
+}
+
+const UNDO_WINDOW_MS = 60_000;
+const HISTORY_MAX = 10;
 
 const MODE_CONFIG: Record<ScanMode, { label: string; color: string; active: string; bg: string; icon: typeof Package }> = {
   en_proceso: {
@@ -100,7 +116,16 @@ export default function QRScanner() {
   const [scanDir] = useState(1);
   const [alert, setAlert] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string>('');
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  // `now` se actualiza cada 5s para que la ventana de undo (60s) se invalide
+  // visualmente sin esperar a que el user interactue.
+  const [now, setNow] = useState(() => Date.now());
   const toast = useToast();
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => { modeRef.current = mode; }, [mode]);
 
@@ -163,6 +188,7 @@ export default function QRScanner() {
     processingRef.current = true;
     cooldownRef.current = true;
     const targetStatus = modeRef.current;
+    const previousStatus = garment.status;
     const alreadyEntregado = garment.status === 'entregado' && targetStatus === 'entregado';
 
     try {
@@ -183,6 +209,25 @@ export default function QRScanner() {
       const freshTotal = (fresh.items ?? []).reduce((s, i) => s + i.price, 0);
       const remaining = freshTotal - (fresh.deposit ?? 0);
 
+      // Sumar al historial (mas reciente primero, max HISTORY_MAX).
+      // Si el status no cambio (re-scan en mismo modo) no agregamos entry
+      // porque el undo no tendria sentido.
+      if (previousStatus !== targetStatus) {
+        setHistory(prev => [
+          {
+            id: `${fresh.id}-${Date.now()}`,
+            orderNumber: fresh.orderNumber,
+            clientName: fresh.clientName,
+            itemSummary: (fresh.items ?? []).map(i => i.garmentName).join(', ') || 'pedido',
+            garmentId: fresh.id,
+            appliedStatus: targetStatus,
+            previousStatus,
+            timestamp: Date.now(),
+          },
+          ...prev.slice(0, HISTORY_MAX - 1),
+        ]);
+      }
+
       beep(true);
       showAlert({
         garment: fresh,
@@ -198,6 +243,26 @@ export default function QRScanner() {
       processingRef.current = false;
     }
   }, [toast, showAlert]);
+
+  // Undo: revierte el status del garment al previousStatus guardado.
+  // Solo permitido dentro de UNDO_WINDOW_MS (60s) de hacer el scan.
+  const undoEntry = useCallback(async (entry: HistoryEntry) => {
+    if (Date.now() - entry.timestamp > UNDO_WINDOW_MS) {
+      toast.error('Pasaron mas de 60s, ya no se puede deshacer desde aca');
+      return;
+    }
+    try {
+      await updateGarmentStatus(entry.garmentId, entry.previousStatus);
+      // Sync el cache local
+      garmentsRef.current = garmentsRef.current.map(g =>
+        g.id === entry.garmentId ? { ...g, status: entry.previousStatus } : g
+      );
+      setHistory(prev => prev.filter(e => e.id !== entry.id));
+      toast.success(`ORD-${String(entry.orderNumber).padStart(6, '0')} revertido`);
+    } catch {
+      toast.error('Error al deshacer');
+    }
+  }, [toast]);
 
   const startScanLoop = useCallback(() => {
     const scan = () => {
@@ -431,6 +496,55 @@ export default function QRScanner() {
         {error && (
           <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
             {error}
+          </div>
+        )}
+
+        {/* Historial de escaneos de la sesion (Z30). Vacio = no se muestra. */}
+        {history.length > 0 && (
+          <div className="flex flex-col gap-2 min-h-0 lg:flex-1 lg:overflow-y-auto">
+            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+              Historial de escaneos
+            </h3>
+            <div className="flex flex-col gap-1.5">
+              {history.map(entry => {
+                const age = now - entry.timestamp;
+                const canUndo = age < UNDO_WINDOW_MS;
+                const remainingSec = Math.max(0, Math.ceil((UNDO_WINDOW_MS - age) / 1000));
+                const cfg = MODE_CONFIG[entry.appliedStatus];
+                const Icon = cfg.icon;
+                return (
+                  <div
+                    key={entry.id}
+                    className={cn(
+                      'flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card text-xs',
+                      !canUndo && 'opacity-60'
+                    )}
+                  >
+                    <Icon className={cn('w-3.5 h-3.5 shrink-0', cfg.color.split(' ').find(c => c.startsWith('text-')))} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-foreground truncate">
+                        ORD-{String(entry.orderNumber).padStart(6, '0')} · {entry.clientName}
+                      </div>
+                      <div className="text-muted-foreground truncate">
+                        {cfg.label} · {entry.itemSummary}
+                      </div>
+                    </div>
+                    {canUndo ? (
+                      <button
+                        onClick={() => undoEntry(entry)}
+                        className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-background hover:bg-muted text-foreground text-[11px] font-semibold transition-colors"
+                        title={`Quedan ${remainingSec}s para deshacer`}
+                      >
+                        <Undo2 className="w-3 h-3" />
+                        {remainingSec}s
+                      </button>
+                    ) : (
+                      <span className="shrink-0 text-[10px] text-muted-foreground" title="Ventana de undo expirada">expirado</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
