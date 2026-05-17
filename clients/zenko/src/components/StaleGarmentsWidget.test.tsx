@@ -38,7 +38,7 @@ describe('StaleGarmentsWidget', () => {
       const link = screen.getByRole('link', { name: 'Avisar' });
       expect(link).toBeInTheDocument();
       const expectedMsg = `Hola Laura, te recordamos que tu prenda "Vestido" está lista para retirar. ¡Te esperamos! 🧵`;
-      const expectedHref = `https://api.whatsapp.com/send/?phone=5491155554444&type=phone_number&app_absent=0&text=${encodeURIComponent(expectedMsg)}`;
+      const expectedHref = `whatsapp://send?phone=5491155554444&text=${encodeURIComponent(expectedMsg)}`;
       expect(link).toHaveAttribute('href', expectedHref);
       expect(link).toHaveAttribute('target', '_blank');
     });
@@ -62,7 +62,7 @@ describe('StaleGarmentsWidget', () => {
     render(<StaleGarmentsWidget />);
     await waitFor(() => {
       const link = screen.getByRole('link', { name: 'Avisar' });
-      expect(link.getAttribute('href')).toMatch(/^https:\/\/api\.whatsapp\.com\/send\/\?phone=5491150579769/);
+      expect(link.getAttribute('href')).toMatch(/^whatsapp:\/\/send\?phone=5491150579769/);
     });
   });
 
@@ -75,7 +75,7 @@ describe('StaleGarmentsWidget', () => {
     render(<StaleGarmentsWidget />);
     await waitFor(() => {
       const link = screen.getByRole('link', { name: 'Avisar' });
-      expect(link.getAttribute('href')).toMatch(/^https:\/\/api\.whatsapp\.com\/send\/\?phone=5491150579769/);
+      expect(link.getAttribute('href')).toMatch(/^whatsapp:\/\/send\?phone=5491150579769/);
     });
   });
 

@@ -40,14 +40,12 @@ describe('formatPhoneForDisplay', () => {
 });
 
 describe('buildWhatsAppUrl', () => {
-  // Usamos api.whatsapp.com/send/ directo en vez de wa.me para evitar el
-  // redirect intermedio que re-encodea los emojis y los rompe en WhatsApp Web.
-  const BASE = 'https://api.whatsapp.com/send/';
-  it('URL básica', () => expect(buildWhatsAppUrl('11-5057-9769')).toBe(`${BASE}?phone=5491150579769&type=phone_number&app_absent=0`));
-  it('URL con mensaje', () => expect(buildWhatsAppUrl('1150579769', 'Hola Ana')).toBe(`${BASE}?phone=5491150579769&type=phone_number&app_absent=0&text=Hola%20Ana`));
+  // URL scheme nativo whatsapp:// → abre WhatsApp Desktop con emoji font propia.
+  it('URL básica', () => expect(buildWhatsAppUrl('11-5057-9769')).toBe('whatsapp://send?phone=5491150579769'));
+  it('URL con mensaje', () => expect(buildWhatsAppUrl('1150579769', 'Hola Ana')).toBe('whatsapp://send?phone=5491150579769&text=Hola%20Ana'));
   it('null si inválido', () => expect(buildWhatsAppUrl('abc')).toBeNull());
-  it('normaliza legacy 15', () => expect(buildWhatsAppUrl('15-5057-9769')).toBe(`${BASE}?phone=5491150579769&type=phone_number&app_absent=0`));
-  it('respeta otros países', () => expect(buildWhatsAppUrl('+1 555 123 4567')).toBe(`${BASE}?phone=15551234567&type=phone_number&app_absent=0`));
+  it('normaliza legacy 15', () => expect(buildWhatsAppUrl('15-5057-9769')).toBe('whatsapp://send?phone=5491150579769'));
+  it('respeta otros países', () => expect(buildWhatsAppUrl('+1 555 123 4567')).toBe('whatsapp://send?phone=15551234567'));
   it('mensaje con emoji preserva surrogate pair en encoding', () => {
     const url = buildWhatsAppUrl('11-5057-9769', 'Hola 👋🏻 🦊');
     // 👋 = F0 9F 91 8B, 🏻 = F0 9F 8F BB, 🦊 = F0 9F A6 8A

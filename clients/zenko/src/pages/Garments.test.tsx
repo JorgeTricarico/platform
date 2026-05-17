@@ -276,7 +276,7 @@ describe('Garments page', () => {
     const aviseButtons = screen.getAllByText('Avisar');
     expect(aviseButtons).toHaveLength(1);
     const link = aviseButtons[0].closest('a');
-    expect(link).toHaveAttribute('href', expect.stringContaining('api.whatsapp.com/send'));
+    expect(link).toHaveAttribute('href', expect.stringContaining('whatsapp://send'));
     expect(link).toHaveAttribute('target', '_blank');
   });
 

@@ -68,10 +68,11 @@ export function normalizeArgentinePhone(raw: string | null | undefined): Normali
 export function buildWhatsAppUrl(rawPhone: string, message?: string): string | null {
   const { e164, isValid } = normalizeArgentinePhone(rawPhone);
   if (!isValid || !e164) return null;
-  // Usamos api.whatsapp.com/send/ directo en vez de wa.me para evitar el
-  // redirect intermedio que re-encodea los emojis (surrogate pairs UTF-8) y
-  // los rompe en WhatsApp Web. Comprobado: el redirect cambia espacios %20→+
-  // y puede romper bytes de emojis 4-byte.
-  const base = `https://api.whatsapp.com/send/?phone=${e164}&type=phone_number&app_absent=0`;
+  // URL scheme nativo `whatsapp://send`: en desktop abre WhatsApp Desktop (que
+  // trae su propia emoji font embebida, no depende del OS); en mobile abre
+  // la app directamente. Comparado con wa.me / api.whatsapp.com que pasan por
+  // WhatsApp Web donde la emoji font cae a la del browser/OS y puede romper.
+  // Requiere que el cliente tenga WhatsApp Desktop instalada en Windows/Mac/Linux.
+  const base = `whatsapp://send?phone=${e164}`;
   return message ? `${base}&text=${encodeURIComponent(message)}` : base;
 }
