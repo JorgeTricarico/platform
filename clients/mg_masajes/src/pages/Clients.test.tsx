@@ -11,7 +11,7 @@ const mockClients = [
     phone: '9876543210',
     altPhone: null,
     email: 'carlos@test.com',
-    business: 'damian',
+    business: 'mg_masajes',
     notes: null,
     createdAt: '2026-01-01T00:00:00.000Z'
   }
@@ -36,7 +36,7 @@ beforeEach(() => {
   (updateClient as ReturnType<typeof vi.fn>).mockResolvedValue({});
 });
 
-describe('Clients page (damian)', () => {
+describe('Clients page (mg_masajes)', () => {
   it('renders client list', async () => {
     render(<MemoryRouter><ToastProvider><Clients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {

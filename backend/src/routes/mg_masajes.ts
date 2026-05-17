@@ -52,7 +52,7 @@ router.post('/appointments', validate(createAppointmentSchema), asyncHandler(asy
 
   // Ensure client is registered in the database
   await prisma.client.upsert({
-    where: { phone_business: { phone: normalizedPhone, business: 'damian' } },
+    where: { phone_business: { phone: normalizedPhone, business: 'mg_masajes' } },
     update: { name: data.clientName }, // Update name in case it changed
     create: {
       name: data.clientName,
@@ -171,7 +171,7 @@ router.delete('/finances/:id', asyncHandler(async (req, res) => {
 
 router.get('/clients', asyncHandler(async (req, res) => {
   const clients = await prisma.client.findMany({
-    where: { business: 'damian' },
+    where: { business: 'mg_masajes' },
     orderBy: { createdAt: 'desc' }
   });
   res.json(clients);
@@ -182,13 +182,13 @@ router.post('/clients', validate(createClientSchema), asyncHandler(async (req, r
   const normalizedPhone = normalizeArgentinePhone(data.phone).e164!;
   const normalizedAlt = data.altPhone ? normalizeArgentinePhone(data.altPhone).e164 ?? data.altPhone : data.altPhone;
   const client = await prisma.client.upsert({
-    where: { phone_business: { phone: normalizedPhone, business: 'damian' } },
+    where: { phone_business: { phone: normalizedPhone, business: 'mg_masajes' } },
     update: { name: data.name, altPhone: normalizedAlt },
     create: {
       name: data.name,
       phone: normalizedPhone,
       altPhone: normalizedAlt,
-      business: 'damian',
+      business: 'mg_masajes',
     }
   });
   res.json(client);
@@ -207,7 +207,7 @@ router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req
       throw new ValidationError('Teléfono inválido');
     }
     const conflict = await prisma.client.findFirst({
-      where: { phone: normalized, business: 'damian', NOT: { id } },
+      where: { phone: normalized, business: 'mg_masajes', NOT: { id } },
     });
     if (conflict) {
       res.status(409).json({ error: 'Otro cliente ya usa ese teléfono', conflictWith: conflict.id });
@@ -249,7 +249,7 @@ router.get('/clients/search', asyncHandler(async (req, res) => {
   }
   const clients = await prisma.client.findMany({
     where: {
-      business: 'damian',
+      business: 'mg_masajes',
       OR: orClauses,
     }
   });
@@ -394,7 +394,7 @@ router.get('/dashboard/stale-patients', asyncHandler(async (req, res) => {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const cutoff = thirtyDaysAgo.toISOString().split('T')[0];
 
-  const clients = await prisma.client.findMany({ where: { business: 'damian' }, orderBy: { name: 'asc' } });
+  const clients = await prisma.client.findMany({ where: { business: 'mg_masajes' }, orderBy: { name: 'asc' } });
   const clientIds = clients.map(c => c.id);
 
   const allRecords = await prisma.patientRecord.findMany({
@@ -446,7 +446,7 @@ router.get('/patients/:clientId/next-appointment', asyncHandler(async (req, res)
 // Pacientes con sus fichas (lista para la vista principal)
 router.get('/patients', asyncHandler(async (req, res) => {
   const clients = await prisma.client.findMany({
-    where: { business: 'damian' },
+    where: { business: 'mg_masajes' },
     orderBy: { name: 'asc' },
   });
 

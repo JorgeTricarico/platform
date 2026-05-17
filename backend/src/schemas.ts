@@ -34,7 +34,13 @@ export const createGarmentSchema = z.object({
   status: z.enum(GARMENT_STATUSES).optional(),
   deposit: positivePrice.optional(),
   location: z.string().nullish(),
-});
+}).refine(
+  (data) => {
+    if (!data.intakeDate) return true;
+    return new Date(data.deliveryDate) >= new Date(data.intakeDate);
+  },
+  { message: 'La fecha de entrega no puede ser anterior al ingreso', path: ['deliveryDate'] }
+);
 
 export const updateGarmentSchema = createGarmentSchema;
 
@@ -46,7 +52,7 @@ export const createFinanceSchema = z.object({
   date: z.string().min(1),
   type: z.enum(['income', 'expense']),
   category: z.string().min(1),
-  amount: z.number(),
+  amount: z.number().nonnegative({ message: 'El monto no puede ser negativo' }),
   description: z.string().min(1),
 });
 
@@ -117,7 +123,7 @@ export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string().min(1),
-  business: z.enum(['zenco', 'damian', 'all']),
+  business: z.enum(['zenco', 'mg_masajes', 'all']),
 });
 
 export const loginSchema = z.object({

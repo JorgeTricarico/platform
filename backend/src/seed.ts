@@ -139,21 +139,21 @@ async function main() {
         id: 'CLI-D1',
         name: 'Roberto Gómez',
         phone: '5491144445555',
-        business: 'damian',
+        business: 'mg_masajes',
         notes: 'Dolor lumbar crónico, viene cada 2 semanas.'
       },
       {
         id: 'CLI-D2',
         name: 'Elena Torres',
         phone: '5491122223333',
-        business: 'damian',
+        business: 'mg_masajes',
         notes: 'Deportista amateur, maratones frecuentes.'
       },
       {
         id: 'CLI-D3',
         name: 'Carla Ruiz',
         phone: '5491177778888',
-        business: 'damian',
+        business: 'mg_masajes',
         notes: 'Tratamiento de drenaje linfático post-quirúrgico.'
       }
     ],

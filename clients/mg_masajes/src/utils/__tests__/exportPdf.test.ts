@@ -6,7 +6,7 @@ const mockPatient: DBPatient = {
   id: 'client-1',
   name: 'Juan Pérez',
   phone: '1155550000',
-  business: 'damian',
+  business: 'mg_masajes',
   createdAt: '2026-01-01T00:00:00Z',
   totalRecords: 2,
   lastVisit: '2026-04-01',

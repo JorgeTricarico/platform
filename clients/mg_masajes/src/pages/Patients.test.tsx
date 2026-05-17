@@ -10,7 +10,7 @@ const mockPatient = {
   phone: '1111-2222',
   altPhone: null,
   email: 'juan@test.com',
-  business: 'damian',
+  business: 'mg_masajes',
   notes: 'Contractura cronica',
   createdAt: '2026-01-01T00:00:00.000Z',
   totalRecords: 2,
@@ -38,7 +38,7 @@ beforeEach(() => {
   (fetchNextAppointment as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 });
 
-describe('Patients page (damian)', () => {
+describe('Patients page (mg_masajes)', () => {
   it('renders patient list', async () => {
     render(<MemoryRouter><ToastProvider><Patients /></ToastProvider></MemoryRouter>);
     await waitFor(() => {

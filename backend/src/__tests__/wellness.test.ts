@@ -52,7 +52,7 @@ describe('POST /api/mg_masajes/appointments', () => {
     const created = { id: 'APT-123', ...input, status: 'pendiente', createdAt: new Date().toISOString() };
     mockPrisma.appointment.findMany.mockResolvedValue([]);
     mockPrisma.appointment.create.mockResolvedValue(created);
-    mockPrisma.client.upsert.mockResolvedValue({ id: 'client-123', name: 'Carlos', phone: '3333', business: 'damian' });
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'client-123', name: 'Carlos', phone: '3333', business: 'mg_masajes' });
 
     const res = await request(app).post('/api/mg_masajes/appointments').set('Authorization', authHeader('mg_masajes')).send(input);
     expect(res.status).toBe(200);
@@ -60,7 +60,7 @@ describe('POST /api/mg_masajes/appointments', () => {
     expect(res.body.status).toBe('pendiente');
     expect(mockPrisma.appointment.create).toHaveBeenCalledOnce();
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { phone_business: { phone: '3333', business: 'damian' } },
+      where: { phone_business: { phone: '3333', business: 'mg_masajes' } },
       create: expect.objectContaining({ name: 'Carlos' }),
     }));
   });
@@ -137,13 +137,13 @@ describe('POST /api/mg_masajes/finances', () => {
 describe('GET /api/mg_masajes/clients', () => {
   it('returns only damian clients', async () => {
     mockPrisma.client.findMany.mockResolvedValue([
-      { id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian', createdAt: new Date().toISOString() },
+      { id: 'c1', name: 'Juan Perez', phone: '1111', business: 'mg_masajes', createdAt: new Date().toISOString() },
     ]);
     const res = await request(app).get('/api/mg_masajes/clients').set('Authorization', authHeader('mg_masajes'));
     expect(res.status).toBe(200);
-    expect(res.body[0].business).toBe('damian');
+    expect(res.body[0].business).toBe('mg_masajes');
     expect(mockPrisma.client.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { business: 'damian' },
+      where: { business: 'mg_masajes' },
     }));
   });
 });
@@ -152,11 +152,11 @@ describe('POST /api/mg_masajes/clients', () => {
   it('upserts a client by phone+business (phone normalizado a E.164)', async () => {
     // Input con phone AR de 10 dígitos → normaliza a 5491150574444
     const input = { name: 'Laura Garcia', phone: '1150574444', email: 'laura@test.com', notes: 'Contractura cronica' };
-    mockPrisma.client.upsert.mockResolvedValue({ id: 'uuid-1', ...input, phone: '5491150574444', business: 'damian' });
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'uuid-1', ...input, phone: '5491150574444', business: 'mg_masajes' });
     const res = await request(app).post('/api/mg_masajes/clients').set('Authorization', authHeader('mg_masajes')).send(input);
     expect(res.status).toBe(200);
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { phone_business: { phone: '5491150574444', business: 'damian' } },
+      where: { phone_business: { phone: '5491150574444', business: 'mg_masajes' } },
     }));
   });
 
@@ -171,7 +171,7 @@ describe('POST /api/mg_masajes/clients', () => {
 describe('GET /api/mg_masajes/clients/search', () => {
   it('searches clients by name', async () => {
     mockPrisma.client.findMany.mockResolvedValue([
-      { id: 'c1', name: 'Laura Garcia', phone: '4444', business: 'damian' },
+      { id: 'c1', name: 'Laura Garcia', phone: '4444', business: 'mg_masajes' },
     ]);
     const res = await request(app).get('/api/mg_masajes/clients/search?q=laura').set('Authorization', authHeader('mg_masajes'));
     expect(res.status).toBe(200);
@@ -181,7 +181,7 @@ describe('GET /api/mg_masajes/clients/search', () => {
 
   it('searches clients by phone', async () => {
     mockPrisma.client.findMany.mockResolvedValue([
-      { id: 'c2', name: 'Pedro', phone: '5555', business: 'damian' },
+      { id: 'c2', name: 'Pedro', phone: '5555', business: 'mg_masajes' },
     ]);
     const res = await request(app).get('/api/mg_masajes/clients/search?q=5555').set('Authorization', authHeader('mg_masajes'));
     expect(res.status).toBe(200);
@@ -203,7 +203,7 @@ describe('GET /api/mg_masajes/patients/:clientId/records', () => {
     const records = [
       { id: 'rec-1', clientId: 'c1', date: '2026-04-01', reason: 'Dolor cervical', symptoms: 'Tension', areas: 'Cervical, trapecio', treatment: 'Masaje descontracturante', observations: 'Mejoria', nextSession: 'En 1 semana' },
     ];
-    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'mg_masajes' });
     mockPrisma.patientRecord.findMany.mockResolvedValue(records);
     const res = await request(app).get('/api/mg_masajes/patients/c1/records').set('Authorization', authHeader('mg_masajes'));
     expect(res.status).toBe(200);
@@ -212,7 +212,7 @@ describe('GET /api/mg_masajes/patients/:clientId/records', () => {
   });
 
   it('returns empty for patient with no records', async () => {
-    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'mg_masajes' });
     mockPrisma.patientRecord.findMany.mockResolvedValue([]);
     const res = await request(app).get('/api/mg_masajes/patients/c1/records').set('Authorization', authHeader('mg_masajes'));
     expect(res.status).toBe(200);
@@ -235,7 +235,7 @@ describe('POST /api/mg_masajes/patients/:clientId/records', () => {
       nextSession: 'Control en 5 dias',
     };
     const created = { id: 'rec-new', clientId: 'c1', ...input, createdAt: new Date().toISOString() };
-    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'mg_masajes' });
     mockPrisma.patientRecord.create.mockResolvedValue(created);
 
     const res = await request(app).post('/api/mg_masajes/patients/c1/records').set('Authorization', authHeader('mg_masajes')).send(input);
@@ -249,7 +249,7 @@ describe('POST /api/mg_masajes/patients/:clientId/records', () => {
 
   it('creates record with minimal fields', async () => {
     const input = { date: '2026-04-05', reason: 'Control' };
-    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'mg_masajes' });
     mockPrisma.patientRecord.create.mockResolvedValue({ id: 'rec-min', clientId: 'c1', ...input });
 
     const res = await request(app).post('/api/mg_masajes/patients/c1/records').set('Authorization', authHeader('mg_masajes')).send(input);
@@ -258,7 +258,7 @@ describe('POST /api/mg_masajes/patients/:clientId/records', () => {
   });
 
   it('returns 500 when prisma throws', async () => {
-    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'mg_masajes' });
     mockPrisma.patientRecord.create.mockRejectedValue(new Error('DB error'));
     const res = await request(app).post('/api/mg_masajes/patients/c1/records').set('Authorization', authHeader('mg_masajes')).send({
       date: '2026-04-05', reason: 'Test',
@@ -302,7 +302,7 @@ describe('PUT /api/mg_masajes/patients/records/:id', () => {
 describe('GET /api/mg_masajes/patients', () => {
   it('returns patients with record counts and last visit', async () => {
     mockPrisma.client.findMany.mockResolvedValue([
-      { id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian', notes: null, createdAt: new Date().toISOString() },
+      { id: 'c1', name: 'Juan Perez', phone: '1111', business: 'mg_masajes', notes: null, createdAt: new Date().toISOString() },
     ]);
     mockPrisma.patientRecord.findMany.mockResolvedValue([
       { id: 'rec-1', clientId: 'c1', date: '2026-04-01', reason: 'Cervical' },
@@ -321,7 +321,7 @@ describe('GET /api/mg_masajes/patients', () => {
 
   it('returns patient with no records', async () => {
     mockPrisma.client.findMany.mockResolvedValue([
-      { id: 'c2', name: 'Nuevo Paciente', phone: '9999', business: 'damian', notes: null, createdAt: new Date().toISOString() },
+      { id: 'c2', name: 'Nuevo Paciente', phone: '9999', business: 'mg_masajes', notes: null, createdAt: new Date().toISOString() },
     ]);
     mockPrisma.patientRecord.findMany.mockResolvedValue([]);
     mockPrisma.patientRecord.groupBy.mockResolvedValue([]);
@@ -426,7 +426,7 @@ describe('GET /api/mg_masajes/dashboard/today', () => {
 describe('GET /api/mg_masajes/dashboard/stale-patients', () => {
   it('returns patients with no records at all', async () => {
     mockPrisma.client.findMany.mockResolvedValue([
-      { id: 'c1', name: 'Nuevo Paciente', phone: '1111', business: 'damian', createdAt: new Date().toISOString() },
+      { id: 'c1', name: 'Nuevo Paciente', phone: '1111', business: 'mg_masajes', createdAt: new Date().toISOString() },
     ]);
     mockPrisma.patientRecord.findMany
       .mockResolvedValueOnce([]); // no records for c1
@@ -444,7 +444,7 @@ describe('GET /api/mg_masajes/dashboard/stale-patients', () => {
     const oldDateStr = oldDate.toISOString().split('T')[0];
 
     mockPrisma.client.findMany.mockResolvedValue([
-      { id: 'c1', name: 'Paciente Viejo', phone: '1111', business: 'damian', createdAt: new Date().toISOString() },
+      { id: 'c1', name: 'Paciente Viejo', phone: '1111', business: 'mg_masajes', createdAt: new Date().toISOString() },
     ]);
     mockPrisma.patientRecord.findMany
       .mockResolvedValueOnce([{ id: 'rec-1', clientId: 'c1', date: oldDateStr, reason: 'Cervical' }]);
@@ -461,7 +461,7 @@ describe('GET /api/mg_masajes/dashboard/stale-patients', () => {
     const recentDate = new Date().toISOString().split('T')[0];
 
     mockPrisma.client.findMany.mockResolvedValue([
-      { id: 'c1', name: 'Paciente Activo', phone: '1111', business: 'damian', createdAt: new Date().toISOString() },
+      { id: 'c1', name: 'Paciente Activo', phone: '1111', business: 'mg_masajes', createdAt: new Date().toISOString() },
     ]);
     mockPrisma.patientRecord.findMany
       .mockResolvedValueOnce([{ id: 'rec-1', clientId: 'c1', date: recentDate, reason: 'Control' }]);
@@ -551,7 +551,7 @@ describe('GET /api/mg_masajes/dashboard/monthly-income', () => {
 
 describe('PUT /api/mg_masajes/clients/:id', () => {
   it('updates client fields by id', async () => {
-    const updated = { id: 'c1', name: 'Juan Updated', phone: '5678', business: 'damian' };
+    const updated = { id: 'c1', name: 'Juan Updated', phone: '5678', business: 'mg_masajes' };
     mockPrisma.client.update.mockResolvedValue(updated);
     const res = await request(app).put('/api/mg_masajes/clients/c1').set('Authorization', authHeader('mg_masajes')).send({ name: 'Juan Updated' });
     expect(res.status).toBe(200);
@@ -680,7 +680,7 @@ describe('DELETE /api/mg_masajes/appointments/:id', () => {
 describe('GET /api/mg_masajes/patients/:clientId/next-appointment', () => {
   it('returns the next upcoming appointment for the patient', async () => {
     const today = new Date().toISOString().split('T')[0];
-    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'damian' });
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c1', name: 'Juan Perez', phone: '1111', business: 'mg_masajes' });
     const upcoming = {
       id: 'APT-1', clientName: 'Juan Perez', clientPhone: '1111',
       service: 'Masaje descontracturante', duration: 60,
@@ -704,7 +704,7 @@ describe('GET /api/mg_masajes/patients/:clientId/next-appointment', () => {
   });
 
   it('returns null when no upcoming appointment exists', async () => {
-    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c2', name: 'Laura Garcia', phone: '2222', business: 'damian' });
+    mockPrisma.client.findUnique.mockResolvedValue({ id: 'c2', name: 'Laura Garcia', phone: '2222', business: 'mg_masajes' });
     mockPrisma.appointment.findFirst.mockResolvedValue(null);
 
     const res = await request(app).get('/api/mg_masajes/patients/c2/next-appointment').set('Authorization', authHeader('mg_masajes'));
@@ -752,7 +752,7 @@ describe('POST /api/mg_masajes/appointments - conflict detection', () => {
     mockPrisma.appointment.findMany.mockResolvedValue([]);
     const created = { id: 'APT-NEW', ...newAppointment, status: 'pendiente' };
     mockPrisma.appointment.create.mockResolvedValue(created);
-    mockPrisma.client.upsert.mockResolvedValue({ id: 'client-123', name: 'Carlos', phone: '3333', business: 'damian' });
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'client-123', name: 'Carlos', phone: '3333', business: 'mg_masajes' });
 
     const res = await request(app).post('/api/mg_masajes/appointments').set('Authorization', authHeader('mg_masajes')).send(newAppointment);
     expect(res.status).toBe(200);
