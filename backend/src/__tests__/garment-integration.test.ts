@@ -43,10 +43,10 @@ describe('Garment registration end-to-end (bug regression)', () => {
     expect(createRes.status).toBe(200);
     expect(createRes.body.id).toBe('uuid-mock-001');
 
-    // Verify fields passed to Prisma
+    // Verify fields passed to Prisma — phone llega normalizado (5491155667788)
     const callData = mockPrisma.order.create.mock.calls[0][0].data;
     expect(callData.clientName).toBe('Ana Martinez');
-    expect(callData.clientPhone).toBe('1155667788');
+    expect(callData.clientPhone).toBe('5491155667788');
     expect(callData.intakeDate).toBe('2026-04-05');
     expect(callData.deliveryDate).toBe('2026-04-12');
     expect(callData.status).toBe('recibido');

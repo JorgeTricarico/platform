@@ -52,4 +52,43 @@ describe('StaleGarmentsWidget', () => {
       expect(screen.getByText('No hay prendas pendientes de retiro.')).toBeInTheDocument();
     });
   });
+
+  it('normaliza legacy 15 al renderizar URL de Avisar', async () => {
+    const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
+    (fetchStaleGarments as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: '0003', orderNumber: 3, clientName: 'Sofía', clientPhone: '15-5057-9769', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, items: [{ id: 'I3', orderId: '0003', garmentName: 'Pantalón', repairType: 'dobladillo', description: '', price: 2000 }] },
+    ]);
+
+    render(<StaleGarmentsWidget />);
+    await waitFor(() => {
+      const link = screen.getByRole('link', { name: 'Avisar' });
+      expect(link.getAttribute('href')).toMatch(/^https:\/\/wa\.me\/5491150579769/);
+    });
+  });
+
+  it('normaliza 11-XXXX-XXXX al renderizar URL', async () => {
+    const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
+    (fetchStaleGarments as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: '0004', orderNumber: 4, clientName: 'Carla', clientPhone: '11-5057-9769', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, items: [{ id: 'I4', orderId: '0004', garmentName: 'Camisa', repairType: 'parche', description: '', price: 1500 }] },
+    ]);
+
+    render(<StaleGarmentsWidget />);
+    await waitFor(() => {
+      const link = screen.getByRole('link', { name: 'Avisar' });
+      expect(link.getAttribute('href')).toMatch(/^https:\/\/wa\.me\/5491150579769/);
+    });
+  });
+
+  it('deshabilita botón Avisar si teléfono inválido', async () => {
+    const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
+    (fetchStaleGarments as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: '0005', orderNumber: 5, clientName: 'Pedro', clientPhone: 'abc', status: 'listo', intakeDate: '2026-03-01', deliveryDate: tenDaysAgo, items: [{ id: 'I5', orderId: '0005', garmentName: 'Saco', repairType: 'cierre', description: '', price: 3000 }] },
+    ]);
+
+    render(<StaleGarmentsWidget />);
+    await waitFor(() => {
+      const btn = screen.getByRole('button', { name: 'Avisar' });
+      expect(btn).toBeDisabled();
+    });
+  });
 });

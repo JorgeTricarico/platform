@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { buildWhatsAppUrl } from '../lib/phone';
 import { MessageCircle } from 'lucide-react';
 
 export default function StaleGarmentsWidget() {
@@ -54,15 +55,33 @@ export default function StaleGarmentsWidget() {
                   <Badge variant="overdue" className="text-xs whitespace-nowrap">
                     {daysOverdue(g.deliveryDate)} dias — {formatDate(g.deliveryDate)}
                   </Badge>
-                  <a
-                    href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReminderMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido'))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(buttonVariants({ variant: 'success', size: 'sm' }))}
-                  >
-                    <MessageCircle className="w-3 h-3" />
-                    Avisar
-                  </a>
+                  {(() => {
+                    const url = buildWhatsAppUrl(
+                      g.clientPhone,
+                      BUSINESS.whatsappReminderMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido')
+                    );
+                    return url ? (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(buttonVariants({ variant: 'success', size: 'sm' }))}
+                      >
+                        <MessageCircle className="w-3 h-3" />
+                        Avisar
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        title="Teléfono inválido"
+                        className={cn(buttonVariants({ variant: 'success', size: 'sm' }), 'opacity-50 cursor-not-allowed')}
+                      >
+                        <MessageCircle className="w-3 h-3" />
+                        Avisar
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             ))}

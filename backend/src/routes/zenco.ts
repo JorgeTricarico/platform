@@ -4,6 +4,7 @@ import { prisma } from '../db.js';
 import { validate, createGarmentSchema, updateGarmentSchema, updateStatusSchema, createFinanceSchema, updateFinanceSchema, createClientSchema, updateClientSchema } from '../schemas.js';
 import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler.js';
 import { whatsappService } from '../services/whatsapp.js';
+import { normalizeArgentinePhone } from '../utils/phone.js';
 
 const router = Router();
 
@@ -72,18 +73,20 @@ router.get('/garments', asyncHandler(async (req, res) => {
 
 router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req, res) => {
   const data = req.body;
+  // Normalizar teléfono ANTES de upsert (garantiza unicidad por número canónico)
+  const normalizedPhone = normalizeArgentinePhone(data.clientPhone).e164 ?? data.clientPhone;
 
   await prisma.client.upsert({
-    where: { phone_business: { phone: data.clientPhone, business: 'zenco' } },
+    where: { phone_business: { phone: normalizedPhone, business: 'zenco' } },
     update: { name: data.clientName },
-    create: { name: data.clientName, phone: data.clientPhone, business: 'zenco' }
+    create: { name: data.clientName, phone: normalizedPhone, business: 'zenco' }
   });
 
   const newOrder = await prisma.order.create({
     data: {
       id: randomUUID(),
       clientName: data.clientName,
-      clientPhone: data.clientPhone,
+      clientPhone: normalizedPhone,
       status: data.status || 'recibido',
       intakeDate: data.intakeDate || new Date().toISOString().split('T')[0],
       deliveryDate: data.deliveryDate,
@@ -211,11 +214,13 @@ router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (r
     });
   });
 
+  const normalizedPhone = normalizeArgentinePhone(data.clientPhone).e164 ?? data.clientPhone;
+
   const updated = await prisma.order.update({
     where: { id },
     data: {
       clientName: data.clientName,
-      clientPhone: data.clientPhone,
+      clientPhone: normalizedPhone,
       status: data.status,
       intakeDate: data.intakeDate,
       deliveryDate: data.deliveryDate,
@@ -319,14 +324,23 @@ router.get('/clients/search', asyncHandler(async (req, res) => {
     res.json([]);
     return;
   }
+  const orClauses: Array<Record<string, unknown>> = [
+    { name: { contains: q, mode: 'insensitive' } },
+    { phone: { contains: q } },
+    { altPhone: { contains: q } },
+  ];
+  // Si q parece un teléfono, también buscar por la forma normalizada
+  if (/^\+?[\d\s\-()]+$/.test(q)) {
+    const normalized = normalizeArgentinePhone(q).e164;
+    if (normalized && normalized !== q) {
+      orClauses.push({ phone: { contains: normalized } });
+      orClauses.push({ altPhone: { contains: normalized } });
+    }
+  }
   const clients = await prisma.client.findMany({
     where: {
       business: 'zenco',
-      OR: [
-        { name: { contains: q, mode: 'insensitive' } },
-        { phone: { contains: q } },
-        { altPhone: { contains: q } },
-      ]
+      OR: orClauses,
     }
   });
   res.json(clients);
@@ -334,14 +348,16 @@ router.get('/clients/search', asyncHandler(async (req, res) => {
 
 router.post('/clients', validate(createClientSchema), asyncHandler(async (req, res) => {
   const data = req.body;
+  const normalizedPhone = normalizeArgentinePhone(data.phone).e164!;
+  const normalizedAlt = data.altPhone ? normalizeArgentinePhone(data.altPhone).e164 ?? data.altPhone : data.altPhone;
   // Upsert: si ya existe por telefono, actualizar
   const client = await prisma.client.upsert({
-    where: { phone_business: { phone: data.phone, business: 'zenco' } },
-    update: { name: data.name, altPhone: data.altPhone, email: data.email, notes: data.notes },
+    where: { phone_business: { phone: normalizedPhone, business: 'zenco' } },
+    update: { name: data.name, altPhone: normalizedAlt, email: data.email, notes: data.notes },
     create: {
       name: data.name,
-      phone: data.phone,
-      altPhone: data.altPhone,
+      phone: normalizedPhone,
+      altPhone: normalizedAlt,
       email: data.email,
       business: 'zenco',
       notes: data.notes,
@@ -353,14 +369,37 @@ router.post('/clients', validate(createClientSchema), asyncHandler(async (req, r
 router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   const data = req.body;
+  const updateData: Record<string, unknown> = {
+    name: data.name,
+    email: data.email,
+    notes: data.notes,
+  };
+
+  if (data.phone !== undefined) {
+    const normalized = normalizeArgentinePhone(data.phone).e164;
+    if (!normalized) {
+      throw new ValidationError('Teléfono inválido');
+    }
+    // Chequear duplicado (otro cliente con ese phone en zenco)
+    const conflict = await prisma.client.findFirst({
+      where: { phone: normalized, business: 'zenco', NOT: { id } },
+    });
+    if (conflict) {
+      res.status(409).json({ error: 'Otro cliente ya usa ese teléfono', conflictWith: conflict.id });
+      return;
+    }
+    updateData.phone = normalized;
+  }
+
+  if (data.altPhone !== undefined) {
+    updateData.altPhone = data.altPhone
+      ? normalizeArgentinePhone(data.altPhone).e164 ?? data.altPhone
+      : data.altPhone;
+  }
+
   const updated = await prisma.client.update({
     where: { id },
-    data: {
-      name: data.name,
-      altPhone: data.altPhone,
-      email: data.email,
-      notes: data.notes,
-    }
+    data: updateData,
   });
   res.json(updated);
 }));

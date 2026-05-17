@@ -404,13 +404,14 @@ describe('GET /api/zenco/clients', () => {
 });
 
 describe('POST /api/zenco/clients', () => {
-  it('upserts a client by phone+business', async () => {
-    const input = { name: 'Carlos', phone: '5555', email: 'c@test.com' };
-    mockPrisma.client.upsert.mockResolvedValue({ id: 'uuid-1', ...input, business: 'zenco' });
+  it('upserts a client by phone+business (phone normalizado a E.164)', async () => {
+    // Phone AR de 10 dígitos → normaliza a 5491150575555
+    const input = { name: 'Carlos', phone: '1150575555', email: 'c@test.com' };
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'uuid-1', ...input, phone: '5491150575555', business: 'zenco' });
     const res = await request(app).post('/api/zenco/clients').set('Authorization', authHeader('zenco')).send(input);
     expect(res.status).toBe(200);
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { phone_business: { phone: '5555', business: 'zenco' } },
+      where: { phone_business: { phone: '5491150575555', business: 'zenco' } },
     }));
   });
 });

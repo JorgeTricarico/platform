@@ -149,19 +149,20 @@ describe('GET /api/mg_masajes/clients', () => {
 });
 
 describe('POST /api/mg_masajes/clients', () => {
-  it('upserts a client by phone+business', async () => {
-    const input = { name: 'Laura Garcia', phone: '4444', email: 'laura@test.com', notes: 'Contractura cronica' };
-    mockPrisma.client.upsert.mockResolvedValue({ id: 'uuid-1', ...input, business: 'damian' });
+  it('upserts a client by phone+business (phone normalizado a E.164)', async () => {
+    // Input con phone AR de 10 dígitos → normaliza a 5491150574444
+    const input = { name: 'Laura Garcia', phone: '1150574444', email: 'laura@test.com', notes: 'Contractura cronica' };
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'uuid-1', ...input, phone: '5491150574444', business: 'damian' });
     const res = await request(app).post('/api/mg_masajes/clients').set('Authorization', authHeader('mg_masajes')).send(input);
     expect(res.status).toBe(200);
     expect(mockPrisma.client.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { phone_business: { phone: '4444', business: 'damian' } },
+      where: { phone_business: { phone: '5491150574444', business: 'damian' } },
     }));
   });
 
   it('returns 500 when prisma throws', async () => {
     mockPrisma.client.upsert.mockRejectedValue(new Error('DB error'));
-    const res = await request(app).post('/api/mg_masajes/clients').set('Authorization', authHeader('mg_masajes')).send({ name: 'Fail', phone: '0000' });
+    const res = await request(app).post('/api/mg_masajes/clients').set('Authorization', authHeader('mg_masajes')).send({ name: 'Fail', phone: '1150570000' });
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
   });

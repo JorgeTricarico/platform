@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { buildWhatsAppUrl } from '../lib/phone';
 import { Search, SlidersHorizontal, X, Smartphone } from 'lucide-react';
 
 // ─── Hook mobile ────────────────────────────────────────────────────────────
@@ -336,16 +337,31 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
       <Button variant="outline" size="sm" onClick={() => openEdit(g)}>
         Editar
       </Button>
-      {g.status === 'listo' && (
-        <a
-          href={`https://wa.me/${g.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(BUSINESS.whatsappReadyMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido'))}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(buttonVariants({ variant: 'success', size: 'sm' }), 'no-underline')}
-        >
-          Avisar
-        </a>
-      )}
+      {g.status === 'listo' && (() => {
+        const url = buildWhatsAppUrl(
+          g.clientPhone,
+          BUSINESS.whatsappReadyMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido')
+        );
+        return url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants({ variant: 'success', size: 'sm' }), 'no-underline')}
+          >
+            Avisar
+          </a>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title="Teléfono inválido"
+            className={cn(buttonVariants({ variant: 'success', size: 'sm' }), 'opacity-50 cursor-not-allowed')}
+          >
+            Avisar
+          </button>
+        );
+      })()}
       <Button
         variant="outline"
         size="sm"

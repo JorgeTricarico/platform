@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Search, Edit2, Trash2, ClipboardList, Phone, PhoneCall } from 'lucide-react';
+import { normalizeArgentinePhone } from '../lib/phone';
+import { cn } from '@/lib/utils';
 
 const EMPTY_FORM = { name: '', phone: '', altPhone: '', email: '', notes: '' };
 
@@ -353,16 +355,41 @@ function ClientModal({ title, form, setForm, onSubmit, onClose, phoneDisabled }:
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Datos de Contacto</p>
         <Input required name="name" placeholder="Nombre completo" value={form.name} onChange={handle} />
         <div className="flex flex-col sm:flex-row gap-3">
-          <Input
-            required
-            name="phone"
-            placeholder="Teléfono principal"
-            value={form.phone}
-            onChange={handle}
-            disabled={phoneDisabled}
-            className={phoneDisabled ? 'opacity-60' : ''}
-          />
-          <Input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} />
+          <div className="flex flex-col gap-1 flex-1">
+            <Input
+              required
+              name="phone"
+              placeholder="1150579769"
+              value={form.phone}
+              onChange={handle}
+              disabled={phoneDisabled}
+              className={cn(phoneDisabled && 'opacity-60')}
+            />
+            {!form.phone && (
+              <p className="text-xs text-muted-foreground">
+                Sin +54 ni 15. Otro país: +código (ej: +1 5551234567)
+              </p>
+            )}
+            {form.phone && (() => {
+              const r = normalizeArgentinePhone(form.phone);
+              return r.isValid ? (
+                <p className="text-xs text-emerald-600">✓ Se enviará a {r.display}</p>
+              ) : (
+                <p className="text-xs text-destructive">✗ {r.error || 'Formato inválido'}</p>
+              );
+            })()}
+          </div>
+          <div className="flex flex-col gap-1 flex-1">
+            <Input name="altPhone" placeholder="Tel. alternativo" value={form.altPhone} onChange={handle} />
+            {form.altPhone && (() => {
+              const r = normalizeArgentinePhone(form.altPhone);
+              return r.isValid ? (
+                <p className="text-xs text-emerald-600">✓ {r.display}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Formato sugerido: 1150579769</p>
+              );
+            })()}
+          </div>
         </div>
         <Input name="email" type="email" placeholder="Email (opcional)" value={form.email} onChange={handle} />
       </div>

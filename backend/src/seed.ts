@@ -11,7 +11,7 @@ async function main() {
       {
         id: 'ORD-001',
         clientName: 'María López',
-        clientPhone: '11-5555-1234',
+        clientPhone: '5491155551234',
         garmentName: 'Pantalón de Vestir',
         repairType: 'dobladillo',
         description: 'Acortar 3cm del largo',
@@ -22,7 +22,7 @@ async function main() {
       {
         id: 'ORD-002',
         clientName: 'Carlos Méndez',
-        clientPhone: '11-6666-5678',
+        clientPhone: '5491166665678',
         garmentName: 'Campera de Cuero',
         repairType: 'cierre',
         description: 'Cambio de cierre completo YKK',
@@ -33,7 +33,7 @@ async function main() {
       {
         id: 'ORD-003',
         clientName: 'Laura Fernández',
-        clientPhone: '11-7777-9012',
+        clientPhone: '5491177779012',
         garmentName: 'Vestido de Fiesta',
         repairType: 'entalle',
         description: 'Ajustar cintura y busto',
@@ -60,7 +60,7 @@ async function main() {
       {
         id: 'APT-001',
         clientName: 'Roberto Gómez',
-        clientPhone: '11-4444-5555',
+        clientPhone: '5491144445555',
         service: 'Masaje Descontracturante',
         duration: 60,
         date: '2026-04-10',
@@ -72,7 +72,7 @@ async function main() {
       {
         id: 'APT-002',
         clientName: 'Elena Torres',
-        clientPhone: '11-2222-3333',
+        clientPhone: '5491122223333',
         service: 'Masaje Deportivo',
         duration: 90,
         date: '2026-04-12',
@@ -84,7 +84,7 @@ async function main() {
       {
         id: 'APT-003',
         clientName: 'Carla Ruiz',
-        clientPhone: '11-7777-8888',
+        clientPhone: '5491177778888',
         service: 'Drenaje Linfático',
         duration: 60,
         date: '2026-04-05',
@@ -110,21 +110,21 @@ async function main() {
       {
         id: 'CLI-Z1',
         name: 'María López',
-        phone: '11-5555-1234',
+        phone: '5491155551234',
         business: 'zenco',
         notes: 'Cliente frecuente, prefiere dobladillos a máquina.'
       },
       {
         id: 'CLI-Z2',
         name: 'Carlos Méndez',
-        phone: '11-6666-5678',
+        phone: '5491166665678',
         business: 'zenco',
         notes: 'Trae camperas de cuero para reparación de cierres.'
       },
       {
         id: 'CLI-Z3',
         name: 'Laura Fernández',
-        phone: '11-7777-9012',
+        phone: '5491177779012',
         business: 'zenco',
         notes: 'Solicita entalles para eventos y fiestas.'
       }
@@ -138,21 +138,21 @@ async function main() {
       {
         id: 'CLI-D1',
         name: 'Roberto Gómez',
-        phone: '11-4444-5555',
+        phone: '5491144445555',
         business: 'damian',
         notes: 'Dolor lumbar crónico, viene cada 2 semanas.'
       },
       {
         id: 'CLI-D2',
         name: 'Elena Torres',
-        phone: '11-2222-3333',
+        phone: '5491122223333',
         business: 'damian',
         notes: 'Deportista amateur, maratones frecuentes.'
       },
       {
         id: 'CLI-D3',
         name: 'Carla Ruiz',
-        phone: '11-7777-8888',
+        phone: '5491177778888',
         business: 'damian',
         notes: 'Tratamiento de drenaje linfático post-quirúrgico.'
       }

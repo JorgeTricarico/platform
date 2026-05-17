@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeArgentinePhone } from './utils/phone.js';
 
 // --- ZENCO ---
 
@@ -53,8 +54,16 @@ export const updateFinanceSchema = createFinanceSchema.partial();
 
 export const createClientSchema = z.object({
   name: z.string().min(1),
-  phone: z.string().min(1),
-  altPhone: z.string().nullish(),
+  phone: z.string().min(1).refine(
+    (val) => normalizeArgentinePhone(val).isValid,
+    { message: 'Teléfono inválido. Usá formato 11XXXXXXXX o +código país' }
+  ),
+  altPhone: z.string().nullish().refine(
+    (val) => !val || normalizeArgentinePhone(val).isValid,
+    { message: 'Teléfono alternativo inválido' }
+  ),
+  email: z.string().email().nullish(),
+  notes: z.string().nullish(),
 });
 
 export const updateClientSchema = createClientSchema.partial();

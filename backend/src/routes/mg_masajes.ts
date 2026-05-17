@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
 import { validate, createAppointmentSchema, updateAppointmentSchema, updateAppointmentStatusSchema, createFinanceSchema, updateFinanceSchema, createClientSchema, updateClientSchema, createPatientRecordSchema, updatePatientRecordSchema } from '../schemas.js';
-import { asyncHandler } from '../middleware/errorHandler.js';
+import { asyncHandler, ValidationError } from '../middleware/errorHandler.js';
+import { normalizeArgentinePhone } from '../utils/phone.js';
 
 const router = Router();
 
@@ -46,13 +47,16 @@ router.post('/appointments', validate(createAppointmentSchema), asyncHandler(asy
     return;
   }
 
+  // Normalizar teléfono antes de upsert/persistir
+  const normalizedPhone = normalizeArgentinePhone(data.clientPhone).e164 ?? data.clientPhone;
+
   // Ensure client is registered in the database
   await prisma.client.upsert({
-    where: { phone_business: { phone: data.clientPhone, business: 'damian' } },
+    where: { phone_business: { phone: normalizedPhone, business: 'damian' } },
     update: { name: data.clientName }, // Update name in case it changed
     create: {
       name: data.clientName,
-      phone: data.clientPhone,
+      phone: normalizedPhone,
       business: 'mg_masajes'
     }
   });
@@ -61,7 +65,7 @@ router.post('/appointments', validate(createAppointmentSchema), asyncHandler(asy
     data: {
       id: `APT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       clientName: data.clientName,
-      clientPhone: data.clientPhone,
+      clientPhone: normalizedPhone,
       service: data.service,
       duration: data.duration,
       date: data.date,
@@ -175,13 +179,15 @@ router.get('/clients', asyncHandler(async (req, res) => {
 
 router.post('/clients', validate(createClientSchema), asyncHandler(async (req, res) => {
   const data = req.body;
+  const normalizedPhone = normalizeArgentinePhone(data.phone).e164!;
+  const normalizedAlt = data.altPhone ? normalizeArgentinePhone(data.altPhone).e164 ?? data.altPhone : data.altPhone;
   const client = await prisma.client.upsert({
-    where: { phone_business: { phone: data.phone, business: 'damian' } },
-    update: { name: data.name, altPhone: data.altPhone },
+    where: { phone_business: { phone: normalizedPhone, business: 'damian' } },
+    update: { name: data.name, altPhone: normalizedAlt },
     create: {
       name: data.name,
-      phone: data.phone,
-      altPhone: data.altPhone,
+      phone: normalizedPhone,
+      altPhone: normalizedAlt,
       business: 'damian',
     }
   });
@@ -191,12 +197,34 @@ router.post('/clients', validate(createClientSchema), asyncHandler(async (req, r
 router.put('/clients/:id', validate(updateClientSchema), asyncHandler(async (req, res) => {
   const id = req.params.id as string;
   const data = req.body;
+  const updateData: Record<string, unknown> = {
+    name: data.name,
+  };
+
+  if (data.phone !== undefined) {
+    const normalized = normalizeArgentinePhone(data.phone).e164;
+    if (!normalized) {
+      throw new ValidationError('Teléfono inválido');
+    }
+    const conflict = await prisma.client.findFirst({
+      where: { phone: normalized, business: 'damian', NOT: { id } },
+    });
+    if (conflict) {
+      res.status(409).json({ error: 'Otro cliente ya usa ese teléfono', conflictWith: conflict.id });
+      return;
+    }
+    updateData.phone = normalized;
+  }
+
+  if (data.altPhone !== undefined) {
+    updateData.altPhone = data.altPhone
+      ? normalizeArgentinePhone(data.altPhone).e164 ?? data.altPhone
+      : data.altPhone;
+  }
+
   const updated = await prisma.client.update({
     where: { id },
-    data: {
-      name: data.name,
-      altPhone: data.altPhone,
-    }
+    data: updateData,
   });
   res.json(updated);
 }));
@@ -207,14 +235,22 @@ router.get('/clients/search', asyncHandler(async (req, res) => {
     res.json([]);
     return;
   }
+  const orClauses: Array<Record<string, unknown>> = [
+    { name: { contains: q, mode: 'insensitive' } },
+    { phone: { contains: q } },
+    { altPhone: { contains: q } },
+  ];
+  if (/^\+?[\d\s\-()]+$/.test(q)) {
+    const normalized = normalizeArgentinePhone(q).e164;
+    if (normalized && normalized !== q) {
+      orClauses.push({ phone: { contains: normalized } });
+      orClauses.push({ altPhone: { contains: normalized } });
+    }
+  }
   const clients = await prisma.client.findMany({
     where: {
       business: 'damian',
-      OR: [
-        { name: { contains: q, mode: 'insensitive' } },
-        { phone: { contains: q } },
-        { altPhone: { contains: q } },
-      ]
+      OR: orClauses,
     }
   });
   res.json(clients);

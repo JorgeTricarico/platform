@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
 import { chatWithFallback } from '../services/ai-chat.js';
+import { normalizeArgentinePhone } from '../utils/phone.js';
 
 import { ZENCO_CONFIG } from '../config/zenco.js';
 
@@ -15,19 +16,23 @@ const SYSTEM_PROMPT = ZENCO_CONFIG.publicChat.systemPrompt;
 /** Pre-fetch all relevant context before calling Gemini */
 async function buildContext(senderPhone?: string, message?: string): Promise<string> {
   const parts: string[] = [];
+  // Normalizar el teléfono entrante: el sistema interno trabaja en E.164
+  const normalizedSender = senderPhone
+    ? (normalizeArgentinePhone(senderPhone).e164 ?? senderPhone)
+    : undefined;
 
   try {
     // 1. If we have a phone, look up the client + their orders
-    if (senderPhone) {
+    if (normalizedSender) {
       const client = await prisma.client.findUnique({
-        where: { phone_business: { phone: senderPhone, business: 'zenco' } }
+        where: { phone_business: { phone: normalizedSender, business: 'zenco' } }
       });
       if (client) {
         parts.push(`CLIENTE IDENTIFICADO: ${client.name} (tel: ${client.phone})`);
         parts.push('Podes saludarlo por nombre.');
 
         const orders = await prisma.order.findMany({
-          where: { clientPhone: senderPhone },
+          where: { clientPhone: normalizedSender },
           orderBy: { createdAt: 'desc' },
           take: 10,
           include: { items: true },
@@ -127,11 +132,12 @@ router.post('/', async (req, res) => {
 
     // Auto-register client if phone provided and not found
     if (senderPhone) {
+      const normalizedSender = normalizeArgentinePhone(senderPhone).e164 ?? senderPhone;
       try {
         await prisma.client.upsert({
-          where: { phone_business: { phone: senderPhone, business: 'zenco' } },
+          where: { phone_business: { phone: normalizedSender, business: 'zenco' } },
           update: {},
-          create: { name: 'Cliente nuevo', phone: senderPhone, business: 'zenco' },
+          create: { name: 'Cliente nuevo', phone: normalizedSender, business: 'zenco' },
         });
       } catch { /* ignore */ }
     }
