@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { prisma } from '../db.js';
 
 // --- Custom Error Classes ---
 
@@ -52,6 +53,25 @@ export function errorHandler(
     console.error(
       `[${new Date().toISOString()}] ${req.method} ${req.path} - ${statusCode} ${err.message}\n${err.stack}`,
     );
+  }
+
+  // Persistir a error_logs para auditoria sin depender de Render logs.
+  // Solo errores 5xx (los 4xx son del cliente, ruido). Fire-and-forget:
+  // si la escritura falla, no podemos hacer nada — ya estamos en el handler
+  // de error y bloquear la respuesta seria peor que perder el log.
+  if (statusCode >= 500) {
+    prisma.errorLog.create({
+      data: {
+        source: 'backend',
+        level: 'error',
+        message: err.message.slice(0, 1000),
+        stack: err.stack?.slice(0, 5000) ?? null,
+        url: `${req.method} ${req.originalUrl ?? req.path}`.slice(0, 500),
+        userAgent: (req.headers?.['user-agent'] ?? '').toString().slice(0, 500),
+      },
+    }).catch((logErr) => {
+      console.error('[errorHandler] No se pudo persistir error a DB:', logErr);
+    });
   }
 
   if (isDev) {

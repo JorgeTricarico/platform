@@ -3,7 +3,7 @@
 - [TDD Obligatorio](feedback_tdd_obligatorio.md) — Tests antes de implementacion, todo CRUD con unit + integration tests
 - [Reflexion sesion 2026-04-05](project_session_reflection_20260405.md) — Problemas detectados, roadmap plataforma y mejoras del agente
 - [MCP Connectors](reference_mcp_connectors.md) — PostHog/Slack cloud MCPs causan prompt overflow, como desactivar/reactivar
-- [Usar Sub-agentes](feedback_use_subagents.md) — NUNCA leer archivos directo, siempre delegar a sub-agentes para preservar contexto
+- [Usar Sub-agentes](feedback_use_subagents.md) — Delegar lectura + ediciones de 3+ archivos a sub-agentes, incluso en Opus max effort
 - [Responsive Inline Styles](feedback_responsive_inline_styles.md) — Modales con width hardcodeado necesitan min(X, 90vw) para mobile
 - [Session 10 Reflection](project_session10_reflection.md) — Bugs críticos, security gaps, UX/features propuestas del audit
 - [Session 11 Reflection](project_session11_reflection.md) — CRUD completo, toast, PWA offline, music fix, 283 tests
@@ -31,3 +31,5 @@
 - [Session 25 Reflection](project_session25_reflection.md) — Google Fonts, CSS vars spacing/error, lazy loading, React.memo, useMemo, DashboardRefreshContext, 385 tests
 - [Session 26 Reflection](project_session26_reflection.md) — Tailwind+shadcn migration, orderNumber, mobile responsive, JWT refresh, dynamic config, 390 tests
 - [Session 27 Reflection](project_session27_reflection.md) — platform-v2 scaffold: Turborepo, multi-tenant, Docker/Coolify, 124 archivos, 13K líneas
+- [Session 28 Reflection](project_session28_reflection.md) — Refactor Order→Order+OrderItem (1:N), fix 567 tests, RTL getNodeText limitation, build TypeScript limpio
+- [Notif audience bug](project_notifications_audience_bug.md) — Campana de Ana muestra notif que eran para clientes; plan: campo `audience`, pantalla nueva para historial. Diferido a sesion futura

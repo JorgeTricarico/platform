@@ -19,8 +19,17 @@
 import { config } from 'dotenv';
 import { randomUUID } from 'crypto';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import QRCode from 'qrcode';
 
-config();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// El script puede correrse desde la raiz del repo o desde backend/, asi que
+// resolvemos el .env relativo al script en vez del cwd.
+config({ path: join(__dirname, '..', '.env') });
 
 const TEST_CLIENT_NAME = '🧪 TEST - PRUEBA SCANNER';
 const TEST_CLIENT_PHONE = '5491100000000';
@@ -33,7 +42,8 @@ async function main() {
     console.error('[create-test-order] DATABASE_URL no esta seteado en .env');
     process.exit(1);
   }
-  const prisma = new PrismaClient();
+  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
   try {
     // Upsert del cliente test (idempotente sobre el unique [phone, business])
     const client = await prisma.client.upsert({
@@ -72,7 +82,16 @@ async function main() {
 
     const orderRef = `ORD-${String(order.orderNumber).padStart(6, '0')}`;
     const qrData = String(order.orderNumber);
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${qrData}&size=400x400`;
+
+    // Generamos el QR como PNG local para evitar la pagina envoltorio de
+    // api.qrserver.com (que renderiza el QR sobre fondo oscuro y rompe
+    // muchos escaners). Fondo blanco + modulos negros = lectura optima.
+    const qrPath = join(__dirname, 'test-order-qr.png');
+    await QRCode.toFile(qrPath, qrData, {
+      width: 600,
+      margin: 2,
+      color: { dark: '#000000', light: '#FFFFFF' },
+    });
 
     console.log('═════════════════════════════════════════════════════════');
     console.log('✓ Orden de prueba creada');
@@ -82,9 +101,10 @@ async function main() {
     console.log(`  Referencia:  ${orderRef}`);
     console.log(`  Status:      ${order.status}`);
     console.log(`  Monto:       $${TEST_ITEM_PRICE}`);
+    console.log(`  QR data:     ${qrData}`);
     console.log('─────────────────────────────────────────────────────────');
-    console.log('QR para escanear (abrir en celular o pantalla):');
-    console.log(`  ${qrUrl}`);
+    console.log('QR generado (abrir en visor de imagenes y escanear):');
+    console.log(`  ${qrPath}`);
     console.log('─────────────────────────────────────────────────────────');
     console.log('Para limpiar cuando termines:');
     console.log('  npx tsx backend/scripts/delete-test-order.ts');

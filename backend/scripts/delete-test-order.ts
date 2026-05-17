@@ -10,8 +10,13 @@
 
 import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
-config();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: join(__dirname, '..', '.env') });
 
 const TEST_CLIENT_PHONE = '5491100000000';
 
@@ -20,7 +25,8 @@ async function main() {
     console.error('[delete-test-order] DATABASE_URL no esta seteado en .env');
     process.exit(1);
   }
-  const prisma = new PrismaClient();
+  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
   try {
     const client = await prisma.client.findFirst({
       where: { phone: TEST_CLIENT_PHONE, business: 'zenco' },

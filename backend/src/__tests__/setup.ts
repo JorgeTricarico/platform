@@ -100,8 +100,8 @@ vi.mock('../db.js', () => {
     errorLog: {
       findMany: vi.fn().mockResolvedValue([]),
       findUnique: vi.fn().mockResolvedValue(null),
-      create: vi.fn(),
-      update: vi.fn(),
+      create: vi.fn().mockResolvedValue({ id: 'err-mock' }),
+      update: vi.fn().mockResolvedValue({ id: 'err-mock' }),
       count: vi.fn().mockResolvedValue(0),
     },
     $transaction: vi.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
