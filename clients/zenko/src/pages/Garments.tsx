@@ -9,6 +9,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { buildWhatsAppUrl } from '../lib/phone';
 import { Search, SlidersHorizontal, X, Smartphone } from 'lucide-react';
@@ -91,6 +92,10 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
   // Modal editar
   const [editTarget, setEditTarget] = useState<DBGarment | null>(null);
   const [editForm, setEditForm]     = useState({ ...EMPTY_FORM });
+
+  // Modal cancelar (confirmacion)
+  const [cancelTarget, setCancelTarget] = useState<DBGarment | null>(null);
+  const [cancelling, setCancelling]     = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -313,14 +318,18 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
     }
   };
 
-  const handleCancel = async (id: string) => {
-    if (!confirm('¿El cliente canceló el pedido? La orden será eliminada del sistema.')) return;
+  const confirmCancel = async () => {
+    if (!cancelTarget || cancelling) return;
+    setCancelling(true);
     try {
-      await deleteGarment(id);
+      await deleteGarment(cancelTarget.id);
       toast.success('Pedido cancelado');
+      setCancelTarget(null);
       load();
     } catch {
       toast.error('Error al cancelar el pedido');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -373,8 +382,8 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
         Ticket
       </Button>
       {g.status !== 'entregado' && (
-        <Button variant="destructive" size="sm" onClick={() => handleCancel(g.id)}>
-          Cancelar pedido
+        <Button variant="destructive" size="sm" onClick={() => setCancelTarget(g)}>
+          Cancelar
         </Button>
       )}
     </>
@@ -405,7 +414,7 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
             <button
               type="button"
               onClick={() => { setDateFrom(today); setDateTo(today); setStatusFilter('all'); setOnlyOverdue(false); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-blue-300 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-status-proceso-bg text-status-proceso-text border-status-proceso-border text-xs font-semibold hover:opacity-90 transition-opacity"
             >
               📅 {todayPending.length} entrega{todayPending.length > 1 ? 's' : ''} hoy
             </button>
@@ -414,7 +423,7 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
             <button
               type="button"
               onClick={() => { setStatusFilter('listo'); setOnlyOverdue(true); setDateFrom(''); setDateTo(''); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-orange-300 bg-orange-50 dark:bg-orange-950/30 dark:border-orange-800 text-orange-700 dark:text-orange-300 text-xs font-semibold hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-status-overdue-bg text-status-overdue-text border-status-overdue-border text-xs font-semibold hover:opacity-90 transition-opacity"
             >
               ⏰ {staleReady.length} lista{staleReady.length > 1 ? 's' : ''} sin retirar
             </button>
@@ -594,7 +603,7 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
                 key={g.id}
                 className={cn(
                   'rounded-xl border bg-card shadow-sm overflow-hidden',
-                  isOverdue(g) ? 'border-red-200 bg-red-50/30' : 'border-border'
+                  isOverdue(g) ? 'border-status-overdue-border bg-status-overdue-bg/40' : 'border-border'
                 )}
               >
                 {/* Header: ORD + badge */}
@@ -700,8 +709,10 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
                   <tr
                     key={g.id}
                     className={cn(
-                      'border-b border-border hover:bg-muted/30 transition-colors',
-                      isOverdue(g) && 'bg-amber-50/50 dark:bg-amber-950/20'
+                      'border-b border-border transition-colors',
+                      isOverdue(g)
+                        ? 'bg-status-overdue-bg/40 hover:bg-status-overdue-bg/60'
+                        : 'hover:bg-muted/60'
                     )}
                   >
                     <td className="px-4 py-3">
@@ -795,6 +806,32 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
           garmentId={editTarget.id}
         />
       )}
+
+      {/* Modal Cancelar (confirmacion) */}
+      <Dialog open={!!cancelTarget} onOpenChange={(open) => { if (!open) setCancelTarget(null); }}>
+        <DialogContent onClose={() => setCancelTarget(null)}>
+          <DialogHeader>
+            <DialogTitle>Cancelar pedido</DialogTitle>
+          </DialogHeader>
+          {cancelTarget && (
+            <p className="text-sm text-foreground">
+              Vas a cancelar el pedido{' '}
+              <span className="font-bold">ORD-{String(cancelTarget.orderNumber).padStart(6, '0')}</span>
+              {' '}de <span className="font-semibold">{cancelTarget.clientName}</span>. Se elimina del sistema.
+              <br />
+              <span className="text-muted-foreground">Esta accion no se puede deshacer.</span>
+            </p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)} disabled={cancelling}>
+              Volver
+            </Button>
+            <Button variant="destructive" onClick={confirmCancel} disabled={cancelling}>
+              {cancelling ? 'Cancelando...' : 'Sí, cancelar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -288,8 +288,8 @@ function AppContent() {
           </div>
         </header>
 
-        {/* Page content */}
-        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-6">
+        {/* Page content. pb extra para que el FAB flotante no tape la ultima fila */}
+        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-6 pb-28">
           <ErrorBoundary>
             <Suspense fallback={<div className="flex items-center justify-center min-h-60 text-muted-foreground">Cargando...</div>}>
               {activeTab === 'dashboard' && <Dashboard />}
@@ -304,15 +304,17 @@ function AppContent() {
         </div>
       </main>
 
-      {/* FAB — Nueva orden, visible desde cualquier tab */}
-      <button
-        onClick={handleFABCreate}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
-        title="Nueva orden"
-        aria-label="Nueva orden"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
+      {/* FAB — Nueva orden. Solo visible en tabs donde tiene sentido crear orden. */}
+      {activeTab !== 'notifications' && activeTab !== 'chat' && activeTab !== 'qr' && (
+        <button
+          onClick={handleFABCreate}
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+          title="Nueva orden"
+          aria-label="Nueva orden"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }

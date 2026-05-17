@@ -107,9 +107,10 @@ describe('Garments page', () => {
       expect(screen.getAllByText(/Campera de Cuero/i)[0]).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('+ Registrar Ingreso'));
-    // Form contains Guardar and Cancelar buttons
+    // Form contains Guardar and Cancelar buttons. "Cancelar" tambien aparece en
+    // cada fila de la tabla — por eso usamos getAllByText().length>0.
     expect(screen.getByText('Guardar')).toBeInTheDocument();
-    expect(screen.getByText('Cancelar')).toBeInTheDocument();
+    expect(screen.getAllByText('Cancelar').length).toBeGreaterThan(0);
   });
 
   it('sorts garments by status: listo first, then en_proceso, recibido, entregado', async () => {
@@ -436,38 +437,70 @@ describe('BUG 4: Validación fecha de entrega en handleCreate', () => {
 });
 
 describe('Cancelar pedido', () => {
-  it('muestra botón "Cancelar pedido" para órdenes activas (no entregado)', async () => {
+  it('muestra botón "Cancelar" para órdenes activas (no entregado)', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      const cancelBtns = screen.getAllByText('Cancelar pedido');
+      const cancelBtns = screen.getAllByRole('button', { name: 'Cancelar' });
       // Solo órdenes no-entregado deben tener el botón
       const nonDelivered = mockGarments.filter(g => g.status !== 'entregado');
       expect(cancelBtns.length).toBeGreaterThanOrEqual(nonDelivered.length);
     });
   });
 
-  it('no muestra "Cancelar pedido" para órdenes entregadas', async () => {
+  it('no muestra "Cancelar" para órdenes entregadas', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getAllByText('Cancelar pedido').length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: 'Cancelar' }).length).toBeGreaterThan(0);
     });
-    // Hay menos botones Cancelar que órdenes totales (porque la entregada no tiene)
-    const cancelBtns = screen.getAllByText('Cancelar pedido');
+    const cancelBtns = screen.getAllByRole('button', { name: 'Cancelar' });
     expect(cancelBtns.length).toBeLessThan(mockGarments.length);
   });
 
-  it('llama deleteGarment al confirmar cancelación', async () => {
-    const { deleteGarment } = await import('../services/api');
-    (deleteGarment as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-    window.confirm = vi.fn(() => true);
+  it('abre dialog de confirmación al click (no usa window.confirm)', async () => {
     render(<ToastProvider><Garments /></ToastProvider>);
     await waitFor(() => {
-      expect(screen.getAllByText('Cancelar pedido').length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: 'Cancelar' }).length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getAllByText('Cancelar pedido')[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Cancelar' })[0]);
+    await waitFor(() => {
+      // El dialog tiene su propio titulo y botón confirmar
+      expect(screen.getByRole('heading', { name: /cancelar pedido/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /sí, cancelar/i })).toBeInTheDocument();
+    });
+  });
+
+  it('llama deleteGarment solo después de confirmar en el dialog', async () => {
+    const { deleteGarment } = await import('../services/api');
+    (deleteGarment as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: 'Cancelar' }).length).toBeGreaterThan(0);
+    });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Cancelar' })[0]);
+    // Antes de confirmar, deleteGarment no se llamó
+    expect(deleteGarment).not.toHaveBeenCalled();
+    // Confirma en el dialog
+    const confirmBtn = await screen.findByRole('button', { name: /sí, cancelar/i });
+    fireEvent.click(confirmBtn);
     await waitFor(() => {
       expect(deleteGarment).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('cierra el dialog sin borrar al hacer click en Volver', async () => {
+    const { deleteGarment } = await import('../services/api');
+    (deleteGarment as ReturnType<typeof vi.fn>).mockClear();
+    render(<ToastProvider><Garments /></ToastProvider>);
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: 'Cancelar' }).length).toBeGreaterThan(0);
+    });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Cancelar' })[0]);
+    const backBtn = await screen.findByRole('button', { name: /volver/i });
+    fireEvent.click(backBtn);
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /cancelar pedido/i })).not.toBeInTheDocument();
+    });
+    expect(deleteGarment).not.toHaveBeenCalled();
   });
 });
 
