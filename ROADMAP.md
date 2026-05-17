@@ -2,7 +2,7 @@
 
 > Este archivo es la fuente de verdad del roadmap. Se actualiza al final de cada sesion.
 > Cada item DEBE tener un documento de referencia en `docs/roadmap/` que explique la problematica e implementacion.
-> Ultima actualizacion: 2026-04-11 (sesion 26)
+> Ultima actualizacion: 2026-05-17 (sesion 29)
 
 ## Completado
 
@@ -83,6 +83,8 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M40 | Tenant config system — tenants/{name}/config.ts + features.ts + prompts.ts por cliente | [SAAS](docs/integrations/SAAS-ARCHITECTURE-EVALUATION.md) | pendiente | **critica** |
 | M41 | Paginación server-side — cursor-based pagination en endpoints + componente Pagination | — | pendiente | media |
 | M42 | Onboarding automatizado — script create-tenant + deploy via Coolify API | — | pendiente | alta |
+| M43 | Alertas internas staff — generadores reales para `audience='staff'` (orden vencida, cliente respondio WhatsApp) | [M43](docs/roadmap/M43-alertas-staff.md) | pendiente | alta |
+| M44 | Prisma migrate formal para `Notification.audience` — hoy aplicado via `db push`, falta archivo de migration versionado | [M44](docs/roadmap/M44-prisma-migrate-formal.md) | pendiente | baja |
 
 ---
 
@@ -114,6 +116,10 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z23 | QR Ticket — direccionar a fecha de entrega | — | **completado** (QR contiene ID y Fecha de Entrega) | media |
 | Z24 | WhatsApp Template — mensaje formal multiline con horarios | — | **completado** (Avisar usa nuevo template) | alta |
 | Z25 | Quitar "Ubicación" de Gestión de Prendas | — | **completado** (Ubicación removida de tabla y modal) | baja |
+| Z28 | QR Scanner — layout full viewport sin scroll (camara dominante + paneles laterales en desktop) | [Z28](docs/roadmap/Z28-qr-layout-sin-scroll.md) | pendiente | alta |
+| Z29 | QR Scanner — Modo Mostrador con auto-start camara + auto-accion configurable (WhatsApp / print) | [Z29](docs/roadmap/Z29-qr-modo-mostrador.md) | pendiente | media |
+| Z30 | QR Scanner — Historial de escaneos en sesion + deshacer ultimo cambio de status | [Z30](docs/roadmap/Z30-qr-historial-undo.md) | pendiente | media |
+| Z31 | QR Scanner — Modo bulk (toast + beep sin modal), cobro al entregar con metodo de pago, atajos teclado 1/2/3 | [Z31](docs/roadmap/Z31-qr-bulk-cobro-atajos.md) | pendiente | media |
 
 ---
 
