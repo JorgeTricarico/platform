@@ -78,9 +78,28 @@ export function buildWhatsAppUrl(rawPhone: string, message?: string): string | n
 }
 
 /**
+ * Saca emojis del texto. Util para el fallback Web — WhatsApp Web no renderiza
+ * los emojis confiablemente, mejor mandar texto plano que mostrar simbolos rotos.
+ * - `\p{Extended_Pictographic}` cubre emojis principales (🦊, 👋, ✨, 🕘, etc.).
+ * - `\p{Emoji_Modifier}` cubre skin-tone modifiers (🏻, 🏼, 🏽, 🏾, 🏿).
+ * - U+200D (ZWJ) une emojis en secuencias (familia, profesiones, etc.).
+ * Luego limpia espacios y saltos sobrantes que quedaron donde estaban los emojis.
+ */
+export function stripEmojis(text: string): string {
+  return text
+    .replace(/\p{Extended_Pictographic}/gu, '')
+    .replace(/\p{Emoji_Modifier}/gu, '')
+    .replace(/‍/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/^[ \t]+|[ \t]+$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
  * URL de fallback Web — se usa si el cliente no tiene WhatsApp Desktop instalado
- * y el scheme nativo falla. Pierde la ventaja de emoji font propia pero al
- * menos abre WhatsApp Web con el mensaje pre-cargado.
+ * y el scheme nativo falla. Pierde la ventaja de emoji font propia, asi que
+ * recibe el mensaje YA stripeado de emojis (responsabilidad del caller).
  */
 export function buildWhatsAppWebFallbackUrl(rawPhone: string, message?: string): string | null {
   const { e164, isValid } = normalizeArgentinePhone(rawPhone);
@@ -99,7 +118,9 @@ export function buildWhatsAppWebFallbackUrl(rawPhone: string, message?: string):
  */
 export function whatsappLinkProps(rawPhone: string, message?: string) {
   const desktopUrl = buildWhatsAppUrl(rawPhone, message);
-  const webUrl = buildWhatsAppWebFallbackUrl(rawPhone, message);
+  // En el fallback Web los emojis se rompen, mandamos el mismo mensaje sin ellos.
+  const webMessage = message ? stripEmojis(message) : undefined;
+  const webUrl = buildWhatsAppWebFallbackUrl(rawPhone, webMessage);
   if (!desktopUrl || !webUrl) {
     return { href: undefined, onClick: undefined };
   }

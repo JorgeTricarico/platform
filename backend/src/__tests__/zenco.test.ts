@@ -190,7 +190,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
     expect(mockWA.sendMessage).toHaveBeenCalledOnce();
     expect(mockWA.sendMessage).toHaveBeenCalledWith(
       '5491112345678',
-      expect.stringContaining('finalizados y disponibles para retirar')
+      expect.stringContaining('Tu pedido en Zenko ya está listo para retirar')
     );
   });
 

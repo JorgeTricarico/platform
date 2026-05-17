@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { vi } from 'vitest';
-import { normalizeArgentinePhone, buildWhatsAppUrl, buildWhatsAppWebFallbackUrl, whatsappLinkProps, formatPhoneForDisplay } from './phone';
+import { normalizeArgentinePhone, buildWhatsAppUrl, buildWhatsAppWebFallbackUrl, whatsappLinkProps, formatPhoneForDisplay, stripEmojis } from './phone';
 
 describe('normalizeArgentinePhone', () => {
   it('10 dígitos con área 11', () => expect(normalizeArgentinePhone('1150579769').e164).toBe('5491150579769'));
@@ -62,6 +62,21 @@ describe('buildWhatsAppWebFallbackUrl', () => {
   it('null si invalido', () => expect(buildWhatsAppWebFallbackUrl('abc')).toBeNull());
 });
 
+describe('stripEmojis', () => {
+  it('quita emoji basico', () => expect(stripEmojis('Hola 🦊 mundo')).toBe('Hola mundo'));
+  it('quita waving + skin tone modifier', () => expect(stripEmojis('Hola 👋🏻')).toBe('Hola'));
+  it('quita sparkle', () => expect(stripEmojis('Listo ✨')).toBe('Listo'));
+  it('quita reloj', () => expect(stripEmojis('🕘 Lun a Vie')).toBe('Lun a Vie'));
+  it('respeta texto plano y tildes', () => expect(stripEmojis('Hola, ¿cómo estás? Sábado a las 9:30')).toBe('Hola, ¿cómo estás? Sábado a las 9:30'));
+  it('colapsa dobles espacios', () => expect(stripEmojis('Hola 🦊 🦊 mundo')).toBe('Hola mundo'));
+  it('preserva saltos de linea simples', () => expect(stripEmojis('A 🦊\nB ✨')).toBe('A\nB'));
+  it('saca emojis de mensaje multilinea de Zenko', () => {
+    const msg = `Hola 👋🏻\nTu pedido en Zenko ya está listo para retirar 🦊\n\n🕘 Lun a Vie: 9:30 a 12:30 / 15:00 a 18:30\n🕘 Sáb: 9:30 a 15:00\n\n¡Gracias!`;
+    const expected = `Hola\nTu pedido en Zenko ya está listo para retirar\n\nLun a Vie: 9:30 a 12:30 / 15:00 a 18:30\nSáb: 9:30 a 15:00\n\n¡Gracias!`;
+    expect(stripEmojis(msg)).toBe(expected);
+  });
+});
+
 describe('whatsappLinkProps', () => {
   it('href apunta al scheme nativo whatsapp://', () => {
     const props = whatsappLinkProps('11-5057-9769', 'Hola');
@@ -80,6 +95,24 @@ describe('whatsappLinkProps', () => {
       '_blank',
       'noopener,noreferrer'
     );
+    openSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('fallback Web usa el mensaje SIN emojis (desktop conserva los emojis)', () => {
+    vi.useFakeTimers();
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    const props = whatsappLinkProps('11-5057-9769', 'Hola 👋🏻 Zenko 🦊');
+    // El href para desktop conserva los emojis
+    expect(props.href).toContain('%F0%9F%91%8B');
+    expect(props.href).toContain('%F0%9F%A6%8A');
+    // El fallback Web los pierde
+    props.onClick?.();
+    vi.advanceTimersByTime(1500);
+    const webUrl = openSpy.mock.calls[0][0] as string;
+    expect(webUrl).not.toContain('%F0%9F%91%8B');
+    expect(webUrl).not.toContain('%F0%9F%A6%8A');
+    expect(webUrl).toContain('text=Hola%20Zenko');
     openSpy.mockRestore();
     vi.useRealTimers();
   });

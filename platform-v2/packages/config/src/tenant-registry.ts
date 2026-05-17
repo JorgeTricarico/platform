@@ -30,11 +30,10 @@ const zencoConfig: TenantConfig = {
   whatsappTemplates: {
     ready: (_clientName: string, _serviceName: string) =>
       `Hola 👋🏻\n` +
-      `Te escribimos desde Zenko – Taller de arreglos de ropa 🦊 para avisarte que tus arreglos ya se encuentran finalizados y disponibles para retirar ✨\n\n` +
-      `Horario de atención:\n` +
-      `🕘 Lunes a viernes: 9:30 a 12:30 / 15:00 a 18:30\n` +
-      `🕘 Sábados: 9:30 a 15:00\n\n` +
-      `¡Muchas gracias!`,
+      `Tu pedido en Zenko ya está listo para retirar 🦊\n\n` +
+      `🕘 Lun a Vie: 9:30 a 12:30 / 15:00 a 18:30\n` +
+      `🕘 Sáb: 9:30 a 15:00\n\n` +
+      `¡Gracias!`,
     reminder: (clientName: string, serviceName: string) =>
       `Hola ${clientName}, te recordamos que tu prenda "${serviceName}" está lista para retirar. ¡Te esperamos! 🧵`,
   },

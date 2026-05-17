@@ -84,11 +84,10 @@ const zencoConfig: BusinessConfig = {
   serviceDescription: 'Arreglos de Ropa',
   whatsappReadyMsg: (_clientName: string, _serviceName: string) =>
     `Hola 👋🏻\n` +
-    `Te escribimos desde Zenko – Taller de arreglos de ropa 🦊 para avisarte que tus arreglos ya se encuentran finalizados y disponibles para retirar ✨\n\n` +
-    `Horario de atención:\n` +
-    `🕘 Lunes a viernes: ${zencoConfig.schedule.weekdays}\n` +
-    `🕘 Sábados: ${zencoConfig.schedule.saturdays}\n\n` +
-    `¡Muchas gracias!`,
+    `Tu pedido en Zenko ya está listo para retirar 🦊\n\n` +
+    `🕘 Lun a Vie: ${zencoConfig.schedule.weekdays}\n` +
+    `🕘 Sáb: ${zencoConfig.schedule.saturdays}\n\n` +
+    `¡Gracias!`,
   whatsappReminderMsg: (clientName: string, serviceName: string) =>
     `Hola ${clientName}, te recordamos que tu prenda "${serviceName}" está lista para retirar. ¡Te esperamos! 🧵`,
   ticketTitle: 'ZENKO',
