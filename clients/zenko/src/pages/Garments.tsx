@@ -347,7 +347,8 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
         Editar
       </Button>
       {g.status === 'listo' && (() => {
-        const msg = BUSINESS.whatsappReadyMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido');
+        const itemNames = (g.items ?? []).map(i => i.garmentName);
+        const msg = BUSINESS.whatsappReadyMsg(g.clientName, itemNames, g.orderNumber);
         const linkProps = whatsappLinkProps(g.clientPhone, msg);
         return linkProps.href ? (
           <a

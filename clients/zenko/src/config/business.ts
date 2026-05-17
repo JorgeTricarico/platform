@@ -44,8 +44,11 @@ export interface BusinessConfig {
   serviceLabel: string;
   /** Description label for services (singular) */
   serviceDescription: string;
-  /** Message sent via WhatsApp when an order is ready for pickup */
-  whatsappReadyMsg: (clientName: string, serviceName: string) => string;
+  /** Message sent via WhatsApp when an order is ready for pickup.
+   *  Recibe items[] para personalizar segun cantidad:
+   *  - 1 item:  "Tu pedido (CAMPERA) ya esta listo"
+   *  - 2+ items: lista + link al detalle publico */
+  whatsappReadyMsg: (clientName: string, items: string[], orderNumber?: number) => string;
   /** Message sent via WhatsApp as a reminder for uncollected orders */
   whatsappReminderMsg: (clientName: string, serviceName: string) => string;
   /** Ticket header title (usually the business name in uppercase) */
@@ -82,12 +85,26 @@ const zencoConfig: BusinessConfig = {
   ] as const,
   serviceLabel: 'arreglo',
   serviceDescription: 'Arreglos de Ropa',
-  whatsappReadyMsg: (_clientName: string, _serviceName: string) =>
-    `Hola 👋🏻\n` +
-    `Tu pedido en Zenko ya está listo para retirar 🦊\n\n` +
-    `🕘 Lun a Vie: ${zencoConfig.schedule.weekdays}\n` +
-    `🕘 Sáb: ${zencoConfig.schedule.saturdays}\n\n` +
-    `¡Gracias!`,
+  whatsappReadyMsg: (_clientName: string, items: string[], orderNumber?: number) => {
+    const lines: string[] = [`Hola 👋🏻`];
+    if (items.length === 1) {
+      lines.push(`Tu pedido (${items[0]}) ya está listo para retirar 🦊`);
+    } else if (items.length > 1) {
+      lines.push(`Tu pedido en Zenko ya está listo para retirar 🦊`);
+      lines.push(`Incluye: ${items.join(', ')}`);
+      if (orderNumber && typeof window !== 'undefined') {
+        lines.push(`Ver detalle: ${window.location.origin}/?view=status&order=${orderNumber}`);
+      }
+    } else {
+      lines.push(`Tu pedido en Zenko ya está listo para retirar 🦊`);
+    }
+    lines.push(``);
+    lines.push(`🕘 Lun a Vie: ${zencoConfig.schedule.weekdays}`);
+    lines.push(`🕘 Sáb: ${zencoConfig.schedule.saturdays}`);
+    lines.push(``);
+    lines.push(`¡Gracias!`);
+    return lines.join('\n');
+  },
   whatsappReminderMsg: (clientName: string, serviceName: string) =>
     `Hola ${clientName}, te recordamos que tu prenda "${serviceName}" está lista para retirar. ¡Te esperamos! 🧵`,
   ticketTitle: 'ZENKO',
@@ -125,9 +142,9 @@ const mgMasajesConfig: BusinessConfig = {
   ] as const,
   serviceLabel: 'turno',
   serviceDescription: 'Masajes y Bienestar',
-  whatsappReadyMsg: (clientName: string, serviceName: string) =>
+  whatsappReadyMsg: (clientName: string, items: string[], _orderNumber?: number) =>
     `Hola ${clientName} 👋\n` +
-    `Te confirmamos tu turno de "${serviceName}" en MG Masajes.\n\n` +
+    `Te confirmamos tu turno de "${items[0] || 'masaje'}" en MG Masajes.\n\n` +
     `Horario: Lunes a viernes: ${mgMasajesConfig.schedule.weekdays} | Sáb: ${mgMasajesConfig.schedule.saturdays}\n\n` +
     `¡Te esperamos!`,
   whatsappReminderMsg: (clientName: string, serviceName: string) =>

@@ -153,12 +153,24 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     }
 
     if (process.env.WHATSAPP_ENABLED === 'true') {
-      const msg =
-        `Hola 👋🏻\n` +
-        `Tu pedido en Zenko ya está listo para retirar 🦊\n\n` +
-        `🕘 Lun a Vie: 9:30 a 12:30 / 15:00 a 18:30\n` +
-        `🕘 Sáb: 9:30 a 15:00\n\n` +
-        `¡Gracias!`;
+      const itemNames = updated.items.map(i => i.garmentName);
+      const publicUrl = process.env.PUBLIC_APP_URL;
+      const msgLines: string[] = [`Hola 👋🏻`];
+      if (itemNames.length === 1) {
+        msgLines.push(`Tu pedido (${itemNames[0]}) ya está listo para retirar 🦊`);
+      } else if (itemNames.length > 1) {
+        msgLines.push(`Tu pedido en Zenko ya está listo para retirar 🦊`);
+        msgLines.push(`Incluye: ${itemNames.join(', ')}`);
+        if (publicUrl) msgLines.push(`Ver detalle: ${publicUrl}/?view=status&order=${updated.orderNumber}`);
+      } else {
+        msgLines.push(`Tu pedido en Zenko ya está listo para retirar 🦊`);
+      }
+      msgLines.push(``);
+      msgLines.push(`🕘 Lun a Vie: 9:30 a 12:30 / 15:00 a 18:30`);
+      msgLines.push(`🕘 Sáb: 9:30 a 15:00`);
+      msgLines.push(``);
+      msgLines.push(`¡Gracias!`);
+      const msg = msgLines.join('\n');
       try {
         await whatsappService.sendMessage(updated.clientPhone, msg);
         console.log(`[WhatsApp] Notificación enviada a ${updated.clientPhone} — orden ${updated.orderNumber}`);
