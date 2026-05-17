@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { buildWhatsAppUrl } from '../lib/phone';
+import { whatsappLinkProps } from '../lib/phone';
 import { MessageCircle } from 'lucide-react';
 
 export default function StaleGarmentsWidget() {
@@ -56,15 +56,11 @@ export default function StaleGarmentsWidget() {
                     {daysOverdue(g.deliveryDate)} dias — {formatDate(g.deliveryDate)}
                   </Badge>
                   {(() => {
-                    const url = buildWhatsAppUrl(
-                      g.clientPhone,
-                      BUSINESS.whatsappReminderMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido')
-                    );
-                    return url ? (
+                    const msg = BUSINESS.whatsappReminderMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido');
+                    const linkProps = whatsappLinkProps(g.clientPhone, msg);
+                    return linkProps.href ? (
                       <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        {...linkProps}
                         className={cn(buttonVariants({ variant: 'success', size: 'sm' }))}
                       >
                         <MessageCircle className="w-3 h-3" />

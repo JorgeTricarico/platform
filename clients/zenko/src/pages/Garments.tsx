@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { buildWhatsAppUrl } from '../lib/phone';
+import { whatsappLinkProps } from '../lib/phone';
 import { Search, SlidersHorizontal, X, Smartphone } from 'lucide-react';
 
 // ─── Hook mobile ────────────────────────────────────────────────────────────
@@ -347,15 +347,11 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
         Editar
       </Button>
       {g.status === 'listo' && (() => {
-        const url = buildWhatsAppUrl(
-          g.clientPhone,
-          BUSINESS.whatsappReadyMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido')
-        );
-        return url ? (
+        const msg = BUSINESS.whatsappReadyMsg(g.clientName, (g.items ?? []).map(i => i.garmentName).join(', ') || 'pedido');
+        const linkProps = whatsappLinkProps(g.clientPhone, msg);
+        return linkProps.href ? (
           <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
+            {...linkProps}
             className={cn(buttonVariants({ variant: 'success', size: 'sm' }), 'no-underline')}
           >
             Avisar

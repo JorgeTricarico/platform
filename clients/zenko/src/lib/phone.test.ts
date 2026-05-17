@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeArgentinePhone, buildWhatsAppUrl, formatPhoneForDisplay } from './phone';
+import { vi } from 'vitest';
+import { normalizeArgentinePhone, buildWhatsAppUrl, buildWhatsAppWebFallbackUrl, whatsappLinkProps, formatPhoneForDisplay } from './phone';
 
 describe('normalizeArgentinePhone', () => {
   it('10 dígitos con área 11', () => expect(normalizeArgentinePhone('1150579769').e164).toBe('5491150579769'));
@@ -50,5 +51,55 @@ describe('buildWhatsAppUrl', () => {
     const url = buildWhatsAppUrl('11-5057-9769', 'Hola 👋🏻 🦊');
     // 👋 = F0 9F 91 8B, 🏻 = F0 9F 8F BB, 🦊 = F0 9F A6 8A
     expect(url).toContain('text=Hola%20%F0%9F%91%8B%F0%9F%8F%BB%20%F0%9F%A6%8A');
+  });
+});
+
+describe('buildWhatsAppWebFallbackUrl', () => {
+  it('URL Web con api.whatsapp.com', () => {
+    expect(buildWhatsAppWebFallbackUrl('11-5057-9769', 'Hola'))
+      .toBe('https://api.whatsapp.com/send/?phone=5491150579769&type=phone_number&app_absent=0&text=Hola');
+  });
+  it('null si invalido', () => expect(buildWhatsAppWebFallbackUrl('abc')).toBeNull());
+});
+
+describe('whatsappLinkProps', () => {
+  it('href apunta al scheme nativo whatsapp://', () => {
+    const props = whatsappLinkProps('11-5057-9769', 'Hola');
+    expect(props.href).toBe('whatsapp://send?phone=5491150579769&text=Hola');
+  });
+
+  it('onClick dispara fallback Web si la ventana no pierde focus en 1.5s', () => {
+    vi.useFakeTimers();
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    const props = whatsappLinkProps('11-5057-9769', 'Hola');
+    props.onClick?.();
+    expect(openSpy).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1500);
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://api.whatsapp.com/send/?phone=5491150579769&type=phone_number&app_absent=0&text=Hola',
+      '_blank',
+      'noopener,noreferrer'
+    );
+    openSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('NO dispara fallback si la ventana pierde focus (app desktop abrio)', () => {
+    vi.useFakeTimers();
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    const props = whatsappLinkProps('11-5057-9769', 'Hola');
+    props.onClick?.();
+    // Simular que la app abrio (la ventana del browser pierde focus)
+    window.dispatchEvent(new Event('blur'));
+    vi.advanceTimersByTime(1500);
+    expect(openSpy).not.toHaveBeenCalled();
+    openSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('retorna undefined si telefono invalido', () => {
+    const props = whatsappLinkProps('abc');
+    expect(props.href).toBeUndefined();
+    expect(props.onClick).toBeUndefined();
   });
 });

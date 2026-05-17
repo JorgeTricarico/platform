@@ -76,3 +76,45 @@ export function buildWhatsAppUrl(rawPhone: string, message?: string): string | n
   const base = `whatsapp://send?phone=${e164}`;
   return message ? `${base}&text=${encodeURIComponent(message)}` : base;
 }
+
+/**
+ * URL de fallback Web — se usa si el cliente no tiene WhatsApp Desktop instalado
+ * y el scheme nativo falla. Pierde la ventaja de emoji font propia pero al
+ * menos abre WhatsApp Web con el mensaje pre-cargado.
+ */
+export function buildWhatsAppWebFallbackUrl(rawPhone: string, message?: string): string | null {
+  const { e164, isValid } = normalizeArgentinePhone(rawPhone);
+  if (!isValid || !e164) return null;
+  const base = `https://api.whatsapp.com/send/?phone=${e164}&type=phone_number&app_absent=0`;
+  return message ? `${base}&text=${encodeURIComponent(message)}` : base;
+}
+
+/**
+ * Props listos para un `<a>` que abre WhatsApp con fallback automatico.
+ * - href apunta al scheme `whatsapp://send` (abre la app desktop/mobile).
+ * - onClick setea un timer: si la pestana no pierde focus en 1.5s, abre el
+ *   fallback Web en nueva ventana. Si la app abrio, el blur cancela el timer.
+ * NOTA: no usa target="_blank" para que el scheme se dispare en la pestana
+ * actual (evita abrir tabs vacios cuando el scheme funciona).
+ */
+export function whatsappLinkProps(rawPhone: string, message?: string) {
+  const desktopUrl = buildWhatsAppUrl(rawPhone, message);
+  const webUrl = buildWhatsAppWebFallbackUrl(rawPhone, message);
+  if (!desktopUrl || !webUrl) {
+    return { href: undefined, onClick: undefined };
+  }
+  return {
+    href: desktopUrl,
+    onClick: () => {
+      let opened = false;
+      const onBlur = () => { opened = true; };
+      window.addEventListener('blur', onBlur, { once: true });
+      window.setTimeout(() => {
+        window.removeEventListener('blur', onBlur);
+        if (!opened) {
+          window.open(webUrl, '_blank', 'noopener,noreferrer');
+        }
+      }, 1500);
+    },
+  };
+}

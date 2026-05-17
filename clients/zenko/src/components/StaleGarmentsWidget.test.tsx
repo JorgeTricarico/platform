@@ -40,7 +40,8 @@ describe('StaleGarmentsWidget', () => {
       const expectedMsg = `Hola Laura, te recordamos que tu prenda "Vestido" está lista para retirar. ¡Te esperamos! 🧵`;
       const expectedHref = `whatsapp://send?phone=5491155554444&text=${encodeURIComponent(expectedMsg)}`;
       expect(link).toHaveAttribute('href', expectedHref);
-      expect(link).toHaveAttribute('target', '_blank');
+      // target="_blank" removido — el scheme whatsapp:// abre la app, no una pestana nueva.
+      // El fallback Web se abre programaticamente con window.open desde whatsappLinkProps.
     });
   });
 

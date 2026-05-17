@@ -277,7 +277,7 @@ describe('Garments page', () => {
     expect(aviseButtons).toHaveLength(1);
     const link = aviseButtons[0].closest('a');
     expect(link).toHaveAttribute('href', expect.stringContaining('whatsapp://send'));
-    expect(link).toHaveAttribute('target', '_blank');
+    // target="_blank" removido — el scheme abre la app, no una pestana nueva
   });
 
   it('does not render Avisar button for non-listo garments', async () => {
