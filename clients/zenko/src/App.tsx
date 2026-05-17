@@ -288,8 +288,16 @@ function AppContent() {
           </div>
         </header>
 
-        {/* Page content. pb extra para que el FAB flotante no tape la ultima fila */}
-        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-6 pb-28">
+        {/* Page content.
+            - pb-28 si la tab tiene FAB flotante (para que no tape la ultima fila).
+            - p-0 + overflow-hidden en QR para layout full-viewport sin scroll. */}
+        <div className={cn(
+          'flex-1 bg-background',
+          activeTab === 'qr'
+            ? 'overflow-hidden p-3 md:p-4'
+            : 'overflow-y-auto p-4 md:p-6',
+          activeTab !== 'qr' && activeTab !== 'notifications' && activeTab !== 'chat' && 'pb-28'
+        )}>
           <ErrorBoundary>
             <Suspense fallback={<div className="flex items-center justify-center min-h-60 text-muted-foreground">Cargando...</div>}>
               {activeTab === 'dashboard' && <Dashboard />}

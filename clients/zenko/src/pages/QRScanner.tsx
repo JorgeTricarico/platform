@@ -269,7 +269,7 @@ export default function QRScanner() {
   const priceFmt = (n: number) => `$${n.toLocaleString('es-AR')}`;
 
   return (
-    <div className="max-w-lg mx-auto space-y-5">
+    <div className="h-full flex flex-col lg:flex-row gap-3 lg:gap-4">
 
       {/* Blocking scan alert overlay */}
       {alert && (
@@ -395,87 +395,91 @@ export default function QRScanner() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-primary/10">
-          <QrCode className="w-6 h-6 text-primary" />
+      {/* Side panel: header + mode selector (mobile: top, desktop: right) */}
+      <div className="flex flex-col gap-3 shrink-0 lg:w-72 xl:w-80 lg:order-2 lg:overflow-y-auto">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-primary/10">
+            <QrCode className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Escáner QR</h1>
+            <p className="text-xs text-muted-foreground">Leé el cupón y cambiá el estado</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Escáner QR</h1>
-          <p className="text-sm text-muted-foreground">Leé el cupón y cambiá el estado</p>
+
+        {/* Mode selector: chips en mobile, stack vertical en desktop */}
+        <div className="grid grid-cols-3 lg:grid-cols-1 gap-2">
+          {(Object.entries(MODE_CONFIG) as [ScanMode, typeof MODE_CONFIG[ScanMode]][]).map(([key, cfg]) => {
+            const Icon = cfg.icon;
+            const isActive = mode === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setMode(key)}
+                className={cn(
+                  'flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 px-2 lg:px-4 py-3 rounded-xl border-2 text-xs lg:text-sm font-semibold transition-all duration-150',
+                  isActive ? cfg.active : `border-border bg-card ${cfg.color} hover:border-current`
+                )}
+              >
+                <Icon className="w-5 h-5 shrink-0" />
+                <span className="text-center lg:text-left leading-tight">{cfg.label}</span>
+              </button>
+            );
+          })}
         </div>
+
+        {error && (
+          <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
       </div>
 
-      {/* Mode selector */}
-      <div className="grid grid-cols-3 gap-2">
-        {(Object.entries(MODE_CONFIG) as [ScanMode, typeof MODE_CONFIG[ScanMode]][]).map(([key, cfg]) => {
-          const Icon = cfg.icon;
-          const isActive = mode === key;
-          return (
-            <button
-              key={key}
-              onClick={() => setMode(key)}
-              className={cn(
-                'flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 text-xs font-semibold transition-all duration-150',
-                isActive ? cfg.active : `border-border bg-card ${cfg.color} hover:border-current`
-              )}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="text-center leading-tight">{cfg.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Camera column (mobile: bottom flex-1, desktop: left flex-1) */}
+      <div className="flex-1 flex flex-col min-h-0 lg:order-1">
+        <div className="flex-1 relative rounded-2xl overflow-hidden bg-black border border-border shadow-lg min-h-[260px]">
+          <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted />
 
-      {/* Camera viewport */}
-      <div className="relative rounded-2xl overflow-hidden bg-black aspect-[4/3] border border-border shadow-lg">
-        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted />
-
-        {scanning && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-[15%]">
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-sm" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-sm" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-sm" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-sm" />
-              <div
-                className="absolute left-0 right-0 h-0.5 transition-none"
-                style={{
-                  top: `${scanLine}%`,
-                  background: 'linear-gradient(90deg, transparent, hsl(var(--primary)), transparent)',
-                  boxShadow: '0 0 8px 2px hsl(var(--primary) / 0.6)',
-                }}
-              />
+          {scanning && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-[15%]">
+                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-sm" />
+                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-sm" />
+                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-sm" />
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-sm" />
+                <div
+                  className="absolute left-0 right-0 h-0.5 transition-none"
+                  style={{
+                    top: `${scanLine}%`,
+                    background: 'linear-gradient(90deg, transparent, hsl(var(--primary)), transparent)',
+                    boxShadow: '0 0 8px 2px hsl(var(--primary) / 0.6)',
+                  }}
+                />
+              </div>
+              <div className="absolute inset-0 bg-black/30" />
             </div>
-            <div className="absolute inset-0 bg-black/30" />
-          </div>
-        )}
+          )}
 
-        {!scanning && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted/80">
-            <Camera className="w-12 h-12 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground font-medium">Cámara inactiva</p>
-          </div>
-        )}
+          {!scanning && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted/80">
+              <Camera className="w-12 h-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground font-medium">Cámara inactiva</p>
+            </div>
+          )}
 
-        {scanning && (
-          <button
-            onClick={flipCamera}
-            className="absolute bottom-3 right-3 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-            title={facingMode === 'environment' ? 'Cámara frontal' : 'Cámara trasera'}
-          >
-            <FlipHorizontal2 className="w-5 h-5" />
-          </button>
-        )}
-      </div>
-
-      <canvas ref={canvasRef} className="hidden" />
-
-      {error && (
-        <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
-          {error}
+          {scanning && (
+            <button
+              onClick={flipCamera}
+              className="absolute bottom-3 right-3 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              title={facingMode === 'environment' ? 'Cámara frontal' : 'Cámara trasera'}
+            >
+              <FlipHorizontal2 className="w-5 h-5" />
+            </button>
+          )}
         </div>
-      )}
+
+        <canvas ref={canvasRef} className="hidden" />
+      </div>
     </div>
   );
 }
