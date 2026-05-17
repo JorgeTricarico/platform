@@ -5,60 +5,95 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
+    /* Zenko brand (light) — crema + naranja kitsune */
+    --background: 35 40% 94%;
+    --foreground: 25 47% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 25 47% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 262 80% 50%;
+    --popover-foreground: 25 47% 15%;
+    --primary: 24 71% 49%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 35 25% 92%;
+    --secondary-foreground: 25 47% 15%;
+    --muted: 60 20% 98%;
+    --muted-foreground: 25 23% 39%;
+    --accent: 24 76% 36%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 60% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262 80% 50%;
+    --border: 28 33% 84%;
+    --input: 28 33% 84%;
+    --ring: 24 71% 49%;
     --radius: 0.625rem;
-    --sidebar-background: 224 71.4% 4.1%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-border: 220 13% 15%;
-    --sidebar-ring: 262 80% 50%;
-    --sidebar-accent: 220 13% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-background: 35 40% 90%;
+    --sidebar-foreground: 25 47% 15%;
+    --sidebar-border: 28 33% 80%;
+    --sidebar-ring: 24 71% 49%;
+    --sidebar-accent: 35 25% 86%;
+    --sidebar-accent-foreground: 25 47% 15%;
+
+    /* Status tokens (light, paleta tierra) */
+    --status-recibido-bg: 40 76% 92%;
+    --status-recibido-text: 33 76% 27%;
+    --status-recibido-border: 37 67% 72%;
+    --status-proceso-bg: 213 22% 92%;
+    --status-proceso-text: 214 41% 29%;
+    --status-proceso-border: 213 26% 78%;
+    --status-listo-bg: 89 27% 90%;
+    --status-listo-text: 95 36% 25%;
+    --status-listo-border: 91 33% 74%;
+    --status-entregado-bg: 40 31% 89%;
+    --status-entregado-text: 31 28% 27%;
+    --status-entregado-border: 35 31% 76%;
+    --status-overdue-bg: 24 71% 90%;
+    --status-overdue-text: 15 75% 31%;
+    --status-overdue-border: 24 71% 78%;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 6%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 6%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 262 80% 60%;
+    --background: 25 47% 6%;
+    --foreground: 35 40% 92%;
+    --card: 25 47% 10%;
+    --card-foreground: 35 40% 92%;
+    --popover: 25 47% 10%;
+    --popover-foreground: 35 40% 92%;
+    --primary: 24 71% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 50%;
+    --secondary: 25 47% 14%;
+    --secondary-foreground: 35 40% 92%;
+    --muted: 25 47% 12%;
+    --muted-foreground: 35 22% 65%;
+    --accent: 24 76% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 262 80% 60%;
-    --sidebar-background: 220 13% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-border: 220 13% 12%;
-    --sidebar-ring: 262 80% 60%;
-    --sidebar-accent: 220 13% 12%;
-    --sidebar-accent-foreground: 0 0% 95%;
+    --border: 28 25% 22%;
+    --input: 28 25% 22%;
+    --ring: 24 71% 55%;
+    --sidebar-background: 25 47% 4%;
+    --sidebar-foreground: 35 40% 92%;
+    --sidebar-border: 28 25% 18%;
+    --sidebar-ring: 24 71% 55%;
+    --sidebar-accent: 25 47% 12%;
+    --sidebar-accent-foreground: 35 40% 92%;
+
+    /* Status tokens (dark, mirror v1) */
+    --status-recibido-bg: 33 76% 12%;
+    --status-recibido-text: 43 96% 56%;
+    --status-recibido-border: 33 76% 25%;
+    --status-proceso-bg: 220 50% 14%;
+    --status-proceso-text: 213 94% 68%;
+    --status-proceso-border: 220 50% 28%;
+    --status-listo-bg: 158 64% 10%;
+    --status-listo-text: 156 64% 60%;
+    --status-listo-border: 158 64% 22%;
+    --status-entregado-bg: 220 13% 16%;
+    --status-entregado-text: 220 9% 65%;
+    --status-entregado-border: 220 13% 28%;
+    --status-overdue-bg: 0 60% 14%;
+    --status-overdue-text: 0 90% 70%;
+    --status-overdue-border: 0 60% 28%;
   }
 }
 

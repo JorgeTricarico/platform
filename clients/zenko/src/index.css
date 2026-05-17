@@ -17,29 +17,29 @@
   --color-info: #3B82F6;
   --color-warning: #F59E0B;
 
-  /* Status Colors (Default/Light) */
-  --color-status-recibido-bg: #FFFBEB; /* amber-50 */
-  --color-status-recibido-text: #92400E; /* amber-800 */
-  --color-status-recibido-border: #FDE68A; /* amber-200 */
+  /* Status Colors (Default/Light) — paleta tierra alineada al logo Kitsune */
+  --color-status-recibido-bg: #FAEFD9;   /* ambar claro */
+  --color-status-recibido-text: #7A4A11; /* ambar quemado */
+  --color-status-recibido-border: #E8C887;
 
-  --color-status-proceso-bg: #EFF6FF; /* blue-50 */
-  --color-status-proceso-text: #1E40AF; /* blue-800 */
-  --color-status-proceso-border: #BFDBFE; /* blue-200 */
+  --color-status-proceso-bg: #E5EBF2;    /* azul piedra fria */
+  --color-status-proceso-text: #2C4566;
+  --color-status-proceso-border: #B8C5D6;
 
-  --color-status-listo-bg: #ECFDF5; /* emerald-50 */
-  --color-status-listo-text: #065F46; /* emerald-800 */
-  --color-status-listo-border: #A7F3D0; /* emerald-200 */
+  --color-status-listo-bg: #E8EFE0;      /* verde salvia */
+  --color-status-listo-text: #3D5A2A;
+  --color-status-listo-border: #BFD4A8;
 
-  --color-status-entregado-bg: #F3F4F6; /* gray-100 */
-  --color-status-entregado-text: #4B5563; /* gray-600 */
-  --color-status-entregado-border: #E5E7EB; /* gray-200 */
+  --color-status-entregado-bg: #EFE7D8;  /* crema oscuro */
+  --color-status-entregado-text: #5A4733;
+  --color-status-entregado-border: #D6C7AE;
 
-  --color-status-overdue-bg: #FEF2F2; /* red-50 */
-  --color-status-overdue-text: #B91C1C; /* red-700 */
-  --color-status-overdue-border: #FECACA; /* red-200 */
+  --color-status-overdue-bg: #F8E2D2;    /* terracota suave */
+  --color-status-overdue-text: #8B3014;
+  --color-status-overdue-border: #EFC2A0;
 
-  --color-status-positive: #065F46; /* emerald-800 */
-  --color-status-negative: #B91C1C; /* red-700 */
+  --color-status-positive: #3D5A2A; /* verde salvia oscuro */
+  --color-status-negative: #8B3014; /* terracota oscuro */
 
   /* WhatsApp Theme (Light) */
   --color-whatsapp-header: #25D366;
