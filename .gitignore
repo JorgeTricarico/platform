@@ -30,3 +30,4 @@ test-results/
 .vite
 # Agent Orchestration Kit (symlinks)
 .agents/project-context.md
+backend/scripts/normalize-phones-*.log.json
