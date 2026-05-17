@@ -248,43 +248,47 @@ function AppContent() {
             )}
           </div>
 
-          <NotificationBell clientId="all" />
+          {/* Cluster de usuario alineado a la derecha (ml-auto empuja al margen).
+              Antes quedaba flotando al lado del search en el centro de la topbar. */}
+          <div className="ml-auto flex items-center gap-3">
+            <NotificationBell clientId="all" />
 
-          {/* Theme switch */}
-          <button
-            onClick={toggleTheme}
-            title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
-            aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
-            className={cn(
-              'relative flex h-6 w-11 items-center rounded-full border-2 transition-colors duration-200 flex-shrink-0',
-              theme === 'dark'
-                ? 'bg-primary border-primary'
-                : 'bg-muted border-border'
-            )}
-          >
-            <span className={cn(
-              'absolute flex h-4 w-4 items-center justify-center rounded-full bg-white shadow transition-transform duration-200',
-              theme === 'dark' ? 'translate-x-5' : 'translate-x-0.5'
-            )}>
-              {theme === 'dark'
-                ? <Moon className="w-2.5 h-2.5 text-primary" />
-                : <Sun className="w-2.5 h-2.5 text-amber-500" />
-              }
-            </span>
-          </button>
+            {/* Theme switch */}
+            <button
+              onClick={toggleTheme}
+              title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
+              aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
+              className={cn(
+                'relative flex h-6 w-11 items-center rounded-full border-2 transition-colors duration-200 flex-shrink-0',
+                theme === 'dark'
+                  ? 'bg-primary border-primary'
+                  : 'bg-muted border-border'
+              )}
+            >
+              <span className={cn(
+                'absolute flex h-4 w-4 items-center justify-center rounded-full bg-white shadow transition-transform duration-200',
+                theme === 'dark' ? 'translate-x-5' : 'translate-x-0.5'
+              )}>
+                {theme === 'dark'
+                  ? <Moon className="w-2.5 h-2.5 text-primary" />
+                  : <Sun className="w-2.5 h-2.5 text-amber-500" />
+                }
+              </span>
+            </button>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground hidden sm:block">
-              {user?.name || BUSINESS.ownerName}
-            </span>
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
-              {BUSINESS.brandLabel[0]}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground hidden sm:block">
+                {user?.name || BUSINESS.ownerName}
+              </span>
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
+                {BUSINESS.brandLabel[0]}
+              </div>
+              {authRequired && user && (
+                <Button variant="outline" size="sm" onClick={logout}>
+                  Salir
+                </Button>
+              )}
             </div>
-            {authRequired && user && (
-              <Button variant="outline" size="sm" onClick={logout}>
-                Salir
-              </Button>
-            )}
           </div>
         </header>
 
