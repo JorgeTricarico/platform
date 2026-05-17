@@ -15,6 +15,7 @@ import { errorHandler, requestLogger } from './middleware/errorHandler.js';
 import { authenticate, requireBusiness } from './middleware/auth.js';
 import { authRoutes } from './routes/auth.js';
 import { publicRoutes } from './routes/public.js';
+import { errorsRoutes } from './routes/errors.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -57,6 +58,9 @@ app.use('/uploads', express.static(path.resolve('uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/zenco/chat', chatZencoRoutes);
+
+// Error tracking — POST publico, GET/PATCH con auth (manejado internamente)
+app.use('/api/errors', errorsRoutes);
 
 // Protected routes — JWT required + business check
 app.use('/api/zenco', authenticate, requireBusiness('zenco'), zencoRoutes);

@@ -185,3 +185,26 @@ model Notification {
   @@index([clientId])
   @@map("notifications")
 }
+
+// =============================================
+// ERROR LOGS — Tracking de errores frontend/backend
+// =============================================
+
+model ErrorLog {
+  id         String   @id @default(uuid())
+  business   String?
+  source     String   // 'frontend' | 'backend'
+  level      String   // 'error' | 'warning'
+  message    String
+  stack      String?
+  url        String?
+  userAgent  String?
+  userName   String?
+  metadata   Json?
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([resolved, createdAt])
+  @@index([business, source, createdAt])
+  @@map("error_logs")
+}

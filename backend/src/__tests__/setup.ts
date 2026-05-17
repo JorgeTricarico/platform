@@ -97,6 +97,13 @@ vi.mock('../db.js', () => {
       create: vi.fn(),
       findMany: vi.fn().mockResolvedValue([]),
     },
+    errorLog: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn(),
+      update: vi.fn(),
+      count: vi.fn().mockResolvedValue(0),
+    },
     $transaction: vi.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
       if (typeof fn === 'function') {
         return fn(mockPrisma);
