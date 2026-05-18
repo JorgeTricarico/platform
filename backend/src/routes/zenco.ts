@@ -77,7 +77,7 @@ router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req,
   // Normalizar teléfono ANTES de upsert (garantiza unicidad por número canónico)
   const normalizedPhone = normalizeArgentinePhone(data.clientPhone).e164 ?? data.clientPhone;
 
-  await prisma.client.upsert({
+  const client = await prisma.client.upsert({
     where: { phone_business: { phone: normalizedPhone, business: 'zenco' } },
     update: { name: data.clientName },
     create: { name: data.clientName, phone: normalizedPhone, business: 'zenco' }
@@ -88,6 +88,7 @@ router.post('/garments', validate(createGarmentSchema), asyncHandler(async (req,
       id: randomUUID(),
       clientName: data.clientName,
       clientPhone: normalizedPhone,
+      clientId: client.id,
       status: data.status || 'recibido',
       intakeDate: data.intakeDate || new Date().toISOString().split('T')[0],
       deliveryDate: data.deliveryDate,
@@ -172,18 +173,24 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     const hasPhone = phone.length > 0;
 
     if (hasPhone) {
+      // Z36: matchear entregas previas por clientId FK (canonico) y como
+      // fallback por clientPhone. Asi si Ana edita el telefono del cliente,
+      // las ordenes viejas siguen contando para el conteo de fidelidad.
+      const client = await prisma.client.findFirst({
+        where: { phone, business: 'zenco' },
+      });
+      const orClauses: Array<Record<string, unknown>> = [{ clientPhone: phone }];
+      if (client) orClauses.push({ clientId: client.id });
+
       previousDeliveries = await prisma.order.count({
         where: {
-          clientPhone: phone,
+          OR: orClauses,
           status: 'entregado',
           id: { not: prev.id },
         },
       });
       messageMode = previousDeliveries >= 2 ? 'short' : 'long';
 
-      const client = await prisma.client.findFirst({
-        where: { phone, business: 'zenco' },
-      });
       if (client) {
         await prisma.notification.create({
           data: {

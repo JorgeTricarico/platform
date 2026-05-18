@@ -96,6 +96,16 @@ describe('POST /api/zenco/garments', () => {
     }));
   });
 
+  it('Z36c — POST /garments setea clientId con el id devuelto por client.upsert', async () => {
+    mockPrisma.order.create.mockResolvedValue(makeOrder());
+    mockPrisma.client.upsert.mockResolvedValue({ id: 'CLI-NEW-7', name: 'Maria', phone: '1111', business: 'zenco' });
+
+    await request(app).post('/api/zenco/garments').set('Authorization', authHeader('zenco')).send(validInput);
+
+    const callData = mockPrisma.order.create.mock.calls[0][0].data;
+    expect(callData.clientId).toBe('CLI-NEW-7');
+  });
+
   it('creates items nested inside order via Prisma create', async () => {
     mockPrisma.order.create.mockResolvedValue(makeOrder());
     mockPrisma.client.upsert.mockResolvedValue({ id: 'c1', name: 'Maria', phone: '1111', business: 'zenco' });
@@ -371,7 +381,10 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
     expect(mockPrisma.order.count).toHaveBeenCalledWith({
       where: {
-        clientPhone: '5491112345678',
+        OR: expect.arrayContaining([
+          { clientPhone: '5491112345678' },
+          { clientId: 'c1' },
+        ]),
         status: 'entregado',
         id: { not: 'ORD-1' },
       },
@@ -479,6 +492,44 @@ describe('PUT /api/zenco/garments/:id/status', () => {
     expect(mockPrisma.order.count).not.toHaveBeenCalled();
     expect(mockPrisma.notification.create).not.toHaveBeenCalled();
     expect(mockWA.sendMessage).not.toHaveBeenCalled();
+  });
+
+  // --- Z36: match deliveries por clientId FK con fallback a phone ---
+
+  it('Z36a — count usa OR(clientId, clientPhone) cuando hay client matcheado por phone', async () => {
+    mockPrisma.order.findUnique.mockResolvedValue({ ...fullOrder, status: 'en_proceso' });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'CLI-1', phone: '5491112345678', business: 'zenco' });
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockPrisma.order.count.mockResolvedValue(2);
+
+    await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+
+    expect(mockPrisma.order.count).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { clientPhone: '5491112345678' },
+          { clientId: 'CLI-1' },
+        ],
+        status: 'entregado',
+        id: { not: 'ORD-1' },
+      },
+    });
+  });
+
+  it('Z36b — sin client matcheado por phone, count usa solo clientPhone (sin clientId)', async () => {
+    mockPrisma.order.findUnique.mockResolvedValue({ ...fullOrder, status: 'en_proceso' });
+    mockPrisma.client.findFirst.mockResolvedValue(null);
+    mockPrisma.order.count.mockResolvedValue(0);
+
+    await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+
+    expect(mockPrisma.order.count).toHaveBeenCalledWith({
+      where: {
+        OR: [{ clientPhone: '5491112345678' }],
+        status: 'entregado',
+        id: { not: 'ORD-1' },
+      },
+    });
   });
 
   it('Z35c — status->listo con clientPhone solo whitespace: omite side effects', async () => {

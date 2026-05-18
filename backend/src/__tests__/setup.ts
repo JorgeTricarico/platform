@@ -70,7 +70,7 @@ vi.mock('../db.js', () => {
       findMany: vi.fn().mockResolvedValue([]),
       findFirst: vi.fn().mockResolvedValue(null),
       findUnique: vi.fn().mockResolvedValue(null),
-      upsert: vi.fn(),
+      upsert: vi.fn().mockResolvedValue({ id: 'mock-client-id', name: 'Mock', phone: 'mock', business: 'zenco' }),
       update: vi.fn(),
       delete: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
