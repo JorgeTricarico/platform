@@ -109,10 +109,24 @@ Para CUALQUIER cambio en archivos de produccion (`backend/src/routes/`, `clients
 - Los mocks deben cubrir TODOS los metodos Prisma usados en routes
 
 ### Antes de commit
-- `npx vitest run` debe pasar al 100% (310+ tests)
+- `npx vitest run` debe pasar al 100% (820+ tests)
 - `npm run build` debe completar sin errores de TypeScript (tsc)
 - Verificar que tests nuevos cubren happy path + error cases
 - Si hay tests failing pre-existentes: arreglarlos ANTES de implementar features nuevas
+
+## Templates duplicados backend ↔ frontend
+
+Cuando un template de comunicación al cliente (WhatsApp, email, SMS, mensajes pre-armados) se renderiza desde **dos lugares** — backend (envío automático server-side) **y** frontend (botón manual que abre `wa.me/...`) — está prohibido duplicarlo inline en cada uno.
+
+**REGLA:**
+- Crear helper compartido: `backend/src/lib/<feature>-template.ts` con la función pura que recibe los datos y devuelve el string.
+- Espejar la misma función en `clients/<cliente>/src/config/business.ts` (o equivalente).
+- Cada cambio al template modifica AMBOS archivos en el mismo commit.
+- Test obligatorio que valide el output en cada lado (backend integration test + frontend unit test).
+
+**Why:** Drift entre back y front genera mensajes inconsistentes (cliente recibe distinto según si lo dispara backend automático vs Ana manual). Pasó con `whatsappReadyMsg` de Zenko (commit `5eba299` lo unificó con `buildZencoReadyMsg`).
+
+**How to apply:** Antes de tipear un `lines.push(...)` con copy en una ruta de backend, buscá si ya existe el helper. Si no, creá uno antes de seguir. Lo mismo en el frontend.
 
 ### Secuencia obligatoria para features
 ```

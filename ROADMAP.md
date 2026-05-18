@@ -76,7 +76,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | M26 | Localización completa en español — validaciones, fechas y mensajes de navegador | — | pendiente | alta |
 | M27 | Input de Fecha personalizado — resolver formato DD/MM/YYYY forzado en todos los navegadores | — | pendiente | media |
 | M35 | ~~Refine framework~~ → **DESCARTADO** — no resuelve multi-instancia, agrega complejidad sin beneficio | [M35](docs/roadmap/M35-refine-framework.md) | **descartado** | — |
-| M36 | Ambientes QA — separar dev/qa/prod con DBs independientes, preview deployments | [M36](docs/roadmap/M36-ambientes-qa.md) | pendiente | **critica** |
+| M36 | Ambientes QA — separar dev/qa/prod con DBs independientes, preview deployments | [M36](docs/roadmap/M36-ambientes-qa.md) | **F1 parcial** (rama `develop` + README workflow + script `init-qa-db.ts` listos; falta crear proyecto Supabase `platform-qa` + 3 servicios Render `*-qa` apuntando a develop) | **critica** |
 | M37 | DataView component reutilizable — tabla desktop / cards mobile, sort/filter/pagination built-in | [M37](docs/roadmap/M37-dataview-component.md) | pendiente | alta |
 | M38 | Turborepo monorepo — extraer packages/ui, packages/types, packages/config, apps/backend, apps/web | [M38](docs/roadmap/M38-template-cliente.md) | pendiente | **critica** |
 | M39 | Coolify + Docker — deploy aislado por cliente, VPS Hetzner, SSL automático | [INFRA](docs/integrations/INFRA-DOCKER-POR-CLIENTE.md) | pendiente | **critica** |
@@ -120,6 +120,8 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z29 | QR Scanner — Modo Mostrador con auto-start camara + auto-accion configurable (WhatsApp / print) | [Z29](docs/roadmap/Z29-qr-modo-mostrador.md) | pendiente | media |
 | Z30 | QR Scanner — Historial de escaneos en sesion + deshacer ultimo cambio de status | [Z30](docs/roadmap/Z30-qr-historial-undo.md) | **completado** (historial max 10, undo dentro de 60s, contador visual) | media |
 | Z31 | QR Scanner — Modo bulk (toast + beep sin modal), cobro al entregar con metodo de pago, atajos teclado 1/2/3 | [Z31](docs/roadmap/Z31-qr-bulk-cobro-atajos.md) | pendiente | media |
+| Z32 | QR Scanner — Guard doble-scan (alert "Ya estaba en X") + Panel "Avisar por WhatsApp" lateral + Mensaje WhatsApp adaptativo largo/breve por cantidad de entregas previas + nombre prenda destacado en `*«»*` | — | **completado** (sesion 2026-05-18: backend `unchanged` response, helper `buildZencoReadyMsg` compartido, `previousDeliveries` en response, panel verde lateral en QRScanner, +16 tests) | alta |
+| Z33 | Garments.tsx — fetch `previousDeliveries` por orden para usar mensaje WhatsApp adaptativo (hoy default `mode: 'long'`) — agrega endpoint `GET /api/zenco/clients/by-phone/:phone/delivery-count` o incluir count en `GET /garments` | — | pendiente | baja |
 
 ---
 
@@ -155,6 +157,7 @@ Mejoras que aplican a ambos clientes o al backend general.
 | D26 | DELETE /clients/:id endpoint + botón eliminar cliente | — | pendiente | media |
 | D27 | Tests faltantes: Dashboard, Patients, Agent, Ambient, widgets | [D27](docs/roadmap/D27-tests-faltantes.md) | pendiente | alta |
 | D28 | Filtro por fecha/mes en lista de citas (hoy / esta semana / mes) | — | **completado** (chips Todos/Hoy/Esta semana/Este mes en Appointments.tsx) | media |
+| D29 | WhatsApp Damian — replicar lógica largo/breve por entregas previas + nombre servicio en `*«»*` (mismo patrón que Zenko Z32) | — | pendiente | baja |
 
 ---
 
