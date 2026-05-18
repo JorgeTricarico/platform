@@ -348,7 +348,8 @@ export default function Garments({ externalSearch = '', createTrigger = 0 }: Gar
       </Button>
       {g.status === 'listo' && (() => {
         const itemNames = (g.items ?? []).map(i => i.garmentName);
-        const msg = BUSINESS.whatsappReadyMsg(g.clientName, itemNames, g.orderNumber);
+        // Sin info de entregas previas aqui (seria un fetch extra) — default a 'long' por seguridad.
+        const msg = BUSINESS.whatsappReadyMsg(g.clientName, itemNames, { mode: 'long' });
         const linkProps = whatsappLinkProps(g.clientPhone, msg);
         return linkProps.href ? (
           <a

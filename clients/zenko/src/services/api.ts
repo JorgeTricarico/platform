@@ -130,7 +130,16 @@ export const updateGarment = async (id: string, data: CreateOrderPayload): Promi
   return res.json();
 };
 
-export const updateGarmentStatus = async (id: string, status: string): Promise<DBGarment> => {
+export interface UpdateGarmentStatusResult extends DBGarment {
+  /** Cuando el status no cambió (re-scan al mismo estado) el backend responde unchanged. */
+  unchanged?: boolean;
+  /** Cantidad de órdenes 'entregado' previas del cliente (excluyendo la actual). Solo presente cuando status -> listo. */
+  previousDeliveries?: number;
+  /** Modo de mensaje WhatsApp recomendado. Solo presente cuando status -> listo. */
+  messageMode?: 'long' | 'short';
+}
+
+export const updateGarmentStatus = async (id: string, status: string): Promise<UpdateGarmentStatusResult> => {
   const res = await mutationFetch(`${API_URL}/garments/${id}/status`, 'PUT', { status });
   if (!res.ok && res.status !== 202) throw new Error("Error al actualizar estado");
   return res.json();

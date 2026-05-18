@@ -5,6 +5,7 @@ import { validate, createGarmentSchema, updateGarmentSchema, updateStatusSchema,
 import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler.js';
 import { whatsappService } from '../services/whatsapp.js';
 import { normalizeArgentinePhone } from '../utils/phone.js';
+import { buildZencoReadyMsg } from '../lib/whatsapp-zenco-template.js';
 
 const router = Router();
 
@@ -128,6 +129,17 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
   const prev = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!prev) throw new NotFoundError('Orden no encontrada');
 
+  if (prev.status === status) {
+    res.json({
+      unchanged: true,
+      status,
+      message: `La prenda ya estaba en estado "${status}". No se realizaron cambios.`,
+      id: prev.id,
+      orderNumber: prev.orderNumber,
+    });
+    return;
+  }
+
   const totalPrice = prev.items.reduce((sum: number, item: { price: number }) => sum + item.price, 0);
 
   const updated = await prisma.order.update({
@@ -136,7 +148,19 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     include: { items: true },
   });
 
+  let previousDeliveries = 0;
+  let messageMode: 'long' | 'short' = 'long';
+
   if (status === 'listo') {
+    previousDeliveries = await prisma.order.count({
+      where: {
+        clientPhone: updated.clientPhone,
+        status: 'entregado',
+        id: { not: prev.id },
+      },
+    });
+    messageMode = previousDeliveries >= 2 ? 'short' : 'long';
+
     const client = await prisma.client.findFirst({
       where: { phone: updated.clientPhone, business: 'zenco' },
     });
@@ -147,33 +171,17 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
           message: `Tu pedido #${updated.orderNumber} está listo para retirar.`,
           type: 'prenda_lista',
           read: false,
-          audience: 'client', // aviso dirigido al cliente, NO a Ana
+          audience: 'client',
         },
       });
     }
 
     if (process.env.WHATSAPP_ENABLED === 'true') {
       const itemNames = updated.items.map(i => i.garmentName);
-      const publicUrl = process.env.PUBLIC_APP_URL;
-      const msgLines: string[] = [`Hola 👋🏻`];
-      if (itemNames.length === 1) {
-        msgLines.push(`Tu pedido (${itemNames[0]}) ya está listo para retirar 🦊`);
-      } else if (itemNames.length > 1) {
-        msgLines.push(`Tu pedido en Zenko ya está listo para retirar 🦊`);
-        msgLines.push(`Incluye: ${itemNames.join(', ')}`);
-        if (publicUrl) msgLines.push(`Ver detalle: ${publicUrl}/?view=status&order=${updated.orderNumber}`);
-      } else {
-        msgLines.push(`Tu pedido en Zenko ya está listo para retirar 🦊`);
-      }
-      msgLines.push(``);
-      msgLines.push(`🕘 Lun a Vie: 9:30 a 12:30 / 15:00 a 18:30`);
-      msgLines.push(`🕘 Sáb: 9:30 a 15:00`);
-      msgLines.push(``);
-      msgLines.push(`¡Gracias!`);
-      const msg = msgLines.join('\n');
+      const msg = buildZencoReadyMsg(itemNames, { mode: messageMode });
       try {
         await whatsappService.sendMessage(updated.clientPhone, msg);
-        console.log(`[WhatsApp] Notificación enviada a ${updated.clientPhone} — orden ${updated.orderNumber}`);
+        console.log(`[WhatsApp] Notificación enviada a ${updated.clientPhone} — orden ${updated.orderNumber} (${messageMode})`);
       } catch (err) {
         console.warn(`[WhatsApp] Fallo al notificar orden ${updated.orderNumber}:`, err);
       }
@@ -203,7 +211,10 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
     }
   }
 
-  res.json(updated);
+  res.json({
+    ...updated,
+    ...(status === 'listo' ? { previousDeliveries, messageMode } : {}),
+  });
 }));
 
 router.put('/garments/:id', validate(updateGarmentSchema), asyncHandler(async (req, res) => {

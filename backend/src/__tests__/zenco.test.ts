@@ -156,9 +156,11 @@ describe('POST /api/zenco/garments', () => {
 });
 
 describe('PUT /api/zenco/garments/:id/status', () => {
+  // prev status = en_proceso, so transitioning to 'listo' or 'entregado' triggers logic.
+  // Tests that explicitly want to test re-scanning the same status override findUnique.
   const fullOrder = makeOrder({
     id: 'ORD-1', orderNumber: 6, clientName: 'Ana', clientPhone: '5491112345678',
-    status: 'listo', deposit: 0,
+    status: 'en_proceso', deposit: 0,
     items: [{ id: 'ITEM-1', orderId: 'ORD-1', garmentName: 'Pantalon', repairType: 'dobladillo', description: 'acortar', price: 3000 }],
   });
 
@@ -167,7 +169,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
   });
 
   it('updates order status', async () => {
-    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
     mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
@@ -179,7 +181,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   it('sends WhatsApp message when status changes to listo', async () => {
     process.env.WHATSAPP_ENABLED = 'true';
-    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
     mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockResolvedValue({ id: 'msg-z7' });
@@ -190,7 +192,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
     expect(mockWA.sendMessage).toHaveBeenCalledOnce();
     expect(mockWA.sendMessage).toHaveBeenCalledWith(
       '5491112345678',
-      expect.stringContaining('ya está listo para retirar')
+      expect.stringContaining('Ya está listo')
     );
   });
 
@@ -203,7 +205,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   it('still succeeds when WhatsApp fails (graceful degradation)', async () => {
     process.env.WHATSAPP_ENABLED = 'true';
-    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
     mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockRejectedValue(new Error('WhatsApp not connected'));
@@ -217,7 +219,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   it('creates in-app notification even when WhatsApp fails', async () => {
     process.env.WHATSAPP_ENABLED = 'true';
-    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
     mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockRejectedValue(new Error('Send failed'));
@@ -251,7 +253,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
   });
 
   it('does NOT create ZencoFinance income for non-entregado status', async () => {
-    mockPrisma.order.update.mockResolvedValue(fullOrder);
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
     mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
     mockPrisma.notification.create.mockResolvedValue({});
     mockWA.sendMessage.mockResolvedValue({});
@@ -268,6 +270,125 @@ describe('PUT /api/zenco/garments/:id/status', () => {
     const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'entregado' });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('entregado');
+  });
+
+  // --- A: Guard contra doble-scan al mismo status ---
+
+  it('returns { unchanged: true } and skips logic when re-scanning entregado over entregado', async () => {
+    const entregado = { ...fullOrder, status: 'entregado' };
+    mockPrisma.order.findUnique.mockResolvedValue(entregado);
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'entregado' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.unchanged).toBe(true);
+    expect(res.body.status).toBe('entregado');
+    expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    expect(mockPrisma.zencoFinance.upsert).not.toHaveBeenCalled();
+  });
+
+  it('returns { unchanged: true } and skips WhatsApp when re-scanning listo over listo', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
+    const yaListo = { ...fullOrder, status: 'listo' };
+    mockPrisma.order.findUnique.mockResolvedValue(yaListo);
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
+
+    expect(res.status).toBe(200);
+    expect(res.body.unchanged).toBe(true);
+    expect(res.body.status).toBe('listo');
+    expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    expect(mockWA.sendMessage).not.toHaveBeenCalled();
+    expect(mockPrisma.notification.create).not.toHaveBeenCalled();
+  });
+
+  // --- C: previousDeliveries + long/short mode ---
+
+  it('returns previousDeliveries=0 and messageMode=long for first-time client when status -> listo', async () => {
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'c1', phone: '5491112345678', business: 'zenco' });
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockPrisma.order.count.mockResolvedValue(0);
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.previousDeliveries).toBe(0);
+    expect(res.body.messageMode).toBe('long');
+  });
+
+  it('returns messageMode=long when client has 1 previous delivery', async () => {
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'c1', phone: '5491112345678', business: 'zenco' });
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockPrisma.order.count.mockResolvedValue(1);
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+
+    expect(res.body.previousDeliveries).toBe(1);
+    expect(res.body.messageMode).toBe('long');
+  });
+
+  it('returns messageMode=short when client has 2+ previous deliveries', async () => {
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'c1', phone: '5491112345678', business: 'zenco' });
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockPrisma.order.count.mockResolvedValue(2);
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+
+    expect(res.body.previousDeliveries).toBe(2);
+    expect(res.body.messageMode).toBe('short');
+  });
+
+  it('WhatsApp message uses *«» around garment names', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'c1', phone: '5491112345678', business: 'zenco' });
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockPrisma.order.count.mockResolvedValue(0);
+    mockWA.sendMessage.mockResolvedValue({ id: 'msg' });
+
+    await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
+
+    const sentMsg = mockWA.sendMessage.mock.calls[0][1];
+    expect(sentMsg).toContain('*«Pantalon»*');
+    expect(sentMsg).toContain('Independencia 243, Morón');
+    // mode=long includes intro
+    expect(sentMsg).toContain('Te escribimos de *Zenko*');
+  });
+
+  it('counts ONLY entregado orders excluding current order', async () => {
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'c1', phone: '5491112345678', business: 'zenco' });
+    mockPrisma.notification.create.mockResolvedValue({});
+    mockPrisma.order.count.mockResolvedValue(3);
+
+    await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+
+    expect(mockPrisma.order.count).toHaveBeenCalledWith({
+      where: {
+        clientPhone: '5491112345678',
+        status: 'entregado',
+        id: { not: 'ORD-1' },
+      },
+    });
+  });
+
+  it('processes normally when status DOES change (en_proceso -> listo)', async () => {
+    const enProceso = { ...fullOrder, status: 'en_proceso' };
+    mockPrisma.order.findUnique.mockResolvedValue(enProceso);
+    mockPrisma.order.update.mockResolvedValue({ ...fullOrder, status: 'listo' });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'client-uuid-123', phone: '5491112345678', business: 'zenco' });
+    mockPrisma.notification.create.mockResolvedValue({});
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.unchanged).toBeUndefined();
+    expect(mockPrisma.order.update).toHaveBeenCalledOnce();
   });
 });
 
