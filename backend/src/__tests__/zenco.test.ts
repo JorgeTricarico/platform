@@ -21,7 +21,7 @@ const mockWA = whatsappService as unknown as {
 };
 
 const mockPrisma = prisma as unknown as {
-  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
+  order: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; updateMany: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; groupBy: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
   orderItem: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; createMany: ReturnType<typeof vi.fn>; deleteMany: ReturnType<typeof vi.fn> };
   zencoFinance: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
   client: { findMany: ReturnType<typeof vi.fn>; findFirst: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn>; count: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
@@ -283,7 +283,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
     expect(res.status).toBe(200);
     expect(res.body.unchanged).toBe(true);
     expect(res.body.status).toBe('entregado');
-    expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    expect(mockPrisma.order.updateMany).not.toHaveBeenCalled();
     expect(mockPrisma.zencoFinance.upsert).not.toHaveBeenCalled();
   });
 
@@ -298,7 +298,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
     expect(res.status).toBe(200);
     expect(res.body.unchanged).toBe(true);
     expect(res.body.status).toBe('listo');
-    expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    expect(mockPrisma.order.updateMany).not.toHaveBeenCalled();
     expect(mockWA.sendMessage).not.toHaveBeenCalled();
     expect(mockPrisma.notification.create).not.toHaveBeenCalled();
   });
@@ -388,7 +388,62 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.unchanged).toBeUndefined();
-    expect(mockPrisma.order.update).toHaveBeenCalledOnce();
+    expect(mockPrisma.order.updateMany).toHaveBeenCalledOnce();
+  });
+
+  // --- Z34: race condition — atomic guard via updateMany ---
+
+  it('Z34a — updateMany filters by status: { not: target } so only one of two concurrent calls transitions', async () => {
+    const enProceso = { ...fullOrder, status: 'en_proceso' };
+    mockPrisma.order.findUnique.mockResolvedValue(enProceso);
+    mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
+    mockPrisma.client.findFirst.mockResolvedValue(null);
+
+    await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+
+    expect(mockPrisma.order.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: 'ORD-1', status: { not: 'listo' } }),
+      data: expect.objectContaining({ status: 'listo' }),
+    }));
+  });
+
+  it('Z34b — when updateMany returns count=0 (race lost), responds unchanged:true and skips side effects', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
+    const enProceso = { ...fullOrder, status: 'en_proceso' };
+    mockPrisma.order.findUnique.mockResolvedValue(enProceso);
+    mockPrisma.order.updateMany.mockResolvedValue({ count: 0 });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'c1', phone: '5491112345678', business: 'zenco' });
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
+
+    expect(res.status).toBe(200);
+    expect(res.body.unchanged).toBe(true);
+    expect(res.body.status).toBe('listo');
+    expect(mockPrisma.notification.create).not.toHaveBeenCalled();
+    expect(mockPrisma.zencoFinance.upsert).not.toHaveBeenCalled();
+    expect(mockWA.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('Z34c — two concurrent PUT /status: exactly one transitions, the other gets unchanged:true', async () => {
+    const enProceso = { ...fullOrder, status: 'en_proceso' };
+    mockPrisma.order.findUnique.mockResolvedValue(enProceso);
+    mockPrisma.order.updateMany
+      .mockResolvedValueOnce({ count: 1 })
+      .mockResolvedValueOnce({ count: 0 });
+    mockPrisma.client.findFirst.mockResolvedValue({ id: 'c1', phone: '5491112345678', business: 'zenco' });
+    mockPrisma.notification.create.mockResolvedValue({});
+
+    const [r1, r2] = await Promise.all([
+      request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' }),
+      request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' }),
+    ]);
+
+    const losers = [r1, r2].filter(r => r.body.unchanged === true);
+    const winners = [r1, r2].filter(r => r.body.unchanged !== true);
+    expect(winners).toHaveLength(1);
+    expect(losers).toHaveLength(1);
+    expect(mockPrisma.notification.create).toHaveBeenCalledOnce();
   });
 });
 
@@ -756,7 +811,7 @@ describe('PUT /api/zenco/garments/:id/status — statusChangedAt', () => {
     mockPrisma.notification.create.mockResolvedValue({});
 
     await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
-    expect(mockPrisma.order.update).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockPrisma.order.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ statusChangedAt: expect.any(String) }),
     }));
   });

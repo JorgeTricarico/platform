@@ -26,6 +26,7 @@ const mockPrisma = prisma as unknown as {
     findUnique: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
   };
   orderItem: {
@@ -203,8 +204,8 @@ describe('C2 — PUT /api/zenco/garments/:id/status NO sobreescribe deposit al e
 
     expect(res.status).toBe(200);
 
-    // El data pasado a order.update NO debe incluir deposit
-    const updateCall = mockPrisma.order.update.mock.calls[0];
+    // El data pasado a order.updateMany NO debe incluir deposit
+    const updateCall = mockPrisma.order.updateMany.mock.calls[0];
     expect(updateCall).toBeDefined();
     const updateData = updateCall[0].data;
     expect(updateData).not.toHaveProperty('deposit');

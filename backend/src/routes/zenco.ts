@@ -141,12 +141,28 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
   }
 
   const totalPrice = prev.items.reduce((sum: number, item: { price: number }) => sum + item.price, 0);
+  const statusChangedAt = new Date().toISOString();
 
-  const updated = await prisma.order.update({
-    where: { id },
-    data: { status, statusChangedAt: new Date().toISOString() },
-    include: { items: true },
+  // Atomic guard: only transition if current status is NOT the target. Two concurrent
+  // requests with the same target status: exactly one updates, the other gets count=0.
+  const updateResult = await prisma.order.updateMany({
+    where: { id, status: { not: status } },
+    data: { status, statusChangedAt },
   });
+
+  if (updateResult.count === 0) {
+    // Race lost: another request transitioned this order first. Skip side effects.
+    res.json({
+      unchanged: true,
+      status,
+      message: `La prenda ya estaba en estado "${status}". No se realizaron cambios.`,
+      id: prev.id,
+      orderNumber: prev.orderNumber,
+    });
+    return;
+  }
+
+  const updated = { ...prev, status, statusChangedAt };
 
   let previousDeliveries = 0;
   let messageMode: 'long' | 'short' = 'long';

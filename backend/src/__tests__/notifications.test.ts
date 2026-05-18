@@ -5,7 +5,7 @@ import { app } from '../index.js';
 import { authHeader } from './setup.js';
 
 const mockPrisma = prisma as unknown as {
-  order: { update: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
+  order: { update: ReturnType<typeof vi.fn>; updateMany: ReturnType<typeof vi.fn>; findUnique: ReturnType<typeof vi.fn> };
   client: { findFirst: ReturnType<typeof vi.fn> };
   notification: {
     findMany: ReturnType<typeof vi.fn>;
@@ -88,7 +88,7 @@ describe('PUT /api/zenco/garments/:id/status → listo', () => {
   });
 
   it('still returns 500 if order update fails (no notification created)', async () => {
-    mockPrisma.order.update.mockRejectedValue(new Error('DB error'));
+    mockPrisma.order.updateMany.mockRejectedValue(new Error('DB error'));
 
     const res = await request(app)
       .put('/api/zenco/garments/ORD-1/status')
