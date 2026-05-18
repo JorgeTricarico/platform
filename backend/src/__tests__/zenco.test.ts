@@ -166,6 +166,7 @@ describe('PUT /api/zenco/garments/:id/status', () => {
 
   beforeEach(() => {
     mockPrisma.order.findUnique.mockResolvedValue(fullOrder);
+    mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
   });
 
   it('updates order status', async () => {
@@ -444,6 +445,53 @@ describe('PUT /api/zenco/garments/:id/status', () => {
     expect(winners).toHaveLength(1);
     expect(losers).toHaveLength(1);
     expect(mockPrisma.notification.create).toHaveBeenCalledOnce();
+  });
+
+  // --- Z35: clientPhone null/empty/whitespace skip count + WhatsApp ---
+
+  it('Z35a — status->listo con clientPhone null: no count, no client.findFirst, no notification, no WhatsApp', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
+    const sinPhone = { ...fullOrder, clientPhone: null as unknown as string };
+    mockPrisma.order.findUnique.mockResolvedValue(sinPhone);
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('listo');
+    expect(res.body.previousDeliveries).toBe(0);
+    expect(res.body.messageMode).toBe('long');
+    expect(mockPrisma.order.count).not.toHaveBeenCalled();
+    expect(mockPrisma.client.findFirst).not.toHaveBeenCalled();
+    expect(mockPrisma.notification.create).not.toHaveBeenCalled();
+    expect(mockWA.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('Z35b — status->listo con clientPhone "" (empty): omite side effects', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
+    const sinPhone = { ...fullOrder, clientPhone: '' };
+    mockPrisma.order.findUnique.mockResolvedValue(sinPhone);
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.order.count).not.toHaveBeenCalled();
+    expect(mockPrisma.notification.create).not.toHaveBeenCalled();
+    expect(mockWA.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('Z35c — status->listo con clientPhone solo whitespace: omite side effects', async () => {
+    process.env.WHATSAPP_ENABLED = 'true';
+    const sinPhone = { ...fullOrder, clientPhone: '   ' };
+    mockPrisma.order.findUnique.mockResolvedValue(sinPhone);
+
+    const res = await request(app).put('/api/zenco/garments/ORD-1/status').set('Authorization', authHeader('zenco')).send({ status: 'listo' });
+    process.env.WHATSAPP_ENABLED = undefined;
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.order.count).not.toHaveBeenCalled();
+    expect(mockWA.sendMessage).not.toHaveBeenCalled();
   });
 });
 

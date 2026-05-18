@@ -19,9 +19,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   // Route now does findUnique before update — default to a non-entregado prev state
   mockPrisma.order.findUnique.mockResolvedValue({
-    id: 'ORD-1', orderNumber: 1, status: 'recibido', deposit: 0,
+    id: 'ORD-1', orderNumber: 1, status: 'recibido', clientPhone: '1111', deposit: 0,
     items: [{ id: 'I1', orderId: 'ORD-1', garmentName: 'Vestido', repairType: 'diseño', description: '', price: 1000 }],
   });
+  mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
 });
 
 // -------------------------------------------------------

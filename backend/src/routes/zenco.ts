@@ -168,39 +168,46 @@ router.put('/garments/:id/status', validate(updateStatusSchema), asyncHandler(as
   let messageMode: 'long' | 'short' = 'long';
 
   if (status === 'listo') {
-    previousDeliveries = await prisma.order.count({
-      where: {
-        clientPhone: updated.clientPhone,
-        status: 'entregado',
-        id: { not: prev.id },
-      },
-    });
-    messageMode = previousDeliveries >= 2 ? 'short' : 'long';
+    const phone = (updated.clientPhone ?? '').trim();
+    const hasPhone = phone.length > 0;
 
-    const client = await prisma.client.findFirst({
-      where: { phone: updated.clientPhone, business: 'zenco' },
-    });
-    if (client) {
-      await prisma.notification.create({
-        data: {
-          clientId: client.id,
-          message: `Tu pedido #${updated.orderNumber} está listo para retirar.`,
-          type: 'prenda_lista',
-          read: false,
-          audience: 'client',
+    if (hasPhone) {
+      previousDeliveries = await prisma.order.count({
+        where: {
+          clientPhone: phone,
+          status: 'entregado',
+          id: { not: prev.id },
         },
       });
-    }
+      messageMode = previousDeliveries >= 2 ? 'short' : 'long';
 
-    if (process.env.WHATSAPP_ENABLED === 'true') {
-      const itemNames = updated.items.map(i => i.garmentName);
-      const msg = buildZencoReadyMsg(itemNames, { mode: messageMode });
-      try {
-        await whatsappService.sendMessage(updated.clientPhone, msg);
-        console.log(`[WhatsApp] Notificación enviada a ${updated.clientPhone} — orden ${updated.orderNumber} (${messageMode})`);
-      } catch (err) {
-        console.warn(`[WhatsApp] Fallo al notificar orden ${updated.orderNumber}:`, err);
+      const client = await prisma.client.findFirst({
+        where: { phone, business: 'zenco' },
+      });
+      if (client) {
+        await prisma.notification.create({
+          data: {
+            clientId: client.id,
+            message: `Tu pedido #${updated.orderNumber} está listo para retirar.`,
+            type: 'prenda_lista',
+            read: false,
+            audience: 'client',
+          },
+        });
       }
+
+      if (process.env.WHATSAPP_ENABLED === 'true') {
+        const itemNames = updated.items.map(i => i.garmentName);
+        const msg = buildZencoReadyMsg(itemNames, { mode: messageMode });
+        try {
+          await whatsappService.sendMessage(phone, msg);
+          console.log(`[WhatsApp] Notificación enviada a ${phone} — orden ${updated.orderNumber} (${messageMode})`);
+        } catch (err) {
+          console.warn(`[WhatsApp] Fallo al notificar orden ${updated.orderNumber}:`, err);
+        }
+      }
+    } else {
+      console.warn(`[Zenco] Orden #${updated.orderNumber} marcada como listo sin clientPhone — omitiendo count/notification/WhatsApp.`);
     }
   }
 
