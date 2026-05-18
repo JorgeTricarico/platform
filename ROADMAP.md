@@ -122,6 +122,18 @@ Mejoras que aplican a ambos clientes o al backend general.
 | Z31 | QR Scanner — Modo bulk (toast + beep sin modal), cobro al entregar con metodo de pago, atajos teclado 1/2/3 | [Z31](docs/roadmap/Z31-qr-bulk-cobro-atajos.md) | pendiente | media |
 | Z32 | QR Scanner — Guard doble-scan (alert "Ya estaba en X") + Panel "Avisar por WhatsApp" lateral + Mensaje WhatsApp adaptativo largo/breve por cantidad de entregas previas + nombre prenda destacado en `*«»*` | — | **completado** (sesion 2026-05-18: backend `unchanged` response, helper `buildZencoReadyMsg` compartido, `previousDeliveries` en response, panel verde lateral en QRScanner, +16 tests) | alta |
 | Z33 | Garments.tsx — fetch `previousDeliveries` por orden para usar mensaje WhatsApp adaptativo (hoy default `mode: 'long'`) — agrega endpoint `GET /api/zenco/clients/by-phone/:phone/delivery-count` o incluir count en `GET /garments` | — | pendiente | baja |
+| Z34 | PUT /garments/:id/status — race condition: `findUnique` + `update` no atómicos, 2 PUT concurrentes pueden ambos pasar guard `unchanged` y procesar doble | [Z34](docs/roadmap/Z34-race-condition-status.md) | pendiente | **critica** |
+| Z35 | Skip count + WhatsApp si `clientPhone` es null/empty/whitespace en PUT status | [Z35](docs/roadmap/Z35-skip-flow-cliente-sin-telefono.md) | pendiente | alta |
+| Z36 | Matchear entregas previas por `clientId` FK (no por phone) + fallback normalizado | [Z36](docs/roadmap/Z36-match-deliveries-by-clientid.md) | pendiente | alta |
+| Z37 | Sync `pendingNotifications` del panel QRScanner con `garmentsRef` para evitar zombies tras cambios externos | [Z37](docs/roadmap/Z37-sync-pending-with-garments.md) | pendiente | alta |
+| Z38 | Snapshot test back↔front comparando `buildZencoReadyMsg` vs `BUSINESS.whatsappReadyMsg` con fixture compartido | [Z38](docs/roadmap/Z38-snapshot-test-template-back-front.md) | pendiente | media |
+| Z39 | Compartir address/schedule entre back y front (constants `shared/` o endpoint `/api/zenco/config`) | [Z39](docs/roadmap/Z39-shared-business-constants.md) | pendiente | media |
+| Z40 | UX panel pending: marcar ✓ "Avisado" + undo 30s en vez de borrar al click | [Z40](docs/roadmap/Z40-ux-avisado-undo-30s.md) | pendiente | media |
+| Z41 | Beep distinto (info, tono medio) para re-scan unchanged vs success | [Z41](docs/roadmap/Z41-beep-distinto-unchanged.md) | pendiente | media |
+| Z42 | Tests adicionales: `clientPhone=null/empty`, ausencia de `previousDeliveries` cuando status != 'listo' | [Z42](docs/roadmap/Z42-tests-edge-cases-mensaje.md) | pendiente | baja |
+| Z43 | Mensaje WhatsApp con 4+ prendas en bullet list (`\n• ...`) en vez de una línea larga | [Z43](docs/roadmap/Z43-mensaje-multiprendas-bullet.md) | pendiente | baja |
+| Z44 | Persistir `pendingNotifications` en `sessionStorage` para sobrevivir refresh | [Z44](docs/roadmap/Z44-pending-sessionstorage.md) | pendiente | baja |
+| Z45 | Estado vacío del panel "Avisar por WhatsApp" con hint "Aquí se acumularán..." | [Z45](docs/roadmap/Z45-empty-state-panel-pending.md) | pendiente | baja |
 
 ---
 
