@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { API_URL } from '../services/api';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { API_URL, fetchClients, type DBClient } from '../services/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SendHorizontal } from 'lucide-react';
+import { SendHorizontal, User, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
@@ -34,12 +34,55 @@ export default function ChatDemo() {
   const [history, setHistory] = useState<GeminiMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [clients, setClients] = useState<DBClient[]>([]);
+  const [selectedClient, setSelectedClient] = useState<DBClient | null>(null);
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientPicker, setShowClientPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const clientPickerRef = useRef<HTMLDivElement>(null);
   const sessionIdRef = useRef(`${activeScenario}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages]);
+
+  // Cerrar picker al clickear fuera
+  useEffect(() => {
+    if (!showClientPicker) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!clientPickerRef.current?.contains(e.target as Node)) setShowClientPicker(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [showClientPicker]);
+
+  // Cargar clientes reales para que Ana (IA) reciba el senderPhone como
+  // si fuese un WhatsApp entrante: el backend pre-fetchea sus pedidos.
+  useEffect(() => {
+    fetchClients().then(setClients).catch(() => {});
+  }, []);
+
+  const filteredClients = useMemo(() => {
+    const q = clientSearch.trim().toLowerCase();
+    if (!q) return clients.slice(0, 50);
+    return clients
+      .filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.phone.includes(q) ||
+        (c.altPhone ?? '').includes(q),
+      )
+      .slice(0, 50);
+  }, [clients, clientSearch]);
+
+  const pickClient = useCallback((c: DBClient | null) => {
+    setSelectedClient(c);
+    setShowClientPicker(false);
+    setClientSearch('');
+    // Reset conversation when switching identity so the agent doesnt mix contexts
+    setMessages([]);
+    setHistory([]);
+    sessionIdRef.current = `${activeScenario}-${c?.id ?? 'anon'}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }, [activeScenario]);
 
 
   const sendMessageText = useCallback(async (userMsg: string, currentHistory: GeminiMessage[], currentSessionId: string) => {
@@ -51,7 +94,12 @@ export default function ChatDemo() {
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ message: userMsg, history: currentHistory, sessionId: currentSessionId })
+        body: JSON.stringify({
+          message: userMsg,
+          history: currentHistory,
+          sessionId: currentSessionId,
+          senderPhone: selectedClient?.phone,
+        })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -70,7 +118,7 @@ export default function ChatDemo() {
       setMessages(prev => [...prev, { role: 'bot', text: AI_UNAVAILABLE }]);
     }
     setLoading(false);
-  }, []);
+  }, [selectedClient]);
 
   const switchScenario = useCallback((scenarioId: string) => {
     const scenario = SCENARIOS.find(s => s.id === scenarioId)!;
@@ -105,6 +153,78 @@ export default function ChatDemo() {
         </Badge>
       </div>
 
+      {/* Client picker: simula quien escribe (senderPhone -> IA pre-fetchea sus pedidos como en prod) */}
+      <div ref={clientPickerRef} className="max-w-[600px] w-full mx-auto mb-3 shrink-0 relative">
+        <button
+          type="button"
+          onClick={() => setShowClientPicker(v => !v)}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border border-border bg-card hover:bg-muted transition-colors text-left"
+        >
+          <div className="w-8 h-8 rounded-full bg-whatsapp-header/15 flex items-center justify-center shrink-0">
+            <User className="w-4 h-4 text-whatsapp-header" />
+          </div>
+          <div className="flex-1 min-w-0">
+            {selectedClient ? (
+              <>
+                <div className="text-sm font-semibold text-foreground truncate">{selectedClient.name}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{selectedClient.phone} · simulando WhatsApp entrante</div>
+              </>
+            ) : (
+              <>
+                <div className="text-sm font-semibold text-foreground">Cliente anónimo</div>
+                <div className="text-[11px] text-muted-foreground">Click para elegir un cliente real y simular como en prod</div>
+              </>
+            )}
+          </div>
+          {selectedClient && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); pickClient(null); }}
+              className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted shrink-0"
+              title="Limpiar selección"
+            >
+              ✕
+            </button>
+          )}
+        </button>
+
+        {showClientPicker && (
+          <div className="absolute z-30 left-0 right-0 mt-2 rounded-xl border border-border bg-popover shadow-xl overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+              <input
+                autoFocus
+                value={clientSearch}
+                onChange={e => setClientSearch(e.target.value)}
+                placeholder="Buscar por nombre o teléfono..."
+                className="flex-1 bg-transparent text-sm focus:outline-none"
+              />
+              <span className="text-[11px] text-muted-foreground shrink-0">{filteredClients.length}</span>
+            </div>
+            <div className="max-h-72 overflow-y-auto">
+              {filteredClients.length === 0 && (
+                <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                  {clients.length === 0 ? 'Cargando clientes...' : 'Sin resultados'}
+                </div>
+              )}
+              {filteredClients.map(c => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => pickClient(c)}
+                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted text-left transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate">{c.name}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">{c.phone}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Scenario Tabs */}
       <div className="flex gap-2 justify-center mb-6 flex-wrap shrink-0">
         {SCENARIOS.map(s => (
@@ -126,15 +246,17 @@ export default function ChatDemo() {
 
       <div className="max-w-[600px] w-full mx-auto rounded-2xl border border-border bg-card shadow-lg overflow-hidden flex flex-col flex-1 min-h-0">
         {/* Chat Header */}
-        <div className="bg-whatsapp-header text-white p-4 flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg select-none">
+        <div className="bg-whatsapp-header text-white px-4 py-3 flex items-center gap-3 shrink-0">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg select-none shrink-0">
             Z
           </div>
-          <div>
-            <div className="font-bold text-sm">Ana de Zenko</div>
-            <div className="text-[11px] opacity-90 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              en línea
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-sm truncate">Ana de Zenko</div>
+            <div className="text-[11px] opacity-90 flex items-center gap-1.5 truncate">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse shrink-0" />
+              {selectedClient
+                ? <span className="truncate">simulando a {selectedClient.name}</span>
+                : <span>en línea</span>}
             </div>
           </div>
         </div>
@@ -142,7 +264,7 @@ export default function ChatDemo() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 bg-whatsapp-bg flex flex-col gap-3 scroll-smooth min-h-0">
           {messages.length === 0 && !loading && (
-            <div className="text-center text-muted-foreground/60 text-xs mt-32 italic">
+            <div className="flex-1 flex items-center justify-center text-center text-muted-foreground/60 text-xs italic px-4">
               Escribe un mensaje para empezar la conversación
             </div>
           )}
@@ -177,17 +299,22 @@ export default function ChatDemo() {
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && sendMessage()}
-            placeholder="Escribe un mensaje..."
-            className="flex-1 px-4 py-2.5 rounded-full border-none bg-card text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-whatsapp-header/50 shadow-inner"
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+            placeholder={loading ? 'Esperando respuesta...' : 'Escribe un mensaje...'}
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 rounded-full border-none bg-card text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-whatsapp-header/50 shadow-inner disabled:opacity-60 disabled:cursor-not-allowed"
           />
           <Button
             onClick={sendMessage}
-            disabled={loading}
+            disabled={loading || !input.trim()}
             size="icon"
-            className="rounded-full bg-whatsapp-header hover:bg-whatsapp-header/90 text-white w-10 h-10 shrink-0"
+            className="rounded-full bg-whatsapp-header hover:bg-whatsapp-header/90 text-white w-10 h-10 shrink-0 disabled:opacity-50"
           >
-            <SendHorizontal className="w-5 h-5 ml-0.5" />
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-white/60 border-t-white rounded-full animate-spin" />
+            ) : (
+              <SendHorizontal className="w-5 h-5 ml-0.5" />
+            )}
           </Button>
         </div>
       </div>

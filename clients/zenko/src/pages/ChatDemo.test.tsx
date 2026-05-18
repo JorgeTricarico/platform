@@ -5,7 +5,13 @@ import ChatDemo from './ChatDemo';
 // Mock scrollIntoView (not available in jsdom)
 Element.prototype.scrollIntoView = vi.fn();
 
-// Mock fetch globally
+// Mock fetchClients so the on-mount lookup doesnt collide with the chat mock
+vi.mock('../services/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/api')>();
+  return { ...actual, fetchClients: vi.fn().mockResolvedValue([]) };
+});
+
+// Mock fetch globally — used by the chat POST
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
