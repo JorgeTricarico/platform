@@ -7,6 +7,7 @@ import { fetchGarments, updateGarmentStatus } from '../services/api';
 import type { DBGarment } from '../services/api';
 import { useToast } from '../components/ToastContext';
 import { BUSINESS } from '../config/business';
+import { reconcilePendingNotifications } from '../lib/reconcilePending';
 
 type ScanMode = 'en_proceso' | 'listo' | 'entregado';
 
@@ -153,6 +154,26 @@ export default function QRScanner() {
       .then(g => { garmentsRef.current = g; })
       .catch(() => {});
   }, []);
+
+  // Z37: cuando hay prendas pendientes de avisar, re-fetcheamos cada 30s para
+  // descartar las que ya cambiaron de status desde otra pestania/dispositivo
+  // o por edicion manual desde Garments.tsx (zombies en el panel).
+  useEffect(() => {
+    if (pendingNotifications.length === 0) return;
+    let cancelled = false;
+    const reconcile = async () => {
+      try {
+        const fresh = await fetchGarments();
+        if (cancelled) return;
+        garmentsRef.current = fresh;
+        setPendingNotifications(prev => reconcilePendingNotifications(prev, fresh));
+      } catch {
+        // silencioso: ya hay alert/red feedback en otros flows
+      }
+    };
+    const id = setInterval(reconcile, 30_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [pendingNotifications.length]);
 
   // Auto-start camera on mount
   useEffect(() => {
