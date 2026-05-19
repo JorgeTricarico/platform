@@ -33,8 +33,6 @@
       "Bash(chmod +x scripts/render-status.sh)",
       "Bash(bash scripts/render-status.sh status)",
       "Bash(bash scripts/render-status.sh deploys)",
-      "Bash(curl -s -H \"Authorization: Bearer rnd_PTfUP27McQtvx3u9OzB3gH7RICtu\" \"https://api.render.com/v1/services?limit=20\")",
-      "Bash(curl -s -H \"Authorization: Bearer rnd_PTfUP27McQtvx3u9OzB3gH7RICtu\" \"https://api.render.com/v1/services/srv-d78t7c94tr6s73cggik0/deploys?limit=1\")",
       "Bash(ls -la clients/zenko/.env*)",
       "Bash(ls -la clients/damian/.env*)",
       "Bash(timeout 10 node --loader ts-node/esm src/index.ts)",
